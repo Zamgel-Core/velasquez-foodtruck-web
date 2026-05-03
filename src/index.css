@@ -9,3 +9,25 @@
   --color-neon-red: #ff101f;
   --color-dark-bg: #0a0a0a;
 }
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  background: #050505;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
