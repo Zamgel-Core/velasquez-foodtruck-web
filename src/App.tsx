@@ -332,8 +332,8 @@ export default function App() {
   className="absolute inset-0 bg-cover bg-[65%_center] sm:bg-center md:bg-[center_right]"
   style={{ backgroundImage: "url('/images/food-truck-hero.png')" }}
 />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/15" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />
 
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -418,6 +418,16 @@ export default function App() {
                 <span className="text-orange-500">{t.menuTitle.split(" ")[1]}</span>
               </h2>
               <p className="mt-4 text-white/60">{t.menuSubtitle}</p>
+
+<a
+  href={whatsapp}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="mx-auto mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-green-600 px-6 py-4 font-black text-white shadow-[0_0_25px_rgba(22,163,74,0.45)] transition hover:scale-105"
+>
+  <MessageCircle size={20} />
+  {lang === "es" ? "Ordena rápido por WhatsApp" : "Order instantly via WhatsApp"}
+</a>
             </div>
 
             <h3 className="mt-14 text-center text-2xl font-black uppercase">
