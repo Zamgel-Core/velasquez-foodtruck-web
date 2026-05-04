@@ -325,13 +325,13 @@ export default function App() {
         </nav>
 
         <section
-          id="home"
-          className="relative flex min-h-screen items-center overflow-hidden bg-black pt-24"
-        >
+  id="home"
+  className="relative flex min-h-[100svh] items-center overflow-hidden bg-black pt-24"
+>
           <div
-            className="absolute inset-0 bg-cover bg-center md:bg-[center_right]"
-            style={{ backgroundImage: "url('/images/food-truck-hero.png')" }}
-          />
+  className="absolute inset-0 bg-cover bg-[65%_center] sm:bg-center md:bg-[center_right]"
+  style={{ backgroundImage: "url('/images/food-truck-hero.png')" }}
+/>
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/15" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
 
@@ -347,7 +347,7 @@ export default function App() {
                 {t.openNow}
               </div>
 
-              <h1 className="text-5xl font-black leading-none tracking-tight sm:text-7xl lg:text-8xl">
+              <h1 className="max-w-[95vw] text-4xl font-black leading-none tracking-tight min-[380px]:text-5xl sm:text-7xl lg:text-8xl">
                 {t.hero1}
                 <br />
                 <span className="text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.8)]">
@@ -361,7 +361,7 @@ export default function App() {
                 {t.heroText}
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-8 flex w-full max-w-[95vw] flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <a
                   href={mapsUrl}
                   target="_blank"
@@ -424,14 +424,14 @@ export default function App() {
               {t.popular}
             </h3>
 
-            <div className="mx-auto mt-8 grid max-w-4xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mx-auto mt-8 grid w-full max-w-5xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {menuItems[activeCategory].map((item) => (
                 <motion.div
                   key={item.name}
                   whileHover={{ y: -6 }}
                   className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-3 transition hover:border-orange-500/60 hover:shadow-[0_0_28px_rgba(234,88,12,0.2)]"
                 >
-                  <div className="h-48 overflow-hidden rounded-2xl bg-zinc-900">
+                  <div className="h-44 overflow-hidden rounded-2xl bg-zinc-900 sm:h-48">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -457,12 +457,12 @@ export default function App() {
               ))}
             </div>
 
-            <div className="scrollbar-hide mx-auto mt-10 flex max-w-4xl gap-3 overflow-x-auto px-1 pb-2">
+            <div className="scrollbar-hide mx-auto mt-10 flex w-full max-w-full gap-3 overflow-x-auto px-4 pb-2 sm:max-w-4xl sm:justify-center">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`shrink-0 rounded-full border px-5 py-3 text-xs font-black uppercase tracking-wider transition ${
+                  className={`shrink-0 whitespace-nowrap rounded-full border px-5 py-3 text-xs font-black uppercase tracking-wider transition ${
                     activeCategory === cat
                       ? "border-orange-500 bg-orange-600 text-white shadow-[0_0_22px_rgba(234,88,12,0.5)]"
                       : "border-white/10 bg-white/[0.04] text-white/70 hover:border-orange-500/50"
@@ -472,6 +472,10 @@ export default function App() {
                 </button>
               ))}
             </div>
+
+            <div className="mt-3 text-center text-xs text-white/40 sm:hidden">
+  {lang === "es" ? "Desliza para ver más →" : "Swipe to see more →"}
+</div>
 
             {showProteins && (
               <div className="mx-auto mt-8 max-w-xl rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-center">
