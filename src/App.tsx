@@ -177,6 +177,45 @@ const menuItems: Record<string, MenuItem[]> = {
   ],
 };
 
+function getBusinessStatus(lang: "es" | "en") {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const weekday = parts.find((p) => p.type === "weekday")?.value;
+  const hour = Number(parts.find((p) => p.type === "hour")?.value);
+  const minute = Number(parts.find((p) => p.type === "minute")?.value);
+  const current = hour * 60 + minute;
+
+  const schedule: Record<string, { open: number; close: number } | null> = {
+    Sun: null,
+    Mon: { open: 11 * 60, close: 22 * 60 },
+    Tue: { open: 11 * 60, close: 22 * 60 },
+    Wed: { open: 11 * 60, close: 22 * 60 },
+    Thu: { open: 11 * 60, close: 22 * 60 },
+    Fri: { open: 11 * 60, close: 23 * 60 },
+    Sat: { open: 11 * 60, close: 23 * 60 },
+  };
+
+  const today = schedule[weekday || "Sun"];
+  const isOpen = !!today && current >= today.open && current < today.close;
+
+  return {
+    isOpen,
+    label: isOpen
+      ? lang === "es"
+        ? "Abierto ahora en Houston"
+        : "Open now in Houston"
+      : lang === "es"
+      ? "Cerrado ahora en Houston"
+      : "Closed now in Houston",
+  };
+}
+
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState("Tacos");
@@ -196,6 +235,21 @@ export default function App() {
     localStorage.setItem("lang", lang);
   }, [lang]);
 
+const [timeTick, setTimeTick] = React.useState(0);
+
+React.useEffect(() => {
+  const interval = setInterval(() => {
+    setTimeTick((value) => value + 1);
+  }, 60000);
+
+  return () => clearInterval(interval);
+}, []);
+
+const businessStatus = React.useMemo(
+  () => getBusinessStatus(lang),
+  [lang, timeTick]
+);
+
   const t = {
     navHome: lang === "es" ? "Inicio" : "Home",
     navMenu: lang === "es" ? "Menú" : "Menu",
@@ -204,8 +258,7 @@ export default function App() {
     orderNow: lang === "es" ? "Ordenar Ahora" : "Order Now",
     call: lang === "es" ? "Llamar" : "Call",
     viewLocation: lang === "es" ? "Ver Ubicación" : "View Location",
-    openNow:
-      lang === "es" ? "Abierto Ahora en Houston" : "Open Now in Houston",
+    openNow: businessStatus.label,
     hero1: lang === "es" ? "LOS MEJORES" : "THE BEST",
     hero2: lang === "es" ? "TACOS" : "TACOS",
     hero3: lang === "es" ? "EN HOUSTON" : "IN HOUSTON",
@@ -342,10 +395,16 @@ export default function App() {
             className="relative z-10 mx-auto w-full max-w-7xl px-4 py-20 sm:px-6"
           >
             <div className="max-w-2xl">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-500/40 bg-orange-500/10 px-4 py-2 text-sm font-bold text-orange-300">
-                <Flame size={18} />
-                {t.openNow}
-              </div>
+              <div
+  className={`mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold ${
+    businessStatus.isOpen
+      ? "border-orange-500/40 bg-orange-500/10 text-orange-300"
+      : "border-red-500/40 bg-red-500/10 text-red-300"
+  }`}
+>
+  <Flame size={18} />
+  {t.openNow}
+</div>
 
               <h1 className="max-w-[95vw] text-4xl font-black leading-none tracking-tight min-[380px]:text-5xl sm:text-7xl lg:text-8xl">
                 {t.hero1}
