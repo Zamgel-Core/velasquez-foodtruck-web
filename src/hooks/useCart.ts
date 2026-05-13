@@ -20,7 +20,7 @@ export function useCart() {
         );
       }
 
-      return [...currentItems, { ...item, quantity: 1 }];
+      return [...currentItems, { ...item, notes: item.notes ?? "", quantity: 1 }];
     });
   }
 
@@ -52,6 +52,14 @@ export function useCart() {
     );
   }
 
+  function updateItemNotes(productId: string, notes: string) {
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        item.productId === productId ? { ...item, notes } : item
+      )
+    );
+  }
+
   function clearCart() {
     setItems([]);
   }
@@ -72,6 +80,7 @@ export function useCart() {
     removeItem,
     increaseItem,
     decreaseItem,
+    updateItemNotes,
     clearCart,
   };
 }

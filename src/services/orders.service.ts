@@ -6,6 +6,14 @@ import type {
   CheckoutCustomer,
 } from "../features/cart/cart.types";
 
+type PaymentMethod = "cash" | "card";
+
+type OrderPaymentData = {
+  paymentMethod: PaymentMethod;
+  feeAmount: number;
+  total: number;
+};
+
 function generateOrderNumber() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -40,11 +48,16 @@ async function resolveProductId(item: CartItem) {
 export async function createOrder(
   customer: CheckoutCustomer,
   items: CartItem[],
-  subtotal: number
+  subtotal: number,
+  payment?: OrderPaymentData
 ) {
   if (items.length === 0) {
     return { success: false, error: "El carrito está vacío." };
   }
+
+  const paymentMethod = payment?.paymentMethod ?? "cash";
+  const feeAmount = payment?.feeAmount ?? 0;
+  const total = payment?.total ?? subtotal;
 
   const { data: customerData, error: customerError } = await supabase
     .from("customers")
@@ -71,7 +84,9 @@ export async function createOrder(
       status: "received",
       subtotal,
       tax: 0,
-      total: subtotal,
+      fee_amount: feeAmount,
+      total,
+      payment_method: paymentMethod,
       payment_status: "pending",
       notes: customer.notes || null,
     })
@@ -93,7 +108,7 @@ export async function createOrder(
         quantity: item.quantity,
         unit_price: item.price,
         total_price: item.price * item.quantity,
-        notes: item.name,
+        notes: item.notes?.trim() || null,
       };
     })
   );

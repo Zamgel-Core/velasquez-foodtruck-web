@@ -1,6 +1,9 @@
+// 📍 Ruta: src/App.tsx
+
 import React from "react";
 import { supabase } from "./lib/supabase";
 import { MotionConfig } from "motion/react";
+import OrdersDashboard from "./features/admin/orders/OrdersDashboard";
 import { ContactSection } from "./components/ContactSection";
 import { FeatureStrip } from "./components/FeatureStrip";
 import { FloatingWhatsApp } from "./components/FloatingWhatsApp";
@@ -15,8 +18,33 @@ import type { Lang, LegalModalType } from "./types";
 import { getBusinessStatus } from "./utils/businessStatus";
 import { useCart } from "./hooks/useCart";
 import CartDrawer from "./features/cart/components/CartDrawer";
+import ProductsAdminDashboard from "./features/admin/products/ProductsAdminDashboard";
+import ProductOptionsDashboard from "./features/admin/product-options/ProductOptionsDashboard";
 
 export default function App() {
+  const isAdminOrdersPage =
+    window.location.pathname.includes("/admin/orders");
+
+  const isAdminProductOptionsPage =
+    window.location.pathname.includes("/admin/product-options");
+
+  const isAdminProductsPage =
+    window.location.pathname.includes("/admin/products");
+
+  if (isAdminOrdersPage) {
+    return <OrdersDashboard />;
+  }
+
+  // 🔥 PRIMERO MÁS ESPECÍFICO
+  if (isAdminProductOptionsPage) {
+    return <ProductOptionsDashboard />;
+  }
+
+  // 🔥 DESPUÉS EL GENERAL
+  if (isAdminProductsPage) {
+    return <ProductsAdminDashboard />;
+  }
+  
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState("Tacos");
   const [legalModal, setLegalModal] = React.useState<LegalModalType>(null);
@@ -144,12 +172,14 @@ export default function App() {
         )}
 
           <CartDrawer
+            lang={lang}
             items={cart.items}
             subtotal={cart.subtotal}
             totalItems={cart.totalItems}
             increaseItem={cart.increaseItem}
             decreaseItem={cart.decreaseItem}
             removeItem={cart.removeItem}
+            updateItemNotes={cart.updateItemNotes}
             clearCart={cart.clearCart}
           />
 

@@ -54,7 +54,7 @@ export function MenuSection({
         price: `$${Number(product.price).toFixed(2)}`,
         image: product.image_url,
         desc: product.description,
-        enDesc: product.description,
+enDesc: product.description_en || product.description,
       });
     }
 
