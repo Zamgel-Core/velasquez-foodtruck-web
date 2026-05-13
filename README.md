@@ -1,20 +1,31 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Velasquez Food Truck Web
 
-# Run and deploy your AI Studio app
+Proyecto Vite + React + TypeScript para Velasquez Food Truck.
 
-This contains everything you need to run your app locally.
+## Scripts
 
-View your app in AI Studio: https://ai.studio/apps/6f499666-47f2-4b70-a2d6-fdd280dc46ac
+```bash
+npm install
+npm run dev
+npm run build
+```
 
-## Run Locally
+## Variables de entorno
 
-**Prerequisites:**  Node.js
+Crea `.env.local` en la raíz:
 
+```env
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_or_publishable_key
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Estructura
+
+```txt
+src/
+  components/   UI por secciones
+  data/         datos estáticos del negocio y menú actual
+  lib/          clientes externos como Supabase
+  types/        tipos TypeScript compartidos
+  utils/        funciones reutilizables
+```
