@@ -9,6 +9,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import AdminUserBadge from "./AdminUserBadge";
+import { useStaffAuth } from "../auth/useStaffAuth";
 
 const links = [
   {
@@ -40,11 +41,18 @@ const links = [
 
 export default function AdminTopbar() {
   const pathname = window.location.pathname;
+  const { role } = useStaffAuth();
+
+  const visibleLinks = links.filter((link) => {
+  if (role === "super_admin" || role === "admin") return true;
+
+  return !["/admin/products", "/admin/product-options"].includes(link.href);
+});
 
   return (
     <div className="sticky top-0 z-50 mb-6 border-b border-orange-500/10 bg-[#050505]/90 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-[1800px] items-center gap-3 overflow-x-auto px-4 py-4">
-        {links.map((link) => {
+        {visibleLinks.map((link) => {
           const Icon = link.icon;
           const active = pathname === link.href;
 

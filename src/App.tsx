@@ -23,6 +23,7 @@ import { ReviewsSection } from "./components/ReviewsSection";
 import AdminLoginPage from "./features/admin/auth/AdminLoginPage";
 import ProtectedAdminRoute from "./features/admin/auth/ProtectedAdminRoute";
 import AdminPOSPage from "./features/admin/pos/AdminPOSPage";
+import StaffAdminPage from "./features/admin/staff/StaffAdminPage";
 
 export default function App() {
   const pathname = window.location.pathname;
@@ -57,7 +58,7 @@ if (pathname === "/admin/orders") {
 
 if (pathname === "/admin/product-options") {
   return (
-    <ProtectedAdminRoute allowedRoles={["admin"]}>
+    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
       <ProductOptionsDashboard />
     </ProtectedAdminRoute>
   );
@@ -65,8 +66,16 @@ if (pathname === "/admin/product-options") {
 
 if (pathname === "/admin/products") {
   return (
-    <ProtectedAdminRoute allowedRoles={["admin"]}>
+    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
       <ProductsAdminDashboard />
+    </ProtectedAdminRoute>
+  );
+}
+
+if (pathname === "/admin/staff") {
+  return (
+    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <StaffAdminPage />
     </ProtectedAdminRoute>
   );
 }

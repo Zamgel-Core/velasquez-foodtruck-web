@@ -4,7 +4,7 @@ import React from "react";
 import { supabase } from "../../../lib/supabase";
 import { getCurrentStaffProfile, signOutStaff } from "./auth.service";
 
-export type StaffRole = "admin" | "employee" | "cashier" | "kitchen";
+export type StaffRole = "super_admin" | "admin" | "employee" | "cashier" | "kitchen";
 
 export type StaffProfile = {
   id: string;

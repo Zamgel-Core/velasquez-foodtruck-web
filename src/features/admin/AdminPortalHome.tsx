@@ -3,42 +3,63 @@
 import React from "react";
 import { motion } from "motion/react";
 import {
+  ArrowRight,
   ClipboardList,
   Package,
   ShoppingCart,
   SlidersHorizontal,
-  ArrowRight,
   Truck,
+  Users,
 } from "lucide-react";
+import { useStaffAuth } from "./auth/useStaffAuth";
 
 const adminCards = [
   {
-  title: "POS",
-  description: "Tomar órdenes presenciales y cobrar clientes.",
-  href: "/admin/pos",
-  icon: ShoppingCart,
+    title: "POS",
+    description: "Tomar órdenes presenciales y cobrar clientes.",
+    href: "/admin/pos",
+    icon: ShoppingCart,
+    roles: ["super_admin", "admin", "employee", "cashier"], // POS
   },
   {
     title: "Órdenes",
     description: "Ver pedidos, clientes, notas y cambiar estados.",
     href: "/admin/orders",
     icon: ClipboardList,
+    roles: ["super_admin", "admin", "employee", "cashier", "kitchen"], // Órdenes
   },
   {
     title: "Productos",
     description: "Administrar menú, precios, disponibilidad e imágenes.",
     href: "/admin/products",
     icon: Package,
+    roles: ["super_admin", "admin"], // Productos
   },
   {
     title: "Opciones / Extras",
     description: "Configurar extras, proteínas y modificadores.",
     href: "/admin/product-options",
     icon: SlidersHorizontal,
+    roles: ["super_admin", "admin"], // Extras
+  },
+  {
+    title: "Staff",
+    description: "Administrar empleados, roles y accesos del sistema.",
+    href: "/admin/staff",
+    icon: Users,
+    roles: ["super_admin", "admin"], // Staff
   },
 ];
 
 export default function AdminPortalHome() {
+  const { role, profile } = useStaffAuth();
+
+  const normalizedRole = role === "super_admin" ? "admin" : role;
+
+  const visibleCards = adminCards.filter((card) =>
+  card.roles.includes(normalizedRole ?? "employee")
+);
+
   return (
     <main className="min-h-screen bg-[#050505] text-white">
       <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8">
@@ -54,7 +75,9 @@ export default function AdminPortalHome() {
             </h1>
 
             <p className="mt-3 max-w-2xl text-sm text-white/60 sm:text-base">
-              Centro de control para pedidos, menú y configuración del food truck.
+              {role === "admin"
+                ? "Centro de control para pedidos, menú, staff y configuración del food truck."
+                : `Bienvenido${profile?.full_name ? `, ${profile.full_name}` : ""}. Accede a tus herramientas de trabajo.`}
             </p>
           </div>
 
@@ -67,7 +90,7 @@ export default function AdminPortalHome() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          {adminCards.map((card, index) => {
+          {visibleCards.map((card, index) => {
             const Icon = card.icon;
 
             return (
