@@ -99,7 +99,7 @@ export default function AdminPortalHome() {
         </div>
 
         <div className="mt-auto pt-10 text-xs font-semibold text-white/35">
-          Zamgel Core × Velasquez Food Truck
+          Velasquez Food Truck × Zamgel Core
         </div>
       </section>
     </main>
