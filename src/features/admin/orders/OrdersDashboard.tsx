@@ -1,6 +1,7 @@
 // 📍 Ruta: src/features/admin/orders/OrdersDashboard.tsx
 
 import React from "react";
+import AdminTopbar from "../components/AdminTopbar";
 import { motion } from "motion/react";
 import {
   AlertTriangle,
@@ -206,6 +207,7 @@ function sortByKitchenPriority(a: AdminOrder, b: AdminOrder) {
 
 function EmptyColumn({ message }: { message: string }) {
   return (
+    
     <div className="rounded-3xl border border-dashed border-white/10 bg-black/20 p-6 text-center text-sm font-bold text-white/35">
       <CheckCircle2 className="mx-auto mb-2 h-8 w-8 opacity-50" />
       {message}
@@ -527,6 +529,9 @@ export default function OrdersDashboard() {
   const showColumns = filter === "active" && !searchTerm.trim();
 
   return (
+  <>
+    <AdminTopbar />
+
     <main
       className={`min-h-screen bg-[#050505] px-4 py-6 text-white ${
         isKitchenMode ? "sm:px-8 lg:px-12" : "sm:px-6 lg:px-10"
@@ -753,6 +758,7 @@ export default function OrdersDashboard() {
           </div>
         )}
       </section>
-    </main>
-  );
+        </main>
+  </>
+);
 }

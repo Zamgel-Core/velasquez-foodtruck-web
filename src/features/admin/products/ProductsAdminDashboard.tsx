@@ -1,6 +1,7 @@
 // 📍 Ruta: src/features/admin/products/ProductsAdminDashboard.tsx
 
 import React from "react";
+import AdminTopbar from "../components/AdminTopbar";
 import {
   CheckCircle2,
   Edit3,
@@ -319,6 +320,9 @@ export default function ProductsAdminDashboard() {
   };
 
   return (
+  <>
+    <AdminTopbar />
+
     <main className="min-h-screen bg-[#050505] px-4 py-6 text-white sm:px-6 lg:px-10">
       <section className="mx-auto max-w-7xl">
         <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -518,6 +522,7 @@ export default function ProductsAdminDashboard() {
           />
         )}
       </section>
-    </main>
-  );
+         </main>
+  </>
+);
 }
