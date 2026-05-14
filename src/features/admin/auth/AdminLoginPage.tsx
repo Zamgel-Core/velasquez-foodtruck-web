@@ -101,7 +101,7 @@ export default function AdminLoginPage() {
         </button>
 
         <p className="mt-5 text-center text-xs font-semibold text-white/35">
-          Zamgel Core × Velasquez Food Truck
+          Velasquez Food Truck × Zamgel Core
         </p>
       </form>
     </main>
