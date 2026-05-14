@@ -29,6 +29,7 @@ export type POSProductOption = {
 export type POSSelectedOption = POSProductOption;
 
 export type POSCartItem = {
+  cart_item_id?: string;
   product: POSProduct;
   quantity: number;
   notes?: string;
@@ -48,6 +49,33 @@ export type CreatePOSOrderInput = {
 function generateOrderNumber() {
   const now = Date.now().toString().slice(-6);
   return `POS-${now}`;
+}
+
+export function getPOSItemUnitPrice(item: POSCartItem) {
+  const optionsTotal =
+    item.selectedOptions?.reduce(
+      (sum, option) => sum + Number(option.extra_price || 0),
+      0
+    ) ?? 0;
+
+  return Number(item.product.price) + optionsTotal;
+}
+
+function getPOSItemNotes(item: POSCartItem) {
+  const optionText =
+    item.selectedOptions && item.selectedOptions.length > 0
+      ? item.selectedOptions
+          .map((option) =>
+            Number(option.extra_price || 0) > 0
+              ? `${option.option_group}: ${option.option_name} +$${Number(
+                  option.extra_price
+                ).toFixed(2)}`
+              : `${option.option_group}: ${option.option_name}`
+          )
+          .join(" | ")
+      : "";
+
+  return [optionText, item.notes?.trim()].filter(Boolean).join(" | ");
 }
 
 export async function getPOSProducts() {
@@ -80,19 +108,16 @@ export async function getPOSProductOptions(productId: string) {
 }
 
 export async function createPOSOrder(input: CreatePOSOrderInput) {
-  if (input.items.length === 0) {
+  const validItems = input.items.filter((item) => item.quantity > 0);
+
+  if (validItems.length === 0) {
     throw new Error("Agrega productos antes de crear la orden.");
   }
 
-  const subtotal = input.items.reduce((sum, item) => {
-    const optionsTotal =
-      item.selectedOptions?.reduce(
-        (optionSum, option) => optionSum + Number(option.extra_price || 0),
-        0
-      ) ?? 0;
-
-    return sum + (Number(item.product.price) + optionsTotal) * item.quantity;
-  }, 0);
+  const subtotal = validItems.reduce(
+    (sum, item) => sum + getPOSItemUnitPrice(item) * item.quantity,
+    0
+  );
 
   const total = subtotal;
   const amountPaid = input.paymentMethod === "cash" ? input.amountPaid : total;
@@ -107,6 +132,7 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
     .insert({
       name: customerName,
       phone: customerPhone || null,
+      notes: input.notes.trim() || null,
     })
     .select("id")
     .single();
@@ -120,9 +146,11 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
       order_number: generateOrderNumber(),
       status: "received",
       subtotal,
+      tax: 0,
+      fee_amount: 0,
       total,
       payment_status: input.paymentMethod === "pending" ? "pending" : "paid",
-      payment_method: input.paymentMethod,
+      payment_method: input.paymentMethod === "pending" ? "cash" : input.paymentMethod,
       amount_paid: amountPaid,
       change_due: changeDue,
       notes: input.notes.trim() || null,
@@ -134,34 +162,13 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
 
   if (orderError) throw orderError;
 
-  const orderItems = input.items.map((item) => {
-    const optionsTotal =
-      item.selectedOptions?.reduce(
-        (sum, option) => sum + Number(option.extra_price || 0),
-        0
-      ) ?? 0;
-
-    const unitPrice = Number(item.product.price) + optionsTotal;
-
-    const optionText =
-      item.selectedOptions && item.selectedOptions.length > 0
-        ? item.selectedOptions
-            .map((option) =>
-              Number(option.extra_price || 0) > 0
-                ? `${option.option_group}: ${option.option_name} +$${Number(
-                    option.extra_price
-                  ).toFixed(2)}`
-                : `${option.option_group}: ${option.option_name}`
-            )
-            .join(" | ")
-        : "";
-
-    const notes = [optionText, item.notes].filter(Boolean).join(" | ");
+  const orderItems = validItems.map((item) => {
+    const unitPrice = getPOSItemUnitPrice(item);
+    const notes = getPOSItemNotes(item);
 
     return {
       order_id: order.id,
       product_id: item.product.id,
-      product_name: item.product.name,
       quantity: item.quantity,
       unit_price: unitPrice,
       total_price: unitPrice * item.quantity,
@@ -169,9 +176,18 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
     };
   });
 
-  const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+  const { error: itemsError } = await supabase
+    .from("order_items")
+    .insert(orderItems);
 
-  if (itemsError) throw itemsError;
+  if (itemsError) {
+    console.error("POS order_items error:", itemsError);
+
+    await supabase.from("orders").delete().eq("id", order.id);
+    await supabase.from("customers").delete().eq("id", customer.id);
+
+    throw new Error("No se pudieron guardar los productos de la orden.");
+  }
 
   return order;
 }

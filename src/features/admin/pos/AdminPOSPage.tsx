@@ -6,6 +6,7 @@ import AdminTopbar from "../components/AdminTopbar";
 import { useStaffAuth } from "../auth/useStaffAuth";
 import {
   createPOSOrder,
+  getPOSItemUnitPrice,
   getPOSProductOptions,
   getPOSProducts,
   type POSCartItem,
@@ -23,27 +24,35 @@ function formatMoney(value: number) {
 
 const POS_DRAFT_KEY = "velasquez_pos_draft";
 
+function createCartItemId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export default function AdminPOSPage() {
   const { profile } = useStaffAuth();
 
   const [products, setProducts] = React.useState<POSProduct[]>([]);
   const [cart, setCart] = React.useState<POSCartItem[]>(() => {
-  try {
-    const saved = localStorage.getItem(POS_DRAFT_KEY);
+    try {
+      const saved = localStorage.getItem(POS_DRAFT_KEY);
 
-    if (!saved) return [];
+      if (!saved) return [];
 
-    const parsed = JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      const savedCart = Array.isArray(parsed)
+        ? parsed
+        : Array.isArray(parsed.cart)
+          ? parsed.cart
+          : [];
 
-    if (Array.isArray(parsed)) {
-      return parsed;
+      return savedCart.map((item: POSCartItem) => ({
+        ...item,
+        cart_item_id: item.cart_item_id ?? createCartItemId(),
+      }));
+    } catch {
+      return [];
     }
-
-    return Array.isArray(parsed.cart) ? parsed.cart : [];
-  } catch {
-    return [];
-  }
-});
+  });
   const [selectedProduct, setSelectedProduct] = React.useState<POSProduct | null>(null);
   const [productOptions, setProductOptions] = React.useState<POSProductOption[]>([]);
   const [selectedOptions, setSelectedOptions] = React.useState<POSSelectedOption[]>([]);
@@ -86,7 +95,6 @@ export default function AdminPOSPage() {
     }
   }, []);
 
-
   const loadProducts = React.useCallback(async () => {
     try {
       setLoading(true);
@@ -120,7 +128,6 @@ export default function AdminPOSPage() {
     );
   }, [draftReady, cart, customerName, customerPhone, notes, paymentMethod, amountPaid]);
 
-
   const categories = React.useMemo(() => {
   return Array.from(
     new Set(products.map((product) => product.category?.name).filter(Boolean))
@@ -144,9 +151,9 @@ export default function AdminPOSPage() {
   const safeCart = Array.isArray(cart) ? cart : [];
 
   const subtotal = safeCart.reduce(
-  (sum, item) => sum + Number(item.product.price) * item.quantity,
-  0
-);
+    (sum, item) => sum + getPOSItemUnitPrice(item) * item.quantity,
+    0
+  );
 
   const paid = Number(amountPaid || 0);
   const changeDue = paymentMethod === "cash" ? Math.max(0, paid - subtotal) : 0;
@@ -174,8 +181,9 @@ const addProductToCart = () => {
   if (!selectedProduct) return;
 
   setCart((current) => [
-    ...current,
+    ...(Array.isArray(current) ? current : []),
     {
+      cart_item_id: createCartItemId(),
       product: selectedProduct,
       quantity: 1,
       selectedOptions,
@@ -189,11 +197,11 @@ const addProductToCart = () => {
   setItemNotes("");
 };
 
-  const updateQuantity = (productId: string, change: number) => {
+  const updateQuantity = (cartItemId: string, change: number) => {
     setCart((current) =>
-      current
+      (Array.isArray(current) ? current : [])
         .map((item) =>
-          item.product.id === productId
+          item.cart_item_id === cartItemId
             ? { ...item, quantity: Math.max(0, item.quantity + change) }
             : item
         )
@@ -201,8 +209,10 @@ const addProductToCart = () => {
     );
   };
 
-  const removeItem = (productId: string) => {
-    setCart((current) => current.filter((item) => item.product.id !== productId));
+  const removeItem = (cartItemId: string) => {
+    setCart((current) =>
+      (Array.isArray(current) ? current : []).filter((item) => item.cart_item_id !== cartItemId)
+    );
   };
 
   const handleCreateOrder = async () => {
@@ -223,7 +233,7 @@ const addProductToCart = () => {
         paymentMethod,
         amountPaid: Number(amountPaid || 0),
         staffProfileId: profile.id,
-        items: cart,
+        items: safeCart,
       });
 
       setSuccess(`Orden ${order.order_number} creada correctamente.`);
@@ -402,43 +412,41 @@ const addProductToCart = () => {
 
               {safeCart.map((item) => (
                 <div
-                  key={item.product.id}
+                  key={item.cart_item_id ?? item.product.id}
                   className="rounded-2xl border border-white/10 bg-black/25 p-3"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-  <h3 className="font-black">{item.product.name}</h3>
+                      <h3 className="font-black">{item.product.name}</h3>
+                      <p className="text-sm font-bold text-orange-300">
+                        {formatMoney(getPOSItemUnitPrice(item))}
+                      </p>
 
-  <p className="text-sm font-bold text-orange-300">
-    {formatMoney(Number(item.product.price))}
-  </p>
+                      {item.selectedOptions && item.selectedOptions.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {item.selectedOptions.map((option) => (
+                            <p
+                              key={option.id}
+                              className="text-xs font-bold text-white/45"
+                            >
+                              {option.option_group}: {option.option_name}
+                              {Number(option.extra_price || 0) > 0
+                                ? ` +${formatMoney(Number(option.extra_price))}`
+                                : ""}
+                            </p>
+                          ))}
+                        </div>
+                      )}
 
-  {item.selectedOptions && item.selectedOptions.length > 0 && (
-    <div className="mt-2 space-y-1">
-      {item.selectedOptions.map((option) => (
-        <p
-          key={option.id}
-          className="text-xs font-bold text-white/45"
-        >
-          {option.option_group}: {option.option_name}
-
-          {Number(option.extra_price || 0) > 0
-            ? ` +${formatMoney(Number(option.extra_price))}`
-            : ""}
-        </p>
-      ))}
-    </div>
-  )}
-
-  {item.notes && (
-    <p className="mt-2 text-xs font-bold text-orange-200/70">
-      Nota: {item.notes}
-    </p>
-  )}
-</div>
+                      {item.notes && (
+                        <p className="mt-2 text-xs font-bold text-orange-200/70">
+                          Nota: {item.notes}
+                        </p>
+                      )}
+                    </div>
 
                     <button
-                      onClick={() => removeItem(item.product.id)}
+                      onClick={() => removeItem(item.cart_item_id ?? item.product.id)}
                       className="rounded-xl bg-red-500/10 p-2 text-red-200 hover:bg-red-500/20"
                       type="button"
                     >
@@ -449,7 +457,7 @@ const addProductToCart = () => {
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => updateQuantity(item.product.id, -1)}
+                        onClick={() => updateQuantity(item.cart_item_id ?? item.product.id, -1)}
                         className="rounded-xl border border-white/10 bg-white/5 p-2 hover:bg-white/10"
                         type="button"
                       >
@@ -461,7 +469,7 @@ const addProductToCart = () => {
                       </span>
 
                       <button
-                        onClick={() => updateQuantity(item.product.id, 1)}
+                        onClick={() => updateQuantity(item.cart_item_id ?? item.product.id, 1)}
                         className="rounded-xl border border-white/10 bg-white/5 p-2 hover:bg-white/10"
                         type="button"
                       >
@@ -470,7 +478,7 @@ const addProductToCart = () => {
                     </div>
 
                     <span className="font-black">
-                      {formatMoney(Number(item.product.price) * item.quantity)}
+                      {formatMoney(getPOSItemUnitPrice(item) * item.quantity)}
                     </span>
                   </div>
                 </div>
@@ -637,6 +645,18 @@ const addProductToCart = () => {
                                   return current.filter(
                                     (selected) => selected.id !== option.id
                                   );
+                                }
+
+                                const isSingleChoiceGroup = option.is_required;
+
+                                if (isSingleChoiceGroup) {
+                                  return [
+                                    ...current.filter(
+                                      (selected) =>
+                                        selected.option_group !== option.option_group
+                                    ),
+                                    option,
+                                  ];
                                 }
 
                                 return [...current, option];

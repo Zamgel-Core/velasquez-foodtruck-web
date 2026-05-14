@@ -4,9 +4,13 @@ import React from "react";
 import type { AdminOrder } from "./admin-orders.types";
 
 const ALERT_INTERVAL = 20000;
+const SOUND_KEY = "velasquez_orders_sound_enabled";
 
 export function useOrderAlerts(orders: AdminOrder[]) {
-  const [soundEnabled, setSoundEnabled] = React.useState(false);
+  const [soundEnabled, setSoundEnabled] = React.useState(() => {
+    return localStorage.getItem(SOUND_KEY) === "true";
+  });
+
   const previousOrderIds = React.useRef<string[]>([]);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
@@ -18,12 +22,50 @@ export function useOrderAlerts(orders: AdminOrder[]) {
 
   const playSound = React.useCallback(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !soundEnabled) return;
 
     audio.currentTime = 0;
     audio.play().catch((err) => {
       console.error("Audio blocked:", err);
     });
+  }, [soundEnabled]);
+
+  const enableSound = React.useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    try {
+      await audio.play();
+      audio.pause();
+      audio.currentTime = 0;
+
+      localStorage.setItem(SOUND_KEY, "true");
+      setSoundEnabled(true);
+
+      const hasPendingOrders = orders.some(
+        (order) => order.status === "received"
+      );
+
+      if (hasPendingOrders) {
+        window.setTimeout(() => {
+          audio.currentTime = 0;
+          audio.play().catch(console.error);
+        }, 300);
+      }
+    } catch (err) {
+      console.error("No se pudo activar el sonido:", err);
+    }
+  }, [orders]);
+
+  const disableSound = React.useCallback(() => {
+    localStorage.setItem(SOUND_KEY, "false");
+    setSoundEnabled(false);
+
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
   }, []);
 
   React.useEffect(() => {
@@ -34,12 +76,12 @@ export function useOrderAlerts(orders: AdminOrder[]) {
       (id) => !previousOrderIds.current.includes(id)
     );
 
-    if (soundEnabled && hasNewOrder) {
+    if (hasNewOrder) {
       playSound();
     }
 
     previousOrderIds.current = currentIds;
-  }, [orders, soundEnabled, playSound]);
+  }, [orders, playSound]);
 
   React.useEffect(() => {
     if (!soundEnabled) return;
@@ -57,33 +99,9 @@ export function useOrderAlerts(orders: AdminOrder[]) {
     return () => window.clearInterval(interval);
   }, [orders, soundEnabled, playSound]);
 
-  const enableSound = React.useCallback(async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    try {
-      await audio.play();
-      audio.pause();
-      audio.currentTime = 0;
-
-      setSoundEnabled(true);
-
-      const hasPendingOrders = orders.some(
-        (order) => order.status === "received"
-      );
-
-      if (hasPendingOrders) {
-        window.setTimeout(() => {
-          playSound();
-        }, 300);
-      }
-    } catch (err) {
-      console.error("No se pudo activar el sonido:", err);
-    }
-  }, [orders, playSound]);
-
   return {
     soundEnabled,
     enableSound,
+    disableSound,
   };
 }

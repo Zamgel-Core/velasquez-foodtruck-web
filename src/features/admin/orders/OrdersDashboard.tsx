@@ -461,11 +461,13 @@ function OrderCard({
 
 export default function OrdersDashboard() {
   const { orders, loading, error, reload, changeStatus } = useRealtimeOrders();
-  const { soundEnabled, enableSound } = useOrderAlerts(orders);
+  const { soundEnabled, enableSound, disableSound } = useOrderAlerts(orders);
 
   const [filter, setFilter] = React.useState<OrderFilter>("active");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [nowTick, setNowTick] = React.useState(0);
+
+  const [showSoundWarning, setShowSoundWarning] = React.useState(false);
 
   React.useEffect(() => {
     const interval = window.setInterval(() => {
@@ -582,7 +584,13 @@ export default function OrdersDashboard() {
 
           <div className="flex flex-wrap items-center gap-3">
             <button
-              onClick={enableSound}
+              onClick={() => {
+  if (soundEnabled) {
+    setShowSoundWarning(true);
+  } else {
+    enableSound();
+  }
+}}
               className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-black text-white shadow-lg transition ${
                 soundEnabled
                   ? "bg-green-600 shadow-green-600/20"
@@ -757,8 +765,43 @@ export default function OrdersDashboard() {
             ))}
           </div>
         )}
-      </section>
-        </main>
+            </section>
+
+      {showSoundWarning && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-red-500/20 bg-[#111] p-6 text-white shadow-2xl">
+            <h2 className="text-2xl font-black text-red-100">
+              Silenciar alertas
+            </h2>
+
+            <p className="mt-3 text-sm font-semibold text-white/60">
+              Si desactivas el sonido, no escucharás alertas cuando lleguen nuevas órdenes.
+            </p>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowSoundWarning(false)}
+                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-black text-white transition hover:bg-white/10"
+                type="button"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => {
+                  disableSound();
+                  setShowSoundWarning(false);
+                }}
+                className="rounded-2xl bg-red-600 px-4 py-3 font-black text-white transition hover:bg-red-500"
+                type="button"
+              >
+                Sí, silenciar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
   </>
 );
 }
