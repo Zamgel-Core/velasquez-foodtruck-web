@@ -1,6 +1,11 @@
+// 📍 Ruta: src/App.tsx
+
 import React from "react";
-import { supabase } from "./lib/supabase";
 import { MotionConfig } from "motion/react";
+import OrdersDashboard from "./features/admin/orders/OrdersDashboard";
+import ProductsAdminDashboard from "./features/admin/products/ProductsAdminDashboard";
+import ProductOptionsDashboard from "./features/admin/product-options/ProductOptionsDashboard";
+import AdminPortalHome from "./features/admin/AdminPortalHome";
 import { ContactSection } from "./components/ContactSection";
 import { FeatureStrip } from "./components/FeatureStrip";
 import { FloatingWhatsApp } from "./components/FloatingWhatsApp";
@@ -10,13 +15,80 @@ import { LegalModal } from "./components/LegalModal";
 import { LocationSection } from "./components/LocationSection";
 import { MenuSection } from "./components/MenuSection";
 import { Navbar } from "./components/Navbar";
-import { ReviewsSection } from "./components/ReviewsSection";
 import type { Lang, LegalModalType } from "./types";
 import { getBusinessStatus } from "./utils/businessStatus";
 import { useCart } from "./hooks/useCart";
 import CartDrawer from "./features/cart/components/CartDrawer";
+import { ReviewsSection } from "./components/ReviewsSection";
+import AdminLoginPage from "./features/admin/auth/AdminLoginPage";
+import ProtectedAdminRoute from "./features/admin/auth/ProtectedAdminRoute";
+import AdminPOSPage from "./features/admin/pos/AdminPOSPage";
+import StaffAdminPage from "./features/admin/staff/StaffAdminPage";
+import AdminRegisterPage from "./features/admin/register/AdminRegisterPage";
 
 export default function App() {
+  const pathname = window.location.pathname;
+
+if (pathname === "/admin/login") {
+  return <AdminLoginPage />;
+}
+
+if (pathname === "/admin") {
+  return (
+    <ProtectedAdminRoute>
+      <AdminPortalHome />
+    </ProtectedAdminRoute>
+  );
+}
+
+if (pathname === "/admin/pos") {
+  return (
+    <ProtectedAdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier"]}>
+      <AdminPOSPage />
+    </ProtectedAdminRoute>
+  );
+}
+
+if (pathname === "/admin/register") {
+  return (
+    <ProtectedAdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier"]}>
+      <AdminRegisterPage />
+    </ProtectedAdminRoute>
+  );
+}
+
+if (pathname === "/admin/orders") {
+  return (
+    <ProtectedAdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier", "kitchen"]}>
+      <OrdersDashboard />
+    </ProtectedAdminRoute>
+  );
+}
+
+if (pathname === "/admin/product-options") {
+  return (
+    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <ProductOptionsDashboard />
+    </ProtectedAdminRoute>
+  );
+}
+
+if (pathname === "/admin/products") {
+  return (
+    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <ProductsAdminDashboard />
+    </ProtectedAdminRoute>
+  );
+}
+
+if (pathname === "/admin/staff") {
+  return (
+    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <StaffAdminPage />
+    </ProtectedAdminRoute>
+  );
+}
+
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState("Tacos");
   const [legalModal, setLegalModal] = React.useState<LegalModalType>(null);
@@ -25,18 +97,11 @@ export default function App() {
   const [lang, setLang] = React.useState<Lang>(() => {
     const saved = localStorage.getItem("lang");
     if (saved === "es" || saved === "en") return saved;
-    if (typeof navigator !== "undefined" && navigator.language.startsWith("en")) return "en";
+    if (typeof navigator !== "undefined" && navigator.language.startsWith("en")) {
+      return "en";
+    }
     return "es";
   });
-
-  React.useEffect(() => {
-  supabase
-    .from("products")
-    .select("*")
-    .then(({ data, error }) => {
-      console.log("SUPABASE TEST:", { data, error });
-    });
-}, []);
 
   React.useEffect(() => {
     localStorage.setItem("lang", lang);
@@ -50,7 +115,11 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const businessStatus = React.useMemo(() => getBusinessStatus(lang), [lang, timeTick]);
+  const businessStatus = React.useMemo(
+    () => getBusinessStatus(lang),
+    [lang, timeTick]
+  );
+
   const cart = useCart();
 
   const t = {
@@ -110,7 +179,12 @@ export default function App() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const legalModalTitle = legalModal === "terms" ? t.terms : legalModal === "privacy" ? t.privacy : t.food;
+  const legalModalTitle =
+    legalModal === "terms"
+      ? t.terms
+      : legalModal === "privacy"
+        ? t.privacy
+        : t.food;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -126,7 +200,15 @@ export default function App() {
 
         <Hero businessStatus={businessStatus} t={t} />
         <FeatureStrip lang={lang} />
-        <MenuSection lang={lang} activeCategory={activeCategory} setActiveCategory={setActiveCategory} t={t} addItem={cart.addItem} />
+
+        <MenuSection
+          lang={lang}
+          activeCategory={activeCategory}
+          setActiveCategory={setActiveCategory}
+          t={t}
+          addItem={cart.addItem}
+        />
+
         <ReviewsSection lang={lang} title={t.reviews} />
         <LocationSection lang={lang} title={t.locationTitle} />
         <ContactSection title={t.contactTitle} text={t.contactText} orderNow={t.orderNow} />
@@ -143,16 +225,17 @@ export default function App() {
           />
         )}
 
-          <CartDrawer
-            items={cart.items}
-            subtotal={cart.subtotal}
-            totalItems={cart.totalItems}
-            increaseItem={cart.increaseItem}
-            decreaseItem={cart.decreaseItem}
-            removeItem={cart.removeItem}
-            clearCart={cart.clearCart}
-          />
-
+        <CartDrawer
+          lang={lang}
+          items={cart.items}
+          subtotal={cart.subtotal}
+          totalItems={cart.totalItems}
+          increaseItem={cart.increaseItem}
+          decreaseItem={cart.decreaseItem}
+          removeItem={cart.removeItem}
+          updateItemNotes={cart.updateItemNotes}
+          clearCart={cart.clearCart}
+        />
       </main>
     </MotionConfig>
   );

@@ -2,7 +2,11 @@
 
 import { useProducts } from "../../../hooks/useProducts";
 
-export default function MenuGrid() {
+export default function MenuGrid({
+  lang,
+}: {
+  lang: "es" | "en";
+}) {
   const { products, loading } = useProducts();
 
   if (loading) {
@@ -44,7 +48,9 @@ export default function MenuGrid() {
                 </div>
 
                 <p className="text-zinc-400 text-sm">
-                  {product.description}
+                  {lang === "es"
+  ? product.description
+  : product.description_en || product.description}
                 </p>
               </div>
             </div>
