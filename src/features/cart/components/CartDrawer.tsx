@@ -1,6 +1,6 @@
 // 📍 Ruta: src/features/cart/components/CartDrawer.tsx
 
-import { Minus, Pencil, Plus, ShoppingCart, Trash2, X } from "lucide-react";
+import { ClipboardCopy, Minus, PackageSearch, Pencil, Plus, ShoppingCart, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import type { Lang } from "../../../types";
 import type { CartItem } from "../cart.types";
@@ -93,6 +93,7 @@ export default function CartDrawer({
   const [isOpen, setIsOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [successOrderNumber, setSuccessOrderNumber] = useState("");
+  const [copiedOrderNumber, setCopiedOrderNumber] = useState(false);
   const [editingItem, setEditingItem] = useState<CartItem | null>(null);
   const [draftNotes, setDraftNotes] = useState("");
   const [selectedProtein, setSelectedProtein] = useState<ProteinOption | null>(
@@ -152,6 +153,10 @@ export default function CartDrawer({
         ? "Muestra este código al llegar al food truck."
         : "Show this number when you arrive at the food truck.",
     understood: lang === "es" ? "Entendido" : "Got it",
+    myOrder: lang === "es" ? "Mi Pedido" : "My Order",
+    trackOrder: lang === "es" ? "Ver mi pedido" : "Track my order",
+    copyOrder: lang === "es" ? "Copiar número" : "Copy number",
+    copied: lang === "es" ? "Copiado" : "Copied",
     regularNote:
       lang === "es"
         ? "Si no personalizas, se prepara normal: fajita y con todo."
@@ -159,9 +164,35 @@ export default function CartDrawer({
   };
 
   function handleSuccess(orderNumber: string) {
-    setSuccessOrderNumber(orderNumber);
+    const cleanOrderNumber = orderNumber.replace(/#/g, "").trim();
+
+    localStorage.setItem(
+      "velasquez_last_order",
+      JSON.stringify({
+        orderNumber: cleanOrderNumber,
+        expiresAt: Date.now() + 30 * 60 * 1000,
+      })
+    );
+
+    setCopiedOrderNumber(false);
+    setSuccessOrderNumber(cleanOrderNumber);
     setIsCheckoutOpen(false);
     clearCart();
+  }
+
+  async function copyOrderNumber() {
+    if (!successOrderNumber) return;
+
+    try {
+      await navigator.clipboard.writeText(successOrderNumber);
+      setCopiedOrderNumber(true);
+
+      window.setTimeout(() => {
+        setCopiedOrderNumber(false);
+      }, 1500);
+    } catch (error) {
+      console.error("No se pudo copiar el número de orden:", error);
+    }
   }
 
   function openCustomize(item: CartItem) {
@@ -500,12 +531,31 @@ export default function CartDrawer({
 
             <p className="mt-4 text-sm text-white/50">{t.showCode}</p>
 
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                onClick={copyOrderNumber}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-black text-white transition hover:bg-white/[0.10]"
+                type="button"
+              >
+                <ClipboardCopy className="h-4 w-4" />
+                {copiedOrderNumber ? t.copied : t.copyOrder}
+              </button>
+
+              <a
+                href="/mi-pedido"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-500"
+              >
+                <PackageSearch className="h-4 w-4" />
+                {t.trackOrder}
+              </a>
+            </div>
+
             <button
               onClick={() => {
                 setSuccessOrderNumber("");
                 setIsOpen(false);
               }}
-              className="mt-6 w-full rounded-full bg-orange-600 px-5 py-4 font-black text-white transition hover:bg-orange-500"
+              className="mt-3 w-full rounded-full bg-orange-600 px-5 py-4 font-black text-white transition hover:bg-orange-500"
             >
               {t.understood}
             </button>

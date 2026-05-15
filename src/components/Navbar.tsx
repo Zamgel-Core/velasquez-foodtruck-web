@@ -1,4 +1,4 @@
-import { Menu, X } from "lucide-react";
+import { Menu, PackageSearch, X } from "lucide-react";
 import type { Lang } from "../types";
 
 type NavbarProps = {
@@ -27,12 +27,12 @@ export function Navbar({
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <button
-  onClick={() => scrollTo("home")}
-  onDoubleClick={() => {
-    window.location.href = "/admin";
-  }}
-  className="flex items-center gap-3"
->
+          onClick={() => scrollTo("home")}
+          onDoubleClick={() => {
+            window.location.href = "/admin";
+          }}
+          className="flex items-center gap-3"
+        >
           <img
             src="/images/velasquez-logo.png"
             alt="Velasquez Food Truck"
@@ -45,10 +45,30 @@ export function Navbar({
         </button>
 
         <div className="hidden items-center gap-7 md:flex">
-          <button onClick={() => scrollTo("home")} className="hover:text-orange-400">{t.navHome}</button>
-          <button onClick={() => scrollTo("menu")} className="hover:text-orange-400">{t.navMenu}</button>
-          <button onClick={() => scrollTo("location")} className="hover:text-orange-400">{t.navLocation}</button>
-          <button onClick={() => scrollTo("contact")} className="hover:text-orange-400">{t.navContact}</button>
+          <button onClick={() => scrollTo("home")} className="hover:text-orange-400">
+            {t.navHome}
+          </button>
+
+          <button onClick={() => scrollTo("menu")} className="hover:text-orange-400">
+            {t.navMenu}
+          </button>
+
+          <button onClick={() => scrollTo("location")} className="hover:text-orange-400">
+            {t.navLocation}
+          </button>
+
+          <button onClick={() => scrollTo("contact")} className="hover:text-orange-400">
+            {t.navContact}
+          </button>
+
+          <a
+            href="/mi-pedido"
+            className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-black text-orange-200 transition hover:bg-orange-500/20"
+          >
+            <PackageSearch className="h-4 w-4" />
+            {lang === "es" ? "Mi Pedido" : "My Order"}
+          </a>
+
           <button
             onClick={() => setLang(lang === "es" ? "en" : "es")}
             className="rounded-full border border-orange-500/40 px-3 py-1 text-sm font-bold text-orange-300"
@@ -73,6 +93,15 @@ export function Navbar({
             <button onClick={() => scrollTo("menu")}>{t.navMenu}</button>
             <button onClick={() => scrollTo("location")}>{t.navLocation}</button>
             <button onClick={() => scrollTo("contact")}>{t.navContact}</button>
+
+            <a
+              href="/mi-pedido"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-3 font-black text-orange-200"
+            >
+              <PackageSearch className="h-4 w-4" />
+              {lang === "es" ? "Mi Pedido" : "My Order"}
+            </a>
+
             <button
               onClick={() => setLang(lang === "es" ? "en" : "es")}
               className="rounded-full bg-orange-600 px-4 py-2 font-bold"

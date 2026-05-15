@@ -8,7 +8,6 @@ import ProductOptionsDashboard from "./features/admin/product-options/ProductOpt
 import AdminPortalHome from "./features/admin/AdminPortalHome";
 import { ContactSection } from "./components/ContactSection";
 import { FeatureStrip } from "./components/FeatureStrip";
-import { FloatingWhatsApp } from "./components/FloatingWhatsApp";
 import { Footer } from "./components/Footer";
 import { Hero } from "./components/Hero";
 import { LegalModal } from "./components/LegalModal";
@@ -26,6 +25,7 @@ import AdminPOSPage from "./features/admin/pos/AdminPOSPage";
 import StaffAdminPage from "./features/admin/staff/StaffAdminPage";
 import AdminRegisterPage from "./features/admin/register/AdminRegisterPage";
 import AdminReportsPage from "./features/admin/reports/AdminReportsPage";
+import OrderStatusPage from "./features/order-status/OrderStatusPage";
 
 export default function App() {
   const pathname = window.location.pathname;
@@ -96,6 +96,10 @@ if (pathname === "/admin/staff") {
       <StaffAdminPage />
     </ProtectedAdminRoute>
   );
+}
+
+if (pathname === "/mi-pedido") {
+  return <OrderStatusPage />;
 }
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -222,8 +226,6 @@ if (pathname === "/admin/staff") {
         <LocationSection lang={lang} title={t.locationTitle} />
         <ContactSection title={t.contactTitle} text={t.contactText} orderNow={t.orderNow} />
         <Footer setLegalModal={setLegalModal} t={t} />
-        <FloatingWhatsApp />
-
         {legalModal && (
           <LegalModal
             legalModal={legalModal}
