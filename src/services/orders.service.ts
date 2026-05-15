@@ -75,7 +75,6 @@ export async function createOrder(
   const paymentMethod = payment?.paymentMethod ?? "cash";
   const feeAmount = payment?.feeAmount ?? 0;
   const total = payment?.total ?? subtotal;
-  const orderNumber = generateOrderNumber();
 
   const { data: customerData, error: customerError } = await supabase
     .from("customers")
@@ -92,7 +91,14 @@ export async function createOrder(
     return { success: false, error: "No se pudo crear el cliente." };
   }
 
+  const orderNumber = generateOrderNumber();
   const registerSessionId = await getActiveRegisterSessionId();
+  if (!registerSessionId) {
+  return {
+    success: false,
+    error: "Por el momento no estamos tomando órdenes. Intenta más tarde.",
+  };
+}
 
   const { data: orderData, error: orderError } = await supabase
     .from("orders")

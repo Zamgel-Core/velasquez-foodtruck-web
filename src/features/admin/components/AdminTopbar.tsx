@@ -2,15 +2,16 @@
 
 import React from "react";
 import {
+  BarChart3,
   ClipboardList,
   LayoutGrid,
   Package,
   ShoppingCart,
   SlidersHorizontal,
+  WalletCards,
 } from "lucide-react";
 import AdminUserBadge from "./AdminUserBadge";
 import { useStaffAuth } from "../auth/useStaffAuth";
-import { WalletCards } from "lucide-react";
 
 const links = [
   {
@@ -32,6 +33,11 @@ const links = [
     label: "Órdenes",
     href: "/admin/orders",
     icon: ClipboardList,
+  },
+  {
+    label: "Reportes",
+    href: "/admin/reports",
+    icon: BarChart3,
   },
   {
     label: "Productos",

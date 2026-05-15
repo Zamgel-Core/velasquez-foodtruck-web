@@ -14,6 +14,8 @@ export type CashRegisterSession = {
   card_sales: number;
   pending_sales: number;
   total_sales: number;
+  expected_cash: number | null;
+  cash_difference: number | null;
   order_count: number;
   cancelled_count: number;
   status: "open" | "closed";
@@ -69,7 +71,18 @@ export async function closeRegisterSession(input: {
   endingCash: number;
   notes?: string;
 }) {
+  const session = await getOpenRegisterSession();
+
+  if (!session || session.id !== input.sessionId) {
+    throw new Error("No hay una caja abierta para cerrar.");
+  }
+
   const totals = await getRegisterSessionTotals(input.sessionId);
+
+  const expectedCash =
+    Number(session.starting_cash || 0) + Number(totals.cashSales || 0);
+
+  const cashDifference = Number(input.endingCash || 0) - expectedCash;
 
   const { data, error } = await supabase
     .from("cash_register_sessions")
@@ -77,10 +90,15 @@ export async function closeRegisterSession(input: {
       closed_by_staff_id: input.staffProfileId,
       closed_at: new Date().toISOString(),
       ending_cash: input.endingCash,
+
       cash_sales: totals.cashSales,
       card_sales: totals.cardSales,
       pending_sales: totals.pendingSales,
       total_sales: totals.totalSales,
+
+      expected_cash: expectedCash,
+      cash_difference: cashDifference,
+
       order_count: totals.orderCount,
       cancelled_count: totals.cancelledCount,
       notes: input.notes?.trim() || null,

@@ -141,6 +141,9 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
   if (customerError) throw customerError;
 
   const openSession = await getOpenRegisterSession();
+  if (!openSession) {
+  throw new Error("Primero debes abrir caja antes de crear órdenes POS.");
+}
   
   const { data: order, error: orderError } = await supabase
     .from("orders")
@@ -159,7 +162,7 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
       notes: input.notes.trim() || null,
       order_source: "pos",
       created_by_staff_id: input.staffProfileId,
-      register_session_id: openSession?.id ?? null,
+      register_session_id: openSession.id,
     })
     .select("id, order_number")
     .single();

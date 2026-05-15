@@ -25,6 +25,7 @@ import ProtectedAdminRoute from "./features/admin/auth/ProtectedAdminRoute";
 import AdminPOSPage from "./features/admin/pos/AdminPOSPage";
 import StaffAdminPage from "./features/admin/staff/StaffAdminPage";
 import AdminRegisterPage from "./features/admin/register/AdminRegisterPage";
+import AdminReportsPage from "./features/admin/reports/AdminReportsPage";
 
 export default function App() {
   const pathname = window.location.pathname;
@@ -61,6 +62,14 @@ if (pathname === "/admin/orders") {
   return (
     <ProtectedAdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier", "kitchen"]}>
       <OrdersDashboard />
+    </ProtectedAdminRoute>
+  );
+}
+
+if (pathname === "/admin/reports") {
+  return (
+    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminReportsPage />
     </ProtectedAdminRoute>
   );
 }

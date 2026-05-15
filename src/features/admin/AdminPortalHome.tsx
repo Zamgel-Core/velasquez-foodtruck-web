@@ -4,15 +4,16 @@ import React from "react";
 import { motion } from "motion/react";
 import {
   ArrowRight,
+  BarChart3,
   ClipboardList,
   Package,
   ShoppingCart,
   SlidersHorizontal,
   Truck,
   Users,
+  Wallet,
 } from "lucide-react";
 import { useStaffAuth } from "./auth/useStaffAuth";
-import { Wallet } from "lucide-react";
 
 const adminCards = [
   {
@@ -30,11 +31,18 @@ const adminCards = [
     roles: ["super_admin", "admin", "employee", "cashier", "kitchen"], // Órdenes
   },
   {
-  title: "Caja",
-  description: "Abrir, cerrar y controlar cortes de caja.",
-  href: "/admin/register",
-  icon: Wallet,
-  roles: ["super_admin", "admin", "employee", "cashier"],
+    title: "Caja",
+    description: "Abrir, cerrar y controlar cortes de caja.",
+    href: "/admin/register",
+    icon: Wallet,
+    roles: ["super_admin", "admin", "cashier"],
+  },
+  {
+    title: "Reportes",
+    description: "Ventas, métricas, cortes y análisis del negocio.",
+    href: "/admin/reports",
+    icon: BarChart3,
+    roles: ["super_admin", "admin"], // Reportes
   },
   {
     title: "Productos",
