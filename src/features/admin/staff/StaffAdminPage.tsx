@@ -10,10 +10,12 @@ import {
   type StaffMember,
 } from "./admin-staff.service";
 import type { StaffRole } from "../auth/useStaffAuth";
+import { useStaffAuth } from "../auth/useStaffAuth";
 
-const roles: StaffRole[] = ["admin", "employee", "cashier", "kitchen"];
+const roles: StaffRole[] = ["super_admin", "admin", "employee", "cashier", "kitchen"];
 const roleFilters: Array<"all" | StaffRole | "inactive"> = [
   "all",
+  "super_admin",
   "admin",
   "employee",
   "cashier",
@@ -29,6 +31,7 @@ function getRoleLabel(role: "all" | StaffRole | "inactive") {
 }
 
 export default function StaffAdminPage() {
+  const { role } = useStaffAuth();
   const [staff, setStaff] = React.useState<StaffMember[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [savingId, setSavingId] = React.useState("");
@@ -418,41 +421,51 @@ export default function StaffAdminPage() {
                     />
 
                     <select
-                      value={member.role}
-                      onChange={(event) =>
-                        handleUpdate(member, {
-                          role: event.target.value as StaffRole,
-                        })
-                      }
-                      className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-black outline-none focus:border-orange-500/60"
-                    >
-                      {roles.map((role) => (
-                        <option key={role} value={role}>
-                          {role.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
+  value={member.role}
+  disabled={
+    member.role === "super_admin" &&
+    role !== "super_admin"
+  }
+  onChange={(event) =>
+    handleUpdate(member, {
+      role: event.target.value as StaffRole,
+    })
+  }
+  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-black outline-none focus:border-orange-500/60"
+>
+  {roles.map((role) => (
+    <option key={role} value={role}>
+      {role.toUpperCase()}
+    </option>
+  ))}
+</select>
 
-                    <button
-                      onClick={() =>
-                        handleUpdate(member, {
-                          is_active: !member.is_active,
-                        })
-                      }
-                      disabled={savingId === member.id}
-                      className={`rounded-2xl px-4 py-3 text-sm font-black transition ${
-                        member.is_active
-                          ? "border border-green-500/30 bg-green-500/10 text-green-200 hover:bg-green-500/20"
-                          : "border border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-                      }`}
-                      type="button"
-                    >
-                      {savingId === member.id
-                        ? "Guardando..."
-                        : member.is_active
-                          ? "Activo"
-                          : "Inactivo"}
-                    </button>
+<button
+  onClick={() =>
+    handleUpdate(member, {
+      is_active: !member.is_active,
+    })
+  }
+  disabled={
+    savingId === member.id ||
+    (
+      member.role === "super_admin" &&
+      role !== "super_admin"
+    )
+  }
+  className={`rounded-2xl px-4 py-3 text-sm font-black transition ${
+    member.is_active
+      ? "border border-green-500/30 bg-green-500/10 text-green-200 hover:bg-green-500/20"
+      : "border border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20"
+  }`}
+  type="button"
+>
+  {savingId === member.id
+    ? "Guardando..."
+    : member.is_active
+      ? "Activo"
+      : "Inactivo"}
+</button>
                   </div>
                 </div>
               ))}

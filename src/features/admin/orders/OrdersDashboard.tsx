@@ -16,6 +16,7 @@ import {
   Maximize,
   MessageCircle,
   Minimize,
+  MonitorUp,
   PackageCheck,
   RefreshCw,
   Search,
@@ -205,11 +206,24 @@ function sortByKitchenPriority(a: AdminOrder, b: AdminOrder) {
   return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
 }
 
-function EmptyColumn({ message }: { message: string }) {
+function EmptyColumn({
+  message,
+  isKitchenMode = false,
+}: {
+  message: string;
+  isKitchenMode?: boolean;
+}) {
   return (
-    
-    <div className="rounded-3xl border border-dashed border-white/10 bg-black/20 p-6 text-center text-sm font-bold text-white/35">
-      <CheckCircle2 className="mx-auto mb-2 h-8 w-8 opacity-50" />
+    <div
+      className={`rounded-3xl border border-dashed border-white/10 bg-black/20 text-center font-bold text-white/35 ${
+        isKitchenMode ? "p-10 text-lg" : "p-6 text-sm"
+      }`}
+    >
+      <CheckCircle2
+        className={`mx-auto mb-2 opacity-50 ${
+          isKitchenMode ? "h-12 w-12" : "h-8 w-8"
+        }`}
+      />
       {message}
     </div>
   );
@@ -262,13 +276,17 @@ function OrderCard({
           ? { duration: 0.55, repeat: Infinity, repeatDelay: 7 }
           : undefined,
       }}
-      className={`rounded-3xl border p-5 shadow-2xl transition-all duration-500 ${
-        isKitchenMode ? "p-6" : ""
+      className={`rounded-3xl border shadow-2xl transition-all duration-500 ${
+        isKitchenMode ? "p-7" : "p-5"
       } ${getUrgencyClasses(order)}`}
     >
       {isExtremeLate && (
-        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-red-400/50 bg-red-500/20 px-4 py-3 text-sm font-black text-red-100">
-          <AlertTriangle className="h-5 w-5" />
+        <div
+          className={`mb-4 flex items-center gap-2 rounded-2xl border border-red-400/50 bg-red-500/20 px-4 py-3 font-black text-red-100 ${
+            isKitchenMode ? "text-lg" : "text-sm"
+          }`}
+        >
+          <AlertTriangle className={isKitchenMode ? "h-7 w-7" : "h-5 w-5"} />
           Alerta: orden sin atender por más de 10 minutos
         </div>
       )}
@@ -278,46 +296,58 @@ function OrderCard({
           <div className="flex flex-wrap items-center gap-2">
             <h2
               className={`${
-                isKitchenMode ? "text-4xl" : "text-2xl"
+                isKitchenMode ? "text-5xl leading-none" : "text-2xl"
               } font-black text-white`}
             >
               Orden #{order.order_number}
             </h2>
 
             <span
-              className={`rounded-full border px-3 py-1 text-xs font-bold ${statusClasses[order.status]}`}
+              className={`rounded-full border px-3 py-1 font-bold ${
+                isKitchenMode ? "text-sm" : "text-xs"
+              } ${statusClasses[order.status]}`}
             >
               {statusLabels[order.status]}
             </span>
           </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <span
-              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-black ${getMinutePillClasses(
+              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 font-black ${getMinutePillClasses(
                 order
-              )}`}
+              )} ${isKitchenMode ? "text-lg" : "text-xs"}`}
             >
-              <Clock className="h-4 w-4" />
+              <Clock className={isKitchenMode ? "h-5 w-5" : "h-4 w-4"} />
               {minutesAgo < 1 ? "0 MIN" : `${minutesAgo} MIN`}
             </span>
 
-            <span className={`text-sm font-bold ${getUrgencyBadge(order)}`}>
+            <span
+              className={`font-bold ${getUrgencyBadge(order)} ${
+                isKitchenMode ? "text-lg" : "text-sm"
+              }`}
+            >
               {getTimeAgoLabel(order.created_at)}
             </span>
 
-            <span className="text-sm text-white/45">
+            <span className={isKitchenMode ? "text-base text-white/45" : "text-sm text-white/45"}>
               · {formatTime(order.created_at)}
             </span>
           </div>
 
-          <p className="mt-2 text-sm text-white/60">
+          <p
+            className={`mt-3 text-white/70 ${
+              isKitchenMode ? "text-xl font-black" : "text-sm"
+            }`}
+          >
             {order.customer?.name ?? "Cliente sin nombre"}
           </p>
 
           {order.customer?.phone && (
             <a
               href={`tel:${order.customer.phone}`}
-              className="mt-1 inline-block text-sm font-semibold text-orange-300 hover:text-orange-200"
+              className={`mt-1 inline-block font-semibold text-orange-300 hover:text-orange-200 ${
+                isKitchenMode ? "text-xl" : "text-sm"
+              }`}
             >
               {order.customer.phone}
             </a>
@@ -329,7 +359,7 @@ function OrderCard({
 
           <p
             className={`${
-              isKitchenMode ? "text-4xl" : "text-2xl"
+              isKitchenMode ? "text-5xl" : "text-2xl"
             } font-black text-orange-400`}
           >
             {formatMoney(order.total)}
@@ -337,7 +367,9 @@ function OrderCard({
 
           <div className="mt-2 flex flex-col items-start gap-2 sm:items-end">
             <div
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-black ${
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 font-black ${
+                isKitchenMode ? "text-sm" : "text-xs"
+              } ${
                 order.payment_method === "card"
                   ? "border-orange-500/50 bg-orange-500/15 text-orange-200"
                   : "border-green-500/50 bg-green-500/15 text-green-200"
@@ -369,27 +401,31 @@ function OrderCard({
         </div>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className={isKitchenMode ? "mt-5 space-y-4" : "mt-4 space-y-3"}>
         {order.items.map((item) => (
           <div
             key={item.id}
-            className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 p-3"
+            className={`flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 ${
+              isKitchenMode ? "p-5" : "p-3"
+            }`}
           >
             <div>
               <p
                 className={`${
-                  isKitchenMode ? "text-2xl" : "text-base"
+                  isKitchenMode ? "text-3xl" : "text-base"
                 } font-bold text-white`}
               >
                 {item.quantity}x {item.product_name}
               </p>
 
               {item.notes && item.notes !== item.product_name && (
-                <p className="text-xs text-white/50">{item.notes}</p>
+                <p className={isKitchenMode ? "mt-2 text-lg text-white/55" : "text-xs text-white/50"}>
+                  {item.notes}
+                </p>
               )}
             </div>
 
-            <p className="font-bold text-white/80">
+            <p className={isKitchenMode ? "text-2xl font-black text-white/85" : "font-bold text-white/80"}>
               {formatMoney(item.total_price)}
             </p>
           </div>
@@ -397,54 +433,72 @@ function OrderCard({
       </div>
 
       {order.notes && (
-        <div className="mt-4 rounded-2xl border border-orange-500/30 bg-orange-500/10 p-3">
+        <div
+          className={`mt-4 rounded-2xl border border-orange-500/30 bg-orange-500/10 ${
+            isKitchenMode ? "p-5" : "p-3"
+          }`}
+        >
           <p className="text-xs font-bold uppercase tracking-wide text-orange-300">
             Notas importantes
           </p>
 
-          <p className="mt-1 text-sm font-bold text-white/90">{order.notes}</p>
+          <p
+            className={`mt-1 font-bold text-white/90 ${
+              isKitchenMode ? "text-xl" : "text-sm"
+            }`}
+          >
+            {order.notes}
+          </p>
         </div>
       )}
 
-      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className={`mt-5 grid gap-2 ${isKitchenMode ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`}>
         <button
           disabled={updating}
           onClick={() => handleStatus("preparing")}
-          className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-3 text-sm font-bold text-yellow-100 transition hover:bg-yellow-500/20 disabled:opacity-50"
+          className={`rounded-2xl border border-yellow-500/30 bg-yellow-500/10 font-bold text-yellow-100 transition hover:bg-yellow-500/20 disabled:opacity-50 ${
+            isKitchenMode ? "px-4 py-5 text-lg" : "px-3 py-3 text-sm"
+          }`}
         >
-          <ChefHat className="mx-auto mb-1 h-5 w-5" />
+          <ChefHat className={`mx-auto mb-1 ${isKitchenMode ? "h-7 w-7" : "h-5 w-5"}`} />
           Preparar
         </button>
 
         <button
           disabled={updating}
           onClick={() => handleStatus("ready")}
-          className="rounded-2xl border border-green-500/30 bg-green-500/10 px-3 py-3 text-sm font-bold text-green-100 transition hover:bg-green-500/20 disabled:opacity-50"
+          className={`rounded-2xl border border-green-500/30 bg-green-500/10 font-bold text-green-100 transition hover:bg-green-500/20 disabled:opacity-50 ${
+            isKitchenMode ? "px-4 py-5 text-lg" : "px-3 py-3 text-sm"
+          }`}
         >
-          <PackageCheck className="mx-auto mb-1 h-5 w-5" />
+          <PackageCheck className={`mx-auto mb-1 ${isKitchenMode ? "h-7 w-7" : "h-5 w-5"}`} />
           Listo
         </button>
 
         <button
           disabled={updating}
           onClick={() => handleStatus("delivered")}
-          className="rounded-2xl border border-blue-500/30 bg-blue-500/10 px-3 py-3 text-sm font-bold text-blue-100 transition hover:bg-blue-500/20 disabled:opacity-50"
+          className={`rounded-2xl border border-blue-500/30 bg-blue-500/10 font-bold text-blue-100 transition hover:bg-blue-500/20 disabled:opacity-50 ${
+            isKitchenMode ? "px-4 py-5 text-lg" : "px-3 py-3 text-sm"
+          }`}
         >
-          <Truck className="mx-auto mb-1 h-5 w-5" />
+          <Truck className={`mx-auto mb-1 ${isKitchenMode ? "h-7 w-7" : "h-5 w-5"}`} />
           Entregado
         </button>
 
         <button
           disabled={updating}
           onClick={() => handleStatus("cancelled")}
-          className="rounded-2xl border border-red-500/30 bg-red-500/10 px-3 py-3 text-sm font-bold text-red-100 transition hover:bg-red-500/20 disabled:opacity-50"
+          className={`rounded-2xl border border-red-500/30 bg-red-500/10 font-bold text-red-100 transition hover:bg-red-500/20 disabled:opacity-50 ${
+            isKitchenMode ? "px-4 py-5 text-lg" : "px-3 py-3 text-sm"
+          }`}
         >
-          <XCircle className="mx-auto mb-1 h-5 w-5" />
+          <XCircle className={`mx-auto mb-1 ${isKitchenMode ? "h-7 w-7" : "h-5 w-5"}`} />
           Cancelar
         </button>
       </div>
 
-      {whatsAppLink && (
+      {whatsAppLink && !isKitchenMode && (
         <a
           href={whatsAppLink}
           target="_blank"
@@ -466,8 +520,11 @@ export default function OrdersDashboard() {
   const [filter, setFilter] = React.useState<OrderFilter>("active");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [nowTick, setNowTick] = React.useState(0);
-
   const [showSoundWarning, setShowSoundWarning] = React.useState(false);
+
+  const isKitchenMode = window.location.search.includes("kitchen=true");
+
+  const wakeLockRef = React.useRef<any>(null);
 
   React.useEffect(() => {
     const interval = window.setInterval(() => {
@@ -477,11 +534,42 @@ export default function OrdersDashboard() {
     return () => window.clearInterval(interval);
   }, []);
 
-  const isKitchenMode = window.location.search.includes("kitchen=true");
+  React.useEffect(() => {
+    if (!isKitchenMode) return;
+
+    const requestWakeLock = async () => {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLockRef.current = await (navigator as any).wakeLock.request("screen");
+        }
+      } catch (err) {
+        console.warn("Wake lock no disponible:", err);
+      }
+    };
+
+    requestWakeLock();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      wakeLockRef.current?.release?.();
+      wakeLockRef.current = null;
+    };
+  }, [isKitchenMode]);
 
   const pendingOrders = orders.filter((order) => order.status === "received");
   const preparingOrders = orders.filter((order) => order.status === "preparing");
   const readyOrders = orders.filter((order) => order.status === "ready");
+  const activeOrders = orders
+    .filter((order) => order.status !== "delivered" && order.status !== "cancelled")
+    .sort(sortByKitchenPriority);
 
   const filteredOrders = orders
     .filter((order) => {
@@ -506,6 +594,8 @@ export default function OrdersDashboard() {
     })
     .sort(sortByKitchenPriority);
 
+  const visibleOrders = isKitchenMode ? activeOrders : filteredOrders;
+
   const toggleKitchenMode = () => {
     if (isKitchenMode) {
       window.history.pushState({}, "", "/admin/orders");
@@ -528,280 +618,355 @@ export default function OrdersDashboard() {
     }
   };
 
-  const showColumns = filter === "active" && !searchTerm.trim();
+  const showColumns = isKitchenMode || (filter === "active" && !searchTerm.trim());
 
   return (
-  <>
-    <AdminTopbar />
+    <>
+      {!isKitchenMode && <AdminTopbar />}
 
-    <main
-      className={`min-h-screen bg-[#050505] px-4 py-6 text-white ${
-        isKitchenMode ? "sm:px-8 lg:px-12" : "sm:px-6 lg:px-10"
-      }`}
-    >
-      <section
-        className={isKitchenMode ? "mx-auto max-w-[1800px]" : "mx-auto max-w-7xl"}
+      <main
+        className={`min-h-screen bg-[#050505] text-white ${
+          isKitchenMode ? "px-4 py-4 sm:px-6 lg:px-8" : "px-4 py-6 sm:px-6 lg:px-10"
+        }`}
       >
-        <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-300">
-                <Clock className="h-4 w-4" />
-                Panel en tiempo real
-              </div>
-
-              {pendingOrders.length > 0 && (
-                <div className="inline-flex animate-pulse items-center gap-2 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-black text-red-200">
-                  <Bell className="h-4 w-4" />
-                  {pendingOrders.length} pendiente
-                  {pendingOrders.length === 1 ? "" : "s"}
-                </div>
-              )}
-
-              <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-200">
-                <ChefHat className="h-4 w-4" />
-                {preparingOrders.length} preparando
-              </div>
-
-              <div className="inline-flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs font-black text-green-200">
-                <PackageCheck className="h-4 w-4" />
-                {readyOrders.length} listas
-              </div>
-            </div>
-
-            <h1
-              className={`${
-                isKitchenMode ? "text-5xl" : "text-3xl sm:text-4xl"
-              } font-black`}
-            >
-              Órdenes <span className="text-orange-500">Velasquez</span>
-            </h1>
-
-            <p className="mt-1 text-sm text-white/60">
-              Administra pedidos recibidos, preparación, listos y entregados.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => {
-  if (soundEnabled) {
-    setShowSoundWarning(true);
-  } else {
-    enableSound();
-  }
-}}
-              className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-black text-white shadow-lg transition ${
-                soundEnabled
-                  ? "bg-green-600 shadow-green-600/20"
-                  : "bg-orange-600 shadow-orange-600/20 hover:bg-orange-500"
-              }`}
-            >
-              {soundEnabled ? (
-                <>
-                  <Bell className="h-5 w-5" />
-                  Sonido Activado
-                </>
-              ) : (
-                <>
-                  <BellOff className="h-5 w-5" />
-                  Activar Sonido
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={toggleKitchenMode}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 font-black text-white shadow-lg transition hover:bg-white/[0.10]"
-            >
-              {isKitchenMode ? (
-                <>
-                  <Minimize className="h-5 w-5" />
-                  Modo Normal
-                </>
-              ) : (
-                <>
-                  <Expand className="h-5 w-5" />
-                  Modo Cocina
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={enterFullscreen}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 font-black text-white shadow-lg transition hover:bg-white/[0.10]"
-            >
-              <Maximize className="h-5 w-5" />
-              Pantalla Completa
-            </button>
-
-            <button
-              onClick={reload}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-600 px-5 py-3 font-black text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-500"
-            >
-              <RefreshCw className="h-5 w-5" />
-              Actualizar
-            </button>
-          </div>
-        </div>
-
-        <div className="mb-6 rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap gap-2">
-              {filterOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setFilter(option.value)}
-                  className={`rounded-2xl border px-4 py-2 text-sm font-black transition ${
-                    filter === option.value
-                      ? "border-orange-500 bg-orange-500/20 text-orange-100"
-                      : "border-white/10 bg-black/20 text-white/60 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="relative w-full lg:max-w-xs">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-
-              <input
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Buscar orden, cliente o teléfono..."
-                className="w-full rounded-2xl border border-white/10 bg-black/30 py-3 pl-10 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-white/30 focus:border-orange-500/60"
-              />
-            </div>
-          </div>
-        </div>
-
-        {loading && (
-          <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center text-white/70">
-            Cargando órdenes...
-          </div>
-        )}
-
-        {error && (
-          <div className="rounded-3xl border border-red-500/30 bg-red-500/10 p-5 text-red-200">
-            {error}
-          </div>
-        )}
-
-        {!loading && !error && filteredOrders.length === 0 && (
-          <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center">
-            <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-green-400" />
-
-            <h2 className="text-xl font-black">No hay órdenes para mostrar</h2>
-
-            <p className="mt-1 text-white/60">
-              Cambia el filtro o espera una nueva orden.
-            </p>
-          </div>
-        )}
-
-        {!loading && !error && filteredOrders.length > 0 && showColumns && (
-          <div className="grid gap-5 xl:grid-cols-3">
-            {(["received", "preparing", "ready"] as const).map((status) => {
-              const columnOrders = filteredOrders.filter(
-                (order) => order.status === status
-              );
-
-              const config = columnConfig[status];
-
-              return (
-                <section
-                  key={status}
-                  className={`rounded-3xl border p-4 ${config.wrapper}`}
-                >
-                  <div className="mb-4 flex items-start justify-between gap-3">
-                    <div>
-                      <h2 className="text-xl font-black">{config.label}</h2>
-                      <p className="text-xs font-bold text-white/35">
-                        {config.description}
-                      </p>
-                    </div>
-
-                    <span
-                      className={`rounded-full px-3 py-1 text-sm font-black ${config.badge}`}
-                    >
-                      {columnOrders.length}
-                    </span>
-                  </div>
-
-                  <div className="space-y-5">
-                    {columnOrders.length === 0 ? (
-                      <EmptyColumn message={config.empty} />
-                    ) : (
-                      columnOrders.map((order) => (
-                        <OrderCard
-                          key={`${order.id}-${nowTick}`}
-                          order={order}
-                          isKitchenMode={isKitchenMode}
-                          onChangeStatus={changeStatus}
-                        />
-                      ))
-                    )}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        )}
-
-        {!loading && !error && filteredOrders.length > 0 && !showColumns && (
+        <section
+          className={isKitchenMode ? "mx-auto max-w-[2400px]" : "mx-auto max-w-7xl"}
+        >
           <div
-            className={`grid gap-5 ${
-              isKitchenMode ? "xl:grid-cols-3" : "lg:grid-cols-2"
+            className={`mb-6 rounded-3xl border border-white/10 bg-white/[0.04] ${
+              isKitchenMode ? "p-6" : "p-5"
             }`}
           >
-            {filteredOrders.map((order) => (
-              <OrderCard
-                key={`${order.id}-${nowTick}`}
-                order={order}
-                isKitchenMode={isKitchenMode}
-                onChangeStatus={changeStatus}
-              />
-            ))}
-          </div>
-        )}
-            </section>
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div>
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-300">
+                    <Clock className="h-4 w-4" />
+                    Panel en tiempo real
+                  </div>
 
-      {showSoundWarning && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-red-500/20 bg-[#111] p-6 text-white shadow-2xl">
-            <h2 className="text-2xl font-black text-red-100">
-              Silenciar alertas
-            </h2>
+                  {isKitchenMode && (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-black text-blue-200">
+                      <MonitorUp className="h-4 w-4" />
+                      Cocina PRO
+                    </div>
+                  )}
 
-            <p className="mt-3 text-sm font-semibold text-white/60">
-              Si desactivas el sonido, no escucharás alertas cuando lleguen nuevas órdenes.
-            </p>
+                  {pendingOrders.length > 0 && (
+                    <div className="inline-flex animate-pulse items-center gap-2 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-black text-red-200">
+                      <Bell className="h-4 w-4" />
+                      {pendingOrders.length} pendiente
+                      {pendingOrders.length === 1 ? "" : "s"}
+                    </div>
+                  )}
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setShowSoundWarning(false)}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-black text-white transition hover:bg-white/10"
-                type="button"
-              >
-                Cancelar
-              </button>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-200">
+                    <ChefHat className="h-4 w-4" />
+                    {preparingOrders.length} preparando
+                  </div>
 
-              <button
-                onClick={() => {
-                  disableSound();
-                  setShowSoundWarning(false);
-                }}
-                className="rounded-2xl bg-red-600 px-4 py-3 font-black text-white transition hover:bg-red-500"
-                type="button"
-              >
-                Sí, silenciar
-              </button>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs font-black text-green-200">
+                    <PackageCheck className="h-4 w-4" />
+                    {readyOrders.length} listas
+                  </div>
+                </div>
+
+                <h1
+                  className={`${
+                    isKitchenMode ? "text-5xl lg:text-6xl" : "text-3xl sm:text-4xl"
+                  } font-black`}
+                >
+                  Órdenes <span className="text-orange-500">Velasquez</span>
+                </h1>
+
+                <p className={`${isKitchenMode ? "mt-2 text-lg" : "mt-1 text-sm"} text-white/60`}>
+                  {isKitchenMode
+                    ? "Vista grande para cocina: nuevas, en preparación y listas."
+                    : "Administra pedidos recibidos, preparación, listos y entregados."}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => {
+                    if (soundEnabled) {
+                      setShowSoundWarning(true);
+                    } else {
+                      enableSound();
+                    }
+                  }}
+                  className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-black text-white shadow-lg transition ${
+                    soundEnabled
+                      ? "bg-green-600 shadow-green-600/20"
+                      : "bg-orange-600 shadow-orange-600/20 hover:bg-orange-500"
+                  }`}
+                  type="button"
+                >
+                  {soundEnabled ? (
+                    <>
+                      <Bell className="h-5 w-5" />
+                      Sonido Activado
+                    </>
+                  ) : (
+                    <>
+                      <BellOff className="h-5 w-5" />
+                      Activar Sonido
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={toggleKitchenMode}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 font-black text-white shadow-lg transition hover:bg-white/[0.10]"
+                  type="button"
+                >
+                  {isKitchenMode ? (
+                    <>
+                      <Minimize className="h-5 w-5" />
+                      Modo Normal
+                    </>
+                  ) : (
+                    <>
+                      <Expand className="h-5 w-5" />
+                      Modo Cocina
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={enterFullscreen}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 font-black text-white shadow-lg transition hover:bg-white/[0.10]"
+                  type="button"
+                >
+                  <Maximize className="h-5 w-5" />
+                  Pantalla Completa
+                </button>
+
+                <button
+                  onClick={reload}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-600 px-5 py-3 font-black text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-500"
+                  type="button"
+                >
+                  <RefreshCw className="h-5 w-5" />
+                  Actualizar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </main>
-  </>
-);
+
+          {!isKitchenMode && (
+            <div className="mb-6 rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-wrap gap-2">
+                  {filterOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setFilter(option.value)}
+                      className={`rounded-2xl border px-4 py-2 text-sm font-black transition ${
+                        filter === option.value
+                          ? "border-orange-500 bg-orange-500/20 text-orange-100"
+                          : "border-white/10 bg-black/20 text-white/60 hover:bg-white/10 hover:text-white"
+                      }`}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative w-full lg:max-w-xs">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+
+                  <input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Buscar orden, cliente o teléfono..."
+                    className="w-full rounded-2xl border border-white/10 bg-black/30 py-3 pl-10 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-white/30 focus:border-orange-500/60"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isKitchenMode && (
+            <div className="mb-6 grid gap-3 md:grid-cols-3">
+              <div className="rounded-3xl border border-orange-500/25 bg-orange-500/[0.06] p-5">
+                <p className="text-sm font-black uppercase tracking-wide text-orange-300">
+                  Nuevas
+                </p>
+                <p className="mt-2 text-5xl font-black text-white">
+                  {pendingOrders.length}
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-yellow-500/25 bg-yellow-500/[0.06] p-5">
+                <p className="text-sm font-black uppercase tracking-wide text-yellow-300">
+                  En cocina
+                </p>
+                <p className="mt-2 text-5xl font-black text-white">
+                  {preparingOrders.length}
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-green-500/25 bg-green-500/[0.06] p-5">
+                <p className="text-sm font-black uppercase tracking-wide text-green-300">
+                  Listas
+                </p>
+                <p className="mt-2 text-5xl font-black text-white">
+                  {readyOrders.length}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {loading && (
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center text-white/70">
+              Cargando órdenes...
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-3xl border border-red-500/30 bg-red-500/10 p-5 text-red-200">
+              {error}
+            </div>
+          )}
+
+          {!loading && !error && visibleOrders.length === 0 && (
+            <div
+              className={`rounded-3xl border border-white/10 bg-white/[0.04] text-center ${
+                isKitchenMode ? "p-14" : "p-8"
+              }`}
+            >
+              <CheckCircle2
+                className={`mx-auto mb-3 text-green-400 ${
+                  isKitchenMode ? "h-16 w-16" : "h-10 w-10"
+                }`}
+              />
+
+              <h2 className={isKitchenMode ? "text-4xl font-black" : "text-xl font-black"}>
+                No hay órdenes para mostrar
+              </h2>
+
+              <p className={isKitchenMode ? "mt-3 text-xl text-white/60" : "mt-1 text-white/60"}>
+                {isKitchenMode
+                  ? "La cocina está libre por ahora."
+                  : "Cambia el filtro o espera una nueva orden."}
+              </p>
+            </div>
+          )}
+
+          {!loading && !error && visibleOrders.length > 0 && showColumns && (
+            <div
+              className={`grid gap-5 ${
+                isKitchenMode ? "2xl:grid-cols-3" : "xl:grid-cols-3"
+              }`}
+            >
+              {(["received", "preparing", "ready"] as const).map((status) => {
+                const columnOrders = visibleOrders.filter(
+                  (order) => order.status === status
+                );
+
+                const config = columnConfig[status];
+
+                return (
+                  <section
+                    key={status}
+                    className={`rounded-3xl border ${
+                      isKitchenMode ? "p-5" : "p-4"
+                    } ${config.wrapper}`}
+                  >
+                    <div className="mb-4 flex items-start justify-between gap-3">
+                      <div>
+                        <h2 className={isKitchenMode ? "text-4xl font-black" : "text-xl font-black"}>
+                          {config.label}
+                        </h2>
+                        <p className={isKitchenMode ? "text-base font-bold text-white/35" : "text-xs font-bold text-white/35"}>
+                          {config.description}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`rounded-full px-3 py-1 font-black ${config.badge} ${
+                          isKitchenMode ? "text-2xl" : "text-sm"
+                        }`}
+                      >
+                        {columnOrders.length}
+                      </span>
+                    </div>
+
+                    <div className={isKitchenMode ? "space-y-6" : "space-y-5"}>
+                      {columnOrders.length === 0 ? (
+                        <EmptyColumn message={config.empty} isKitchenMode={isKitchenMode} />
+                      ) : (
+                        columnOrders.map((order) => (
+                          <OrderCard
+                            key={`${order.id}-${nowTick}`}
+                            order={order}
+                            isKitchenMode={isKitchenMode}
+                            onChangeStatus={changeStatus}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          )}
+
+          {!loading && !error && visibleOrders.length > 0 && !showColumns && (
+            <div
+              className={`grid gap-5 ${
+                isKitchenMode ? "xl:grid-cols-3" : "lg:grid-cols-2"
+              }`}
+            >
+              {visibleOrders.map((order) => (
+                <OrderCard
+                  key={`${order.id}-${nowTick}`}
+                  order={order}
+                  isKitchenMode={isKitchenMode}
+                  onChangeStatus={changeStatus}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {showSoundWarning && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-3xl border border-red-500/20 bg-[#111] p-6 text-white shadow-2xl">
+              <h2 className="text-2xl font-black text-red-100">
+                Silenciar alertas
+              </h2>
+
+              <p className="mt-3 text-sm font-semibold text-white/60">
+                Si desactivas el sonido, no escucharás alertas cuando lleguen nuevas órdenes.
+              </p>
+
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setShowSoundWarning(false)}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-black text-white transition hover:bg-white/10"
+                  type="button"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  onClick={() => {
+                    disableSound();
+                    setShowSoundWarning(false);
+                  }}
+                  className="rounded-2xl bg-red-600 px-4 py-3 font-black text-white transition hover:bg-red-500"
+                  type="button"
+                >
+                  Sí, silenciar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </>
+  );
 }

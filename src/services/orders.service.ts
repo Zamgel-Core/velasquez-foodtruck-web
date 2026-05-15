@@ -45,6 +45,23 @@ async function resolveProductId(item: CartItem) {
   return data?.id ?? null;
 }
 
+async function getActiveRegisterSessionId() {
+  const { data, error } = await supabase
+    .from("cash_register_sessions")
+    .select("id")
+    .eq("status", "open")
+    .order("opened_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Cash register lookup error:", error);
+    return null;
+  }
+
+  return data?.id ?? null;
+}
+
 export async function createOrder(
   customer: CheckoutCustomer,
   items: CartItem[],
@@ -58,6 +75,7 @@ export async function createOrder(
   const paymentMethod = payment?.paymentMethod ?? "cash";
   const feeAmount = payment?.feeAmount ?? 0;
   const total = payment?.total ?? subtotal;
+  const orderNumber = generateOrderNumber();
 
   const { data: customerData, error: customerError } = await supabase
     .from("customers")
@@ -74,7 +92,7 @@ export async function createOrder(
     return { success: false, error: "No se pudo crear el cliente." };
   }
 
-  const orderNumber = generateOrderNumber();
+  const registerSessionId = await getActiveRegisterSessionId();
 
   const { data: orderData, error: orderError } = await supabase
     .from("orders")
@@ -89,6 +107,7 @@ export async function createOrder(
       payment_method: paymentMethod,
       payment_status: "pending",
       notes: customer.notes || null,
+      register_session_id: registerSessionId,
     })
     .select("id, order_number")
     .single();

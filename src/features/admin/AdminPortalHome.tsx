@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { useStaffAuth } from "./auth/useStaffAuth";
+import { Wallet } from "lucide-react";
 
 const adminCards = [
   {
@@ -27,6 +28,13 @@ const adminCards = [
     href: "/admin/orders",
     icon: ClipboardList,
     roles: ["super_admin", "admin", "employee", "cashier", "kitchen"], // Órdenes
+  },
+  {
+  title: "Caja",
+  description: "Abrir, cerrar y controlar cortes de caja.",
+  href: "/admin/register",
+  icon: Wallet,
+  roles: ["super_admin", "admin", "employee", "cashier"],
   },
   {
     title: "Productos",

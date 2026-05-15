@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import AdminUserBadge from "./AdminUserBadge";
 import { useStaffAuth } from "../auth/useStaffAuth";
+import { WalletCards } from "lucide-react";
 
 const links = [
   {
@@ -21,6 +22,11 @@ const links = [
     label: "POS",
     href: "/admin/pos",
     icon: ShoppingCart,
+  },
+  {
+  label: "Caja",
+  href: "/admin/register",
+  icon: WalletCards,
   },
   {
     label: "Órdenes",
@@ -44,9 +50,24 @@ export default function AdminTopbar() {
   const { role } = useStaffAuth();
 
   const visibleLinks = links.filter((link) => {
-  if (role === "super_admin" || role === "admin") return true;
+  if (role === "super_admin" || role === "admin") {
+    return true;
+  }
 
-  return !["/admin/products", "/admin/product-options"].includes(link.href);
+  if (role === "cashier") {
+    return [
+      "/admin",
+      "/admin/pos",
+      "/admin/orders",
+      "/admin/register",
+    ].includes(link.href);
+  }
+
+  if (role === "kitchen") {
+    return ["/admin", "/admin/orders"].includes(link.href);
+  }
+
+  return ["/admin", "/admin/pos", "/admin/orders"].includes(link.href);
 });
 
   return (

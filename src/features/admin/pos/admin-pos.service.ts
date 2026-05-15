@@ -1,6 +1,7 @@
 // 📍 Ruta: src/features/admin/pos/admin-pos.service.ts
 
 import { supabase } from "../../../lib/supabase";
+import { getOpenRegisterSession } from "../register/admin-register.service";
 
 export type POSProduct = {
   id: string;
@@ -139,6 +140,8 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
 
   if (customerError) throw customerError;
 
+  const openSession = await getOpenRegisterSession();
+  
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
@@ -156,6 +159,7 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
       notes: input.notes.trim() || null,
       order_source: "pos",
       created_by_staff_id: input.staffProfileId,
+      register_session_id: openSession?.id ?? null,
     })
     .select("id, order_number")
     .single();
