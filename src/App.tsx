@@ -196,16 +196,16 @@ export default function App() {
   const legalText = {
     terms:
       lang === "es"
-        ? "Los precios, disponibilidad de productos, horarios y ubicación pueden cambiar sin previo aviso."
-        : "Prices, product availability, hours, and location may change without notice.",
+        ? "Al usar este sitio aceptas que los precios, productos, horarios, promociones, tiempos de preparación y disponibilidad pueden cambiar sin previo aviso. Los pedidos están sujetos a confirmación del negocio. Velasquez Food Truck se reserva el derecho de cancelar o ajustar pedidos cuando sea necesario por disponibilidad, errores de captura o situaciones operativas."
+        : "By using this site, you agree that prices, products, hours, promotions, preparation times, and availability may change without prior notice. Orders are subject to business confirmation. Velasquez Food Truck reserves the right to cancel or adjust orders when necessary due to availability, entry errors, or operational situations.",
     privacy:
       lang === "es"
-        ? "La información del cliente solo se utiliza para responder pedidos, llamadas o mensajes relacionados con el negocio."
-        : "Customer information is only used to respond to orders, calls, or business-related messages.",
+        ? "La información proporcionada por el cliente, como nombre, teléfono, detalles del pedido y mensajes, se utiliza únicamente para procesar pedidos, responder solicitudes, dar seguimiento al servicio y mejorar la experiencia del cliente. No vendemos ni compartimos tu información personal con terceros para fines comerciales."
+        : "Customer information such as name, phone number, order details, and messages is used only to process orders, respond to requests, provide service updates, and improve the customer experience. We do not sell or share your personal information with third parties for commercial purposes.",
     food:
       lang === "es"
-        ? "Los alimentos pueden contener alérgenos. Si tienes alergias, pregunta antes de ordenar."
-        : "Food may contain allergens. If you have allergies, please ask before ordering.",
+        ? "Nuestros alimentos pueden contener o entrar en contacto con alérgenos como lácteos, gluten, soya, huevo, frutos secos, mariscos u otros ingredientes. Si tienes alergias o restricciones alimenticias, consulta antes de ordenar. El consumo de alimentos es responsabilidad del cliente."
+        : "Our food may contain or come into contact with allergens such as dairy, gluten, soy, eggs, nuts, seafood, or other ingredients. If you have allergies or dietary restrictions, please ask before ordering. Food consumption is the customer's responsibility.",
   };
 
   const scrollTo = (id: string) => {
