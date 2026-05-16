@@ -289,23 +289,25 @@ export default function CartDrawer({
           const audio = new Audio("/sounds/Open_cart.mp3");
           audio.volume = 0.35;
           audio.play().catch(() => {});
-
           setIsOpen((value) => !value);
         }}
-        className="fixed bottom-5 right-5 z-[9999] flex h-16 w-16 items-center justify-center rounded-full bg-orange-600 text-white shadow-[0_0_30px_rgba(234,88,12,0.55)] transition hover:scale-105 hover:bg-orange-500"
+        className="fixed bottom-5 right-5 z-[9999] flex h-16 w-16 items-center justify-center rounded-full bg-orange-600 text-white shadow-[0_0_30px_rgba(234,88,12,0.55)] transition hover:-translate-y-1 hover:scale-105 hover:bg-orange-500 hover:shadow-[0_0_42px_rgba(234,88,12,0.75)]"
         aria-label={t.openCart}
       >
+        {totalItems > 0 && (
+          <span className="absolute inset-0 animate-ping rounded-full bg-orange-500/25" />
+        )}
         <ShoppingCart size={28} />
 
         {totalItems > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-green-600 px-2 text-xs font-black text-white ring-2 ring-black">
+          <span className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-green-600 px-2 text-xs font-black text-white ring-2 ring-black shadow-lg shadow-green-500/30">
             {totalItems}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-24 right-5 z-[9999] w-[380px] max-w-[calc(100vw-24px)] overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0a]/95 shadow-[0_0_40px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+        <div className="fixed bottom-24 right-5 z-[9999] w-[380px] max-w-[calc(100vw-24px)] overflow-hidden rounded-3xl border border-orange-500/20 bg-[#0a0a0a]/95 shadow-[0_0_48px_rgba(234,88,12,0.18)] backdrop-blur-xl">
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
             <div className="flex items-center gap-3">
               <ShoppingCart className="text-orange-500" size={24} />

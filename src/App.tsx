@@ -171,7 +171,7 @@ export default function App() {
       lang === "es"
         ? "Hecho al momento, con el auténtico sabor mexicano"
         : "Made to order, with authentic Mexican flavor",
-    popular: lang === "es" ? "Especialidades Populares" : "Popular Specials",
+    popular: lang === "es" ? "Antojitos Populares" : "Popular Specials",
     proteins: lang === "es" ? "Proteínas disponibles" : "Available proteins",
     ask: lang === "es" ? "Pregunte por disponibilidad" : "Ask for availability",
     reviews:

@@ -34,6 +34,13 @@ export function MenuSection({
 }: MenuSectionProps) {
   const { products, loading } = useProducts();
 
+  const normalizeCategory = (category: string) =>
+    category === "Especialidades" ? "Antojitos" : category;
+
+  const showProteins = ["Tacos", "Tortas", "Burritos", "Antojitos"].includes(
+    activeCategory,
+  );
+
   const dynamicMenuItems = useMemo(() => {
     const grouped: Record<string, MenuItem[]> = {};
 
@@ -42,7 +49,7 @@ export function MenuSection({
     }
 
     for (const product of products) {
-      const category = product.category || "Extras";
+      const category = normalizeCategory(product.category || "Extras");
 
       if (!grouped[category]) {
         grouped[category] = [];
@@ -54,7 +61,7 @@ export function MenuSection({
         price: `$${Number(product.price).toFixed(2)}`,
         image: product.image_url,
         desc: product.description,
-enDesc: product.description_en || product.description,
+        enDesc: product.description_en || product.description,
       });
     }
 
@@ -64,23 +71,19 @@ enDesc: product.description_en || product.description,
   const activeItems =
     dynamicMenuItems[activeCategory]?.length > 0
       ? dynamicMenuItems[activeCategory]
-      : menuItems[activeCategory] ?? [];
-
-  const showProteins = ["Tortas", "Burritos", "Especialidades"].includes(
-    activeCategory
-  );
+      : (menuItems[activeCategory] ?? []);
 
   return (
-    <section id="menu" className="relative px-4 py-20">
+    <section id="menu" className="relative overflow-hidden px-4 py-24">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(234,88,12,0.18),transparent_35%)]" />
+      <div className="absolute left-0 top-40 h-72 w-72 rounded-full bg-orange-600/10 blur-3xl" />
+      <div className="absolute bottom-20 right-0 h-80 w-80 rounded-full bg-orange-500/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl">
         <div className="text-center">
           <h2 className="text-4xl font-black uppercase sm:text-6xl">
             {t.menuTitle.split(" ")[0]}{" "}
-            <span className="text-orange-500">
-              {t.menuTitle.split(" ")[1]}
-            </span>
+            <span className="text-orange-500">{t.menuTitle.split(" ")[1]}</span>
           </h2>
 
           <p className="mt-4 text-white/60">{t.menuSubtitle}</p>
@@ -110,24 +113,56 @@ enDesc: product.description_en || product.description,
           {lang === "es" ? "Desliza para ver más →" : "Swipe to see more →"}
         </div>
 
+        {showProteins && (
+          <div className="mx-auto mt-5 flex w-full max-w-5xl flex-wrap items-center justify-center gap-2 rounded-2xl border border-orange-500/15 bg-black/45 px-4 py-3 text-center backdrop-blur-sm">
+            <span className="mr-1 text-xs font-black uppercase tracking-[0.16em] text-orange-300">
+              {t.proteins}
+            </span>
+
+            {[
+              lang === "es" ? "Pollo" : "Chicken",
+              lang === "es" ? "Fajita de res" : "Beef fajita",
+              "Pastor",
+              "Chorizo",
+              "Barbacoa +$2",
+              "Campechano +$2.50",
+            ].map((protein) => (
+              <span
+                key={protein}
+                className="rounded-full border border-orange-500/35 bg-orange-500/10 px-3 py-1 text-[11px] font-black text-orange-200"
+              >
+                {protein}
+              </span>
+            ))}
+
+            <span className="w-full text-[11px] font-semibold text-white/40 sm:w-auto sm:pl-2">
+              {t.ask}
+            </span>
+          </div>
+        )}
+
         {loading && (
           <p className="mt-8 text-center text-sm text-white/50">
             {lang === "es" ? "Cargando menú..." : "Loading menu..."}
           </p>
         )}
 
-        <div className="mx-auto mt-10 grid w-full max-w-5xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto mt-8 grid w-full max-w-5xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {activeItems.map((item) => (
             <motion.div
               key={item.id || item.name}
-              whileHover={{ y: -6 }}
-              className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-3 transition hover:border-orange-500/60 hover:shadow-[0_0_28px_rgba(234,88,12,0.2)]"
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-70px" }}
+              whileHover={{ y: -8 }}
+              className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-3 shadow-xl shadow-black/20 transition duration-300 hover:border-orange-500/60 hover:bg-orange-500/[0.045] hover:shadow-[0_0_34px_rgba(234,88,12,0.22)]"
             >
-              <div className="h-44 overflow-hidden rounded-2xl bg-zinc-900 sm:h-48">
+              <div className="relative h-44 overflow-hidden rounded-2xl bg-zinc-900 sm:h-48">
+                <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-70" />
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                  className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
                 />
               </div>
 
@@ -143,7 +178,7 @@ enDesc: product.description_en || product.description,
                 </div>
 
                 {item.price && (
-                  <p className="shrink-0 font-black text-orange-500">
+                  <p className="shrink-0 rounded-full bg-orange-500/10 px-3 py-1 font-black text-orange-400">
                     {item.price}
                   </p>
                 )}
@@ -160,7 +195,7 @@ enDesc: product.description_en || product.description,
                       imageUrl: item.image,
                     })
                   }
-                  className="mt-4 w-full rounded-full bg-orange-600 px-4 py-3 text-sm font-black text-white transition hover:scale-[1.02] hover:bg-orange-500"
+                  className="mt-4 w-full rounded-full bg-orange-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-orange-600/15 transition hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-orange-500 hover:shadow-orange-600/30"
                 >
                   {lang === "es" ? "Agregar al pedido" : "Add to order"}
                 </button>
@@ -168,32 +203,6 @@ enDesc: product.description_en || product.description,
             </motion.div>
           ))}
         </div>
-
-        {showProteins && (
-          <div className="mx-auto mt-8 max-w-xl rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-center">
-            <h4 className="font-black">{t.proteins}</h4>
-
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {[
-                lang === "es" ? "Pollo" : "Chicken",
-                lang === "es" ? "Fajita de res" : "Beef fajita",
-                "Pastor",
-                "Chorizo",
-                "Barbacoa +$2",
-                "Campechano +$2.50",
-              ].map((protein) => (
-                <span
-                  key={protein}
-                  className="rounded-full border border-orange-500/40 bg-orange-500/10 px-3 py-1 text-xs font-black text-orange-300"
-                >
-                  {protein}
-                </span>
-              ))}
-            </div>
-
-            <p className="mt-4 text-sm text-white/55">{t.ask}</p>
-          </div>
-        )}
       </div>
     </section>
   );

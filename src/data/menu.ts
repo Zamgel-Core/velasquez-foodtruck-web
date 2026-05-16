@@ -4,7 +4,7 @@ export const categories = [
   "Tacos",
   "Tortas",
   "Burritos",
-  "Especialidades",
+  "Antojitos",
   "Bebidas",
   "Hot Dogs",
   "Extras",
@@ -59,7 +59,7 @@ export const menuItems: Record<string, MenuItem[]> = {
       enDesc: "Special burrito with authentic flavor",
     },
   ],
-  Especialidades: [
+  Antojitos: [
     {
       name: "Quesadilla",
       price: "$10.00",
@@ -82,58 +82,58 @@ export const menuItems: Record<string, MenuItem[]> = {
       enDesc: "Gordita prepared with authentic flavor",
     },
   ],
-Bebidas: [
-  {
-    name: "Horchata",
-    image: "/images/horchata.png",
-    price: "$3.00",
-    desc: "Agua fresca tradicional mexicana",
-    enDesc: "Traditional Mexican fresh drink",
-  },
+  Bebidas: [
+    {
+      name: "Horchata",
+      image: "/images/horchata.png",
+      price: "$3.00",
+      desc: "Agua fresca tradicional mexicana",
+      enDesc: "Traditional Mexican fresh drink",
+    },
 
-  {
-    name: "Jamaica",
-    image: "/images/jamaica.png",
-    price: "$3.00",
-    desc: "Agua fresca natural de jamaica",
-    enDesc: "Natural hibiscus fresh drink",
-  },
+    {
+      name: "Jamaica",
+      image: "/images/jamaica.png",
+      price: "$3.00",
+      desc: "Agua fresca natural de jamaica",
+      enDesc: "Natural hibiscus fresh drink",
+    },
 
-  {
-    name: "Pepino con Limón",
-    enName: "Lime Cucumber",
-    image: "/images/pepino-limon.png",
-    price: "$3.00",
-    desc: "Refrescante bebida natural",
-    enDesc: "Refreshing natural drink",
-  },
+    {
+      name: "Pepino con Limón",
+      enName: "Lime Cucumber",
+      image: "/images/pepino-limon.png",
+      price: "$3.00",
+      desc: "Refrescante bebida natural",
+      enDesc: "Refreshing natural drink",
+    },
 
-  {
-    name: "Jarritos",
-    image: "/images/jarritos.png",
-    price: "$2.50",
-    desc: "Refresco mexicano embotellado",
-    enDesc: "Mexican bottled soda",
-  },
+    {
+      name: "Jarritos",
+      image: "/images/jarritos.png",
+      price: "$2.50",
+      desc: "Refresco mexicano embotellado",
+      enDesc: "Mexican bottled soda",
+    },
 
-  {
-    name: "Coca-Cola Mexicana",
-    enName: "Mexican Coke",
-    image: "/images/cocacola-mexicana.png",
-    price: "$3.50",
-    desc: "Coca-Cola mexicana original",
-    enDesc: "Original Mexican Coca-Cola",
-  },
+    {
+      name: "Coca-Cola Mexicana",
+      enName: "Mexican Coke",
+      image: "/images/cocacola-mexicana.png",
+      price: "$3.50",
+      desc: "Coca-Cola mexicana original",
+      enDesc: "Original Mexican Coca-Cola",
+    },
 
-  {
-    name: "Coca-Cola en lata",
-    enName: "Coke",
-    image: "/images/cocacola-lata.png",
-    price: "$1.50",
-    desc: "Refresco en lata",
-    enDesc: "Canned soda",
-  },
-],
+    {
+      name: "Coca-Cola en lata",
+      enName: "Coke",
+      image: "/images/cocacola-lata.png",
+      price: "$1.50",
+      desc: "Refresco en lata",
+      enDesc: "Canned soda",
+    },
+  ],
   "Hot Dogs": [
     {
       name: "Street Hot Dog",
