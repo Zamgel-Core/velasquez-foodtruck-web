@@ -319,7 +319,7 @@ function OrderCard({
               {getTimeAgoLabel(order.created_at)}
             </span>
 
-            <span className="text-sm text-white/45">
+            <span className="text-sm text-orange-200">
               · {formatTime(order.created_at)}
             </span>
           </div>
@@ -601,6 +601,14 @@ export default function OrdersDashboard() {
             <p className="mt-1 text-sm text-white/60">
               Administra pedidos recibidos, preparación, listos y entregados.
             </p>
+            {!isKitchenMode && (
+              <a
+                href="/admin"
+                className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.15em] text-white/45 transition hover:border-orange-500/30 hover:border-orange-500/20 hover:text-orange-200"
+              >
+                ← Volver al Portal
+              </a>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-3">

@@ -5,10 +5,15 @@ import { motion } from "motion/react";
 import {
   ArrowRight,
   BarChart3,
+  Brain,
   ClipboardList,
+  Gift,
+  Lock,
   Package,
+  Settings,
   ShoppingCart,
   SlidersHorizontal,
+  Sparkles,
   Truck,
   Users,
   Wallet,
@@ -21,14 +26,16 @@ const adminCards = [
     description: "Tomar órdenes presenciales y cobrar clientes.",
     href: "/admin/pos",
     icon: ShoppingCart,
-    roles: ["super_admin", "admin", "employee", "cashier"], // POS
+    roles: ["super_admin", "admin", "employee", "cashier"],
+    status: "active",
   },
   {
     title: "Órdenes",
     description: "Ver pedidos, clientes, notas y cambiar estados.",
     href: "/admin/orders",
     icon: ClipboardList,
-    roles: ["super_admin", "admin", "employee", "cashier", "kitchen"], // Órdenes
+    roles: ["super_admin", "admin", "employee", "cashier", "kitchen"],
+    status: "active",
   },
   {
     title: "Caja",
@@ -36,34 +43,75 @@ const adminCards = [
     href: "/admin/register",
     icon: Wallet,
     roles: ["super_admin", "admin", "cashier"],
+    status: "active",
   },
   {
     title: "Reportes",
     description: "Ventas, métricas, cortes y análisis del negocio.",
     href: "/admin/reports",
     icon: BarChart3,
-    roles: ["super_admin", "admin"], // Reportes
+    roles: ["super_admin", "admin"],
+    status: "active",
   },
   {
     title: "Productos",
     description: "Administrar menú, precios, disponibilidad e imágenes.",
     href: "/admin/products",
     icon: Package,
-    roles: ["super_admin", "admin"], // Productos
+    roles: ["super_admin", "admin"],
+    status: "active",
   },
   {
     title: "Opciones / Extras",
     description: "Configurar extras, proteínas y modificadores.",
     href: "/admin/product-options",
     icon: SlidersHorizontal,
-    roles: ["super_admin", "admin"], // Extras
+    roles: ["super_admin", "admin"],
+    status: "active",
   },
   {
     title: "Staff",
     description: "Administrar empleados, roles y accesos del sistema.",
     href: "/admin/staff",
     icon: Users,
-    roles: ["super_admin", "admin"], // Staff
+    roles: ["super_admin", "admin"],
+    status: "active",
+  },
+  {
+    title: "Ajustes",
+    description:
+      "Configurar página, sonidos, TV Menu, radio de órdenes y negocio.",
+    href: "/admin/settings",
+    icon: Settings,
+    roles: ["super_admin", "admin"],
+    status: "coming_soon",
+  },
+  {
+    title: "Inventario",
+    description:
+      "Control de stock, ingredientes, alertas y productos agotados.",
+    href: "/admin/inventory",
+    icon: Package,
+    roles: ["super_admin", "admin"],
+    status: "coming_soon",
+  },
+  {
+    title: "Kaizen IA",
+    description:
+      "IA estratégica para ayudarte a administrar y optimizar tu food truck.",
+    href: "/admin/ai",
+    icon: Brain,
+    roles: ["super_admin", "admin"],
+    status: "coming_soon",
+  },
+  {
+    title: "Lealtad",
+    description:
+      "Clientes frecuentes, recompensas, puntos y promociones especiales.",
+    href: "/admin/loyalty",
+    icon: Gift,
+    roles: ["super_admin", "admin"],
+    status: "coming_soon",
   },
 ];
 
@@ -73,8 +121,8 @@ export default function AdminPortalHome() {
   const normalizedRole = role === "super_admin" ? "admin" : role;
 
   const visibleCards = adminCards.filter((card) =>
-  card.roles.includes(normalizedRole ?? "employee")
-);
+    card.roles.includes(normalizedRole ?? "employee"),
+  );
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
@@ -91,8 +139,8 @@ export default function AdminPortalHome() {
             </h1>
 
             <p className="mt-3 max-w-2xl text-sm text-white/60 sm:text-base">
-              {role === "admin"
-                ? "Centro de control para pedidos, menú, staff y configuración del food truck."
+              {role === "admin" || role === "super_admin"
+                ? "Centro de control para pedidos, menú, staff, reportes y futuras herramientas del food truck."
                 : `Bienvenido${profile?.full_name ? `, ${profile.full_name}` : ""}. Accede a tus herramientas de trabajo.`}
             </p>
           </div>
@@ -105,9 +153,49 @@ export default function AdminPortalHome() {
           </a>
         </div>
 
+        <div className="mb-5 flex items-center gap-2 text-sm font-black uppercase tracking-[0.2em] text-white/35">
+          <Sparkles className="h-4 w-4 text-orange-400" />
+          Herramientas disponibles
+        </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           {visibleCards.map((card, index) => {
             const Icon = card.icon;
+            const isLocked = card.status === "coming_soon";
+
+            if (isLocked) {
+              return (
+                <motion.div
+                  key={card.href}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.06 }}
+                  className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6 opacity-75 shadow-2xl shadow-black/30"
+                >
+                  <div className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-300">
+                    <Lock className="h-3 w-3" />
+                    Próximamente
+                  </div>
+
+                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-white/45">
+                    <Icon className="h-7 w-7" />
+                  </div>
+
+                  <h2 className="text-xl font-black text-white/70">
+                    {card.title}
+                  </h2>
+
+                  <p className="mt-2 min-h-[48px] text-sm leading-relaxed text-white/40">
+                    {card.description}
+                  </p>
+
+                  <div className="mt-6 flex items-center gap-2 text-sm font-black text-white/30">
+                    En construcción
+                    <Lock className="h-4 w-4" />
+                  </div>
+                </motion.div>
+              );
+            }
 
             return (
               <motion.a
@@ -115,7 +203,7 @@ export default function AdminPortalHome() {
                 href={card.href}
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.08 }}
+                transition={{ delay: index * 0.06 }}
                 className="group rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/30 transition hover:-translate-y-1 hover:border-orange-500/50 hover:bg-orange-500/[0.08]"
               >
                 <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/15 text-orange-200">
