@@ -27,6 +27,16 @@ import { useRealtimeOrders } from "./useRealtimeOrders";
 import { useOrderAlerts } from "./useOrderAlerts";
 import type { AdminOrder, OrderStatus } from "./admin-orders.types";
 
+function playUiSound(src: string, volume = 0.6) {
+  try {
+    const audio = new Audio(src);
+    audio.volume = volume;
+    void audio.play();
+  } catch (error) {
+    console.warn("No se pudo reproducir el sonido:", error);
+  }
+}
+
 type OrderFilter = "active" | "all" | OrderStatus;
 
 const statusLabels: Record<OrderStatus, string> = {
@@ -105,7 +115,7 @@ function formatTime(value: string) {
 function getMinutesAgo(value: string) {
   return Math.max(
     0,
-    Math.floor((Date.now() - new Date(value).getTime()) / 60000)
+    Math.floor((Date.now() - new Date(value).getTime()) / 60000),
   );
 }
 
@@ -165,7 +175,8 @@ function getMinutePillClasses(order: AdminOrder) {
 
   if (minutes >= 10) return "border-red-400/60 bg-red-500/20 text-red-100";
   if (minutes >= 6) return "border-red-500/50 bg-red-500/15 text-red-200";
-  if (minutes >= 3) return "border-yellow-500/50 bg-yellow-500/15 text-yellow-200";
+  if (minutes >= 3)
+    return "border-yellow-500/50 bg-yellow-500/15 text-yellow-200";
 
   return "border-orange-500/50 bg-orange-500/15 text-orange-200";
 }
@@ -231,7 +242,7 @@ function OrderCard({
   const handleStatus = async (status: OrderStatus) => {
     if (status === "cancelled") {
       const confirmed = window.confirm(
-        `¿Seguro que quieres cancelar la orden #${order.order_number}?`
+        `¿Seguro que quieres cancelar la orden #${order.order_number}?`,
       );
 
       if (!confirmed) return;
@@ -240,6 +251,10 @@ function OrderCard({
     try {
       setUpdating(true);
       await onChangeStatus(order.id, status);
+
+      if (status === "ready") {
+        playUiSound("/sounds/Pedido_listo.mp3", 0.65);
+      }
     } finally {
       setUpdating(false);
     }
@@ -293,7 +308,7 @@ function OrderCard({
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span
               className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-black ${getMinutePillClasses(
-                order
+                order,
               )}`}
             >
               <Clock className="h-4 w-4" />
@@ -477,7 +492,9 @@ export default function OrdersDashboard() {
   const isKitchenMode = window.location.search.includes("kitchen=true");
 
   const pendingOrders = orders.filter((order) => order.status === "received");
-  const preparingOrders = orders.filter((order) => order.status === "preparing");
+  const preparingOrders = orders.filter(
+    (order) => order.status === "preparing",
+  );
   const readyOrders = orders.filter((order) => order.status === "ready");
 
   const filteredOrders = orders
@@ -708,7 +725,7 @@ export default function OrdersDashboard() {
           >
             {(["received", "preparing", "ready"] as const).map((status) => {
               const columnOrders = filteredOrders.filter(
-                (order) => order.status === status
+                (order) => order.status === status,
               );
 
               const config = columnConfig[status];

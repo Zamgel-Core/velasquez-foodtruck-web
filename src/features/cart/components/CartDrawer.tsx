@@ -1,6 +1,17 @@
 // 📍 Ruta: src/features/cart/components/CartDrawer.tsx
 
-import { ClipboardCopy, Minus, PackageSearch, Pencil, Plus, ShoppingCart, Trash2, X } from "lucide-react";
+import {
+  CheckCircle2,
+  ClipboardCopy,
+  Minus,
+  PackageSearch,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 import type { Lang } from "../../../types";
 import type { CartItem } from "../cart.types";
@@ -24,7 +35,7 @@ type CartDrawerProps = {
     notes: string,
     price?: number,
     selectedProtein?: CartItem["selectedProtein"],
-    fallbackItem?: CartItem
+    fallbackItem?: CartItem,
   ) => void;
   clearCart: () => void;
 };
@@ -97,7 +108,7 @@ export default function CartDrawer({
   const [editingItem, setEditingItem] = useState<CartItem | null>(null);
   const [draftNotes, setDraftNotes] = useState("");
   const [selectedProtein, setSelectedProtein] = useState<ProteinOption | null>(
-    null
+    null,
   );
 
   const proteinOptions: ProteinOption[] =
@@ -123,8 +134,20 @@ export default function CartDrawer({
 
   const quickNotes =
     lang === "es"
-      ? ["Sin cebolla", "Sin cilantro", "Salsa aparte", "Extra salsa", "No picante"]
-      : ["No onion", "No cilantro", "Salsa on the side", "Extra salsa", "Not spicy"];
+      ? [
+          "Sin cebolla",
+          "Sin cilantro",
+          "Salsa aparte",
+          "Extra salsa",
+          "No picante",
+        ]
+      : [
+          "No onion",
+          "No cilantro",
+          "Salsa on the side",
+          "Extra salsa",
+          "Not spicy",
+        ];
 
   const t = {
     openCart: lang === "es" ? "Abrir carrito" : "Open cart",
@@ -147,11 +170,16 @@ export default function CartDrawer({
         ? "Ej. Sin cebolla, salsa aparte, extra cilantro..."
         : "Ex. No onion, salsa on the side, extra cilantro...",
     orderCreated: lang === "es" ? "Pedido creado" : "Order created",
-    orderCode: lang === "es" ? "Tu código de pedido es:" : "Your order number is:",
+    orderCreatedSubtitle:
+      lang === "es"
+        ? "Tu orden fue enviada correctamente a cocina."
+        : "Your order was sent to the kitchen successfully.",
+    orderCode:
+      lang === "es" ? "Tu código de pedido es:" : "Your order number is:",
     showCode:
       lang === "es"
-        ? "Muestra este código al llegar al food truck."
-        : "Show this number when you arrive at the food truck.",
+        ? "Muestra este código al llegar al food truck o rastrea tu pedido en tiempo real."
+        : "Show this number when you arrive or track your order in real time.",
     understood: lang === "es" ? "Entendido" : "Got it",
     myOrder: lang === "es" ? "Mi Pedido" : "My Order",
     trackOrder: lang === "es" ? "Ver mi pedido" : "Track my order",
@@ -171,11 +199,16 @@ export default function CartDrawer({
       JSON.stringify({
         orderNumber: cleanOrderNumber,
         expiresAt: Date.now() + 30 * 60 * 1000,
-      })
+      }),
     );
 
     setCopiedOrderNumber(false);
     setSuccessOrderNumber(cleanOrderNumber);
+
+    const audio = new Audio("/sounds/Order_success.mp3");
+    audio.volume = 0.45;
+    audio.play().catch(() => {});
+
     setIsCheckoutOpen(false);
     clearCart();
   }
@@ -241,7 +274,7 @@ export default function CartDrawer({
         selectedProtein,
         notes: draftNotes.trim(),
         quantity: 1,
-      }
+      },
     );
 
     setEditingItem(null);
@@ -252,7 +285,13 @@ export default function CartDrawer({
   return (
     <>
       <button
-        onClick={() => setIsOpen((value) => !value)}
+        onClick={() => {
+          const audio = new Audio("/sounds/Open_cart.mp3");
+          audio.volume = 0.35;
+          audio.play().catch(() => {});
+
+          setIsOpen((value) => !value);
+        }}
         className="fixed bottom-5 right-5 z-[9999] flex h-16 w-16 items-center justify-center rounded-full bg-orange-600 text-white shadow-[0_0_30px_rgba(234,88,12,0.55)] transition hover:scale-105 hover:bg-orange-500"
         aria-label={t.openCart}
       >
@@ -296,7 +335,9 @@ export default function CartDrawer({
 
           <div className="max-h-[420px] overflow-y-auto px-4 py-4">
             {items.length === 0 ? (
-              <p className="py-10 text-center text-sm text-white/40">{t.empty}</p>
+              <p className="py-10 text-center text-sm text-white/40">
+                {t.empty}
+              </p>
             ) : (
               <div className="space-y-4">
                 {items.map((item) => {
@@ -311,7 +352,11 @@ export default function CartDrawer({
                     >
                       <div className="flex gap-3">
                         <img
-                          src={item.imageUrl || item.image || "/images/Regular_tacos.jpg"}
+                          src={
+                            item.imageUrl ||
+                            item.image ||
+                            "/images/Regular_tacos.jpg"
+                          }
                           alt={item.name}
                           className="h-20 w-20 rounded-xl object-cover"
                         />
@@ -458,7 +503,9 @@ export default function CartDrawer({
             </div>
 
             <div className="mt-4 rounded-3xl border border-white/10 bg-white/[0.03] p-3">
-              <p className="mb-3 text-sm font-black text-white">{t.quickNotes}</p>
+              <p className="mb-3 text-sm font-black text-white">
+                {t.quickNotes}
+              </p>
 
               <div className="flex flex-wrap gap-2">
                 {quickNotes.map((note) => (
@@ -517,48 +564,72 @@ export default function CartDrawer({
       )}
 
       {successOrderNumber && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#0a0a0a] p-6 text-center text-white shadow-2xl">
-            <h3 className="text-2xl font-black text-green-400">
-              {t.orderCreated}
-            </h3>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 px-4 backdrop-blur-md">
+          <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-orange-500/25 bg-[#0a0a0a] p-6 text-center text-white shadow-2xl shadow-orange-950/30">
+            <div className="absolute left-1/2 top-0 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-500/20 blur-3xl" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-400/60 to-transparent" />
 
-            <p className="mt-3 text-white/70">{t.orderCode}</p>
+            <div className="relative">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-green-400/30 bg-green-500/10 text-green-300 shadow-[0_0_35px_rgba(34,197,94,0.22)]">
+                <CheckCircle2 className="h-11 w-11" />
+              </div>
 
-            <p className="mt-4 text-4xl font-black text-orange-500">
-              #{successOrderNumber}
-            </p>
+              <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-orange-300">
+                <Sparkles className="h-3.5 w-3.5" />
+                Velasquez Food Truck
+              </div>
 
-            <p className="mt-4 text-sm text-white/50">{t.showCode}</p>
+              <h3 className="mt-4 text-3xl font-black text-white">
+                {t.orderCreated}
+              </h3>
 
-            <div className="mt-5 grid grid-cols-2 gap-3">
+              <p className="mx-auto mt-2 max-w-xs text-sm font-semibold text-white/55">
+                {t.orderCreatedSubtitle}
+              </p>
+
+              <div className="mt-6 rounded-[1.5rem] border border-orange-500/25 bg-orange-500/10 p-5">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-orange-300">
+                  {t.orderCode}
+                </p>
+
+                <p className="mt-2 text-5xl font-black tracking-tight text-orange-400 drop-shadow-[0_0_18px_rgba(251,146,60,0.45)]">
+                  #{successOrderNumber}
+                </p>
+              </div>
+
+              <p className="mx-auto mt-4 max-w-sm text-sm font-semibold text-white/45">
+                {t.showCode}
+              </p>
+
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <button
+                  onClick={copyOrderNumber}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-4 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-white/[0.10]"
+                  type="button"
+                >
+                  <ClipboardCopy className="h-4 w-4" />
+                  {copiedOrderNumber ? t.copied : t.copyOrder}
+                </button>
+
+                <a
+                  href="/mi-pedido"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-4 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-500"
+                >
+                  <PackageSearch className="h-4 w-4" />
+                  {t.trackOrder}
+                </a>
+              </div>
+
               <button
-                onClick={copyOrderNumber}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-black text-white transition hover:bg-white/[0.10]"
-                type="button"
+                onClick={() => {
+                  setSuccessOrderNumber("");
+                  setIsOpen(false);
+                }}
+                className="mt-3 w-full rounded-2xl bg-orange-600 px-5 py-4 font-black text-white shadow-lg shadow-orange-600/20 transition hover:-translate-y-0.5 hover:bg-orange-500"
               >
-                <ClipboardCopy className="h-4 w-4" />
-                {copiedOrderNumber ? t.copied : t.copyOrder}
+                {t.understood}
               </button>
-
-              <a
-                href="/mi-pedido"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-500"
-              >
-                <PackageSearch className="h-4 w-4" />
-                {t.trackOrder}
-              </a>
             </div>
-
-            <button
-              onClick={() => {
-                setSuccessOrderNumber("");
-                setIsOpen(false);
-              }}
-              className="mt-3 w-full rounded-full bg-orange-600 px-5 py-4 font-black text-white transition hover:bg-orange-500"
-            >
-              {t.understood}
-            </button>
           </div>
         </div>
       )}

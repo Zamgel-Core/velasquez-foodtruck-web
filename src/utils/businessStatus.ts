@@ -12,6 +12,7 @@ export function getBusinessStatus(lang: Lang) {
   const weekday = parts.find((part) => part.type === "weekday")?.value;
   const hour = Number(parts.find((part) => part.type === "hour")?.value);
   const minute = Number(parts.find((part) => part.type === "minute")?.value);
+
   const current = hour * 60 + minute;
 
   const schedule: Record<string, { open: number; close: number } | null> = {
@@ -25,16 +26,41 @@ export function getBusinessStatus(lang: Lang) {
   };
 
   const today = schedule[weekday || "Sun"];
+
   const isOpen = !!today && current >= today.open && current < today.close;
+
+  const minutesUntilClose = today && isOpen ? today.close - current : 0;
+
+  const isClosingSoon = isOpen && minutesUntilClose <= 60;
+
+  const formatRemaining = () => {
+    if (minutesUntilClose < 60) {
+      return lang === "es"
+        ? `Cierra en ${minutesUntilClose} min`
+        : `Closing in ${minutesUntilClose} min`;
+    }
+
+    const hours = Math.floor(minutesUntilClose / 60);
+    const mins = minutesUntilClose % 60;
+
+    return lang === "es"
+      ? `Cierra en ${hours}h ${mins}m`
+      : `Closing in ${hours}h ${mins}m`;
+  };
+
+  const label = isOpen
+    ? isClosingSoon
+      ? formatRemaining()
+      : lang === "es"
+        ? "Abierto ahora en Houston"
+        : "Open now in Houston"
+    : lang === "es"
+      ? "Cerrado ahora en Houston"
+      : "Closed now in Houston";
 
   return {
     isOpen,
-    label: isOpen
-      ? lang === "es"
-        ? "Abierto ahora en Houston"
-        : "Open now in Houston"
-      : lang === "es"
-        ? "Cerrado ahora en Houston"
-        : "Closed now in Houston",
+    isClosingSoon,
+    label,
   };
 }

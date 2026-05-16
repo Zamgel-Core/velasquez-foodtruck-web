@@ -30,77 +30,89 @@ import OrderStatusPage from "./features/order-status/OrderStatusPage";
 export default function App() {
   const pathname = window.location.pathname;
 
-if (pathname === "/admin/login") {
-  return <AdminLoginPage />;
-}
+  if (pathname === "/admin/login") {
+    return <AdminLoginPage />;
+  }
 
-if (pathname === "/admin") {
-  return (
-    <ProtectedAdminRoute>
-      <AdminPortalHome />
-    </ProtectedAdminRoute>
-  );
-}
+  if (pathname === "/admin") {
+    return (
+      <ProtectedAdminRoute>
+        <AdminPortalHome />
+      </ProtectedAdminRoute>
+    );
+  }
 
-if (pathname === "/admin/pos") {
-  return (
-    <ProtectedAdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier"]}>
-      <AdminPOSPage />
-    </ProtectedAdminRoute>
-  );
-}
+  if (pathname === "/admin/pos") {
+    return (
+      <ProtectedAdminRoute
+        allowedRoles={["super_admin", "admin", "employee", "cashier"]}
+      >
+        <AdminPOSPage />
+      </ProtectedAdminRoute>
+    );
+  }
 
-if (pathname === "/admin/register") {
-  return (
-    <ProtectedAdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier"]}>
-      <AdminRegisterPage />
-    </ProtectedAdminRoute>
-  );
-}
+  if (pathname === "/admin/register") {
+    return (
+      <ProtectedAdminRoute
+        allowedRoles={["super_admin", "admin", "employee", "cashier"]}
+      >
+        <AdminRegisterPage />
+      </ProtectedAdminRoute>
+    );
+  }
 
-if (pathname === "/admin/orders") {
-  return (
-    <ProtectedAdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier", "kitchen"]}>
-      <OrdersDashboard />
-    </ProtectedAdminRoute>
-  );
-}
+  if (pathname === "/admin/orders") {
+    return (
+      <ProtectedAdminRoute
+        allowedRoles={[
+          "super_admin",
+          "admin",
+          "employee",
+          "cashier",
+          "kitchen",
+        ]}
+      >
+        <OrdersDashboard />
+      </ProtectedAdminRoute>
+    );
+  }
 
-if (pathname === "/admin/reports") {
-  return (
-    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
-      <AdminReportsPage />
-    </ProtectedAdminRoute>
-  );
-}
+  if (pathname === "/admin/reports") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <AdminReportsPage />
+      </ProtectedAdminRoute>
+    );
+  }
 
-if (pathname === "/admin/product-options") {
-  return (
-    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
-      <ProductOptionsDashboard />
-    </ProtectedAdminRoute>
-  );
-}
+  if (pathname === "/admin/product-options") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <ProductOptionsDashboard />
+      </ProtectedAdminRoute>
+    );
+  }
 
-if (pathname === "/admin/products") {
-  return (
-    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
-      <ProductsAdminDashboard />
-    </ProtectedAdminRoute>
-  );
-}
+  if (pathname === "/admin/products") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <ProductsAdminDashboard />
+      </ProtectedAdminRoute>
+    );
+  }
 
-if (pathname === "/admin/staff") {
-  return (
-    <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
-      <StaffAdminPage />
-    </ProtectedAdminRoute>
-  );
-}
+  if (pathname === "/admin/staff") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <StaffAdminPage />
+      </ProtectedAdminRoute>
+    );
+  }
 
-if (pathname === "/mi-pedido") {
-  return <OrderStatusPage />;
-}
+  if (pathname === "/mi-pedido") {
+    return <OrderStatusPage />;
+  }
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState("Tacos");
@@ -110,7 +122,10 @@ if (pathname === "/mi-pedido") {
   const [lang, setLang] = React.useState<Lang>(() => {
     const saved = localStorage.getItem("lang");
     if (saved === "es" || saved === "en") return saved;
-    if (typeof navigator !== "undefined" && navigator.language.startsWith("en")) {
+    if (
+      typeof navigator !== "undefined" &&
+      navigator.language.startsWith("en")
+    ) {
       return "en";
     }
     return "es";
@@ -130,7 +145,7 @@ if (pathname === "/mi-pedido") {
 
   const businessStatus = React.useMemo(
     () => getBusinessStatus(lang),
-    [lang, timeTick]
+    [lang, timeTick],
   );
 
   const cart = useCart();
@@ -159,7 +174,8 @@ if (pathname === "/mi-pedido") {
     popular: lang === "es" ? "Especialidades Populares" : "Popular Specials",
     proteins: lang === "es" ? "Proteínas disponibles" : "Available proteins",
     ask: lang === "es" ? "Pregunte por disponibilidad" : "Ask for availability",
-    reviews: lang === "es" ? "Lo que dicen nuestros clientes" : "What customers say",
+    reviews:
+      lang === "es" ? "Lo que dicen nuestros clientes" : "What customers say",
     locationTitle: lang === "es" ? "Encuéntranos" : "Find Us",
     contactTitle: lang === "es" ? "¿Listo para ordenar?" : "Ready to order?",
     contactText:
@@ -219,12 +235,21 @@ if (pathname === "/mi-pedido") {
           activeCategory={activeCategory}
           setActiveCategory={setActiveCategory}
           t={t}
-          addItem={cart.addItem}
+          addItem={(item) => {
+            const audio = new Audio("/sounds/Add_to_cart.mp3");
+            audio.volume = 0.35;
+            audio.play().catch(() => {});
+            cart.addItem(item);
+          }}
         />
 
         <ReviewsSection lang={lang} title={t.reviews} />
         <LocationSection lang={lang} title={t.locationTitle} />
-        <ContactSection title={t.contactTitle} text={t.contactText} orderNow={t.orderNow} />
+        <ContactSection
+          title={t.contactTitle}
+          text={t.contactText}
+          orderNow={t.orderNow}
+        />
         <Footer setLegalModal={setLegalModal} t={t} />
         {legalModal && (
           <LegalModal
