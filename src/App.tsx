@@ -26,6 +26,7 @@ import StaffAdminPage from "./features/admin/staff/StaffAdminPage";
 import AdminRegisterPage from "./features/admin/register/AdminRegisterPage";
 import AdminReportsPage from "./features/admin/reports/AdminReportsPage";
 import OrderStatusPage from "./features/order-status/OrderStatusPage";
+import TvMenuPage from "./features/tv-menu/TvMenuPage";
 
 export default function App() {
   const pathname = window.location.pathname;
@@ -112,6 +113,10 @@ export default function App() {
 
   if (pathname === "/mi-pedido") {
     return <OrderStatusPage />;
+  }
+
+  if (pathname === "/tv-menu") {
+    return <TvMenuPage />;
   }
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);

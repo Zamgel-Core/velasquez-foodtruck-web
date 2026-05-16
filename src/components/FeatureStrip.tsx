@@ -9,7 +9,7 @@ export function FeatureStrip({ lang }: { lang: Lang }) {
     [Clock, lang === "es" ? "Hecho al Momento" : "Made to Order"],
     [Flame, lang === "es" ? "Auténtico Sabor" : "Authentic Flavor"],
     [Leaf, lang === "es" ? "Ingredientes Frescos" : "Fresh Ingredients"],
-    [Heart, lang === "es" ? "Hecho con Pasión" : "Made with Passion"],
+    [Heart, lang === "es" ? "Tradición Mexicana" : "Mexican Tradition"],
   ] as const;
 
   return (
