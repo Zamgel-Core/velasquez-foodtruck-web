@@ -238,6 +238,10 @@ export default function CartDrawer({
         ...item,
         cartItemId: createCartItemId(),
         quantity: 1,
+        selectedProtein: item.selectedProtein
+          ? { ...item.selectedProtein }
+          : undefined,
+        notes: item.notes ?? "",
       });
     } else {
       setEditingItem(item);

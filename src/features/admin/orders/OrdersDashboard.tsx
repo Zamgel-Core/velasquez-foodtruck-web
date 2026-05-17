@@ -276,23 +276,23 @@ function OrderCard({
           ? { duration: 0.55, repeat: Infinity, repeatDelay: 7 }
           : undefined,
       }}
-      className={`rounded-3xl border p-5 shadow-2xl transition-all duration-500 ${
-        isKitchenMode ? "p-6" : ""
+      className={`max-w-[470px] rounded-3xl border shadow-2xl transition-all duration-500 ${
+        isKitchenMode ? "p-4" : "p-5"
       } ${getUrgencyClasses(order)}`}
     >
       {isExtremeLate && (
-        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-red-400/50 bg-red-500/20 px-4 py-3 text-sm font-black text-red-100">
+        <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-400/50 bg-red-500/20 px-3 py-2 text-xs font-black text-red-100">
           <AlertTriangle className="h-5 w-5" />
           Alerta: orden sin atender por más de 10 minutos
         </div>
       )}
 
-      <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-2 border-b border-white/10 pb-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h2
               className={`${
-                isKitchenMode ? "text-4xl" : "text-2xl"
+                isKitchenMode ? "text-3xl" : "text-2xl"
               } font-black text-white`}
             >
               Orden #{order.order_number}
@@ -305,37 +305,43 @@ function OrderCard({
             </span>
           </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-black ${getMinutePillClasses(
-                order,
-              )}`}
-            >
-              <Clock className="h-4 w-4" />
-              {minutesAgo < 1 ? "0 MIN" : `${minutesAgo} MIN`}
-            </span>
+          <div className="mt-3 flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-black ${getMinutePillClasses(
+                    order,
+                  )}`}
+                >
+                  <Clock className="h-4 w-4" />
+                  {minutesAgo < 1 ? "0 MIN" : `${minutesAgo} MIN`}
+                </span>
 
-            <span className={`text-sm font-bold ${getUrgencyBadge(order)}`}>
-              {getTimeAgoLabel(order.created_at)}
-            </span>
+                <span className={`text-sm font-bold ${getUrgencyBadge(order)}`}>
+                  {getTimeAgoLabel(order.created_at)}
+                </span>
 
-            <span className="text-sm text-orange-200">
-              · {formatTime(order.created_at)}
-            </span>
+                <span className="text-sm text-orange-200">
+                  · {formatTime(order.created_at)}
+                </span>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <p className="text-sm font-black text-white">
+                {order.customer?.name ?? "Cliente"}
+              </p>
+
+              {order.customer?.phone && (
+                <a
+                  href={`tel:${order.customer.phone}`}
+                  className="text-sm font-bold text-orange-300 hover:text-orange-200"
+                >
+                  {order.customer.phone}
+                </a>
+              )}
+            </div>
           </div>
-
-          <p className="mt-2 text-sm text-white/60">
-            {order.customer?.name ?? "Cliente sin nombre"}
-          </p>
-
-          {order.customer?.phone && (
-            <a
-              href={`tel:${order.customer.phone}`}
-              className="mt-1 inline-block text-sm font-semibold text-orange-300 hover:text-orange-200"
-            >
-              {order.customer.phone}
-            </a>
-          )}
         </div>
 
         <div className="text-left sm:text-right">
@@ -383,16 +389,16 @@ function OrderCard({
         </div>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-3 space-y-2">
         {order.items.map((item) => (
           <div
             key={item.id}
-            className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 p-3"
+            className="flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-black/30 px-3 py-2.5"
           >
             <div>
               <p
                 className={`${
-                  isKitchenMode ? "text-2xl" : "text-base"
+                  isKitchenMode ? "text-xl" : "text-base"
                 } font-bold text-white`}
               >
                 {item.quantity}x {item.product_name}
@@ -420,13 +426,13 @@ function OrderCard({
         </div>
       )}
 
-      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <button
           disabled={updating}
           onClick={() => handleStatus("preparing")}
-          className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-3 text-sm font-bold text-yellow-100 transition hover:bg-yellow-500/20 disabled:opacity-50"
+          className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-2 py-2 text-xs font-bold text-yellow-100 transition hover:bg-yellow-500/20 disabled:opacity-50"
         >
-          <ChefHat className="mx-auto mb-1 h-5 w-5" />
+          <ChefHat className="mx-auto mb-0.5 h-4 w-4" />
           Preparar
         </button>
 
@@ -463,7 +469,7 @@ function OrderCard({
           href={whatsAppLink}
           target="_blank"
           rel="noreferrer"
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm font-black text-green-100 transition hover:bg-green-500/20"
+          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-3 py-2 text-xs font-black text-green-100 transition hover:bg-green-500/20"
         >
           <MessageCircle className="h-5 w-5" />
           Avisar por WhatsApp
@@ -480,6 +486,9 @@ export default function OrdersDashboard() {
   const [filter, setFilter] = React.useState<OrderFilter>("active");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [nowTick, setNowTick] = React.useState(0);
+  const [kitchenTab, setKitchenTab] = React.useState<
+    "received" | "preparing" | "ready"
+  >("received");
 
   React.useEffect(() => {
     const interval = window.setInterval(() => {
@@ -548,7 +557,7 @@ export default function OrdersDashboard() {
     <main
       className={`bg-[#050505] px-4 text-white ${
         isKitchenMode
-          ? "h-screen overflow-hidden py-4 sm:px-6 lg:px-8"
+          ? "h-[100dvh] overflow-hidden py-3 sm:px-4 lg:px-6"
           : "min-h-screen py-6 sm:px-6 lg:px-10"
       }`}
     >
@@ -592,15 +601,17 @@ export default function OrdersDashboard() {
 
             <h1
               className={`${
-                isKitchenMode ? "text-5xl" : "text-3xl sm:text-4xl"
+                isKitchenMode ? "text-3xl lg:text-4xl" : "text-3xl sm:text-4xl"
               } font-black`}
             >
               Órdenes <span className="text-orange-500">Velasquez</span>
             </h1>
 
-            <p className="mt-1 text-sm text-white/60">
-              Administra pedidos recibidos, preparación, listos y entregados.
-            </p>
+            {!isKitchenMode && (
+              <p className="mt-1 text-sm text-white/60">
+                Administra pedidos recibidos, preparación, listos y entregados.
+              </p>
+            )}
             {!isKitchenMode && (
               <a
                 href="/admin"
@@ -726,64 +737,153 @@ export default function OrdersDashboard() {
         )}
 
         {!loading && !error && filteredOrders.length > 0 && showColumns && (
-          <div
-            className={`grid gap-5 xl:grid-cols-3 ${
-              isKitchenMode ? "min-h-0 flex-1 overflow-hidden" : ""
-            }`}
-          >
-            {(["received", "preparing", "ready"] as const).map((status) => {
-              const columnOrders = filteredOrders.filter(
-                (order) => order.status === status,
-              );
+          <>
+            {isKitchenMode ? (
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div className="mb-1.5 grid shrink-0 grid-cols-3 gap-1.5 rounded-lg border border-white/10 bg-white/[0.015] p-1">
+                  {(["received", "preparing", "ready"] as const).map(
+                    (status) => {
+                      const config = columnConfig[status];
+                      const count =
+                        status === "received"
+                          ? pendingOrders.length
+                          : status === "preparing"
+                            ? preparingOrders.length
+                            : readyOrders.length;
 
-              const config = columnConfig[status];
+                      const isActive = kitchenTab === status;
 
-              return (
-                <section
-                  key={status}
-                  className={`rounded-3xl border p-4 ${
-                    isKitchenMode ? "flex min-h-0 flex-col overflow-hidden" : ""
-                  } ${config.wrapper}`}
-                >
-                  <div className="mb-4 flex items-start justify-between gap-3">
-                    <div>
-                      <h2 className="text-xl font-black">{config.label}</h2>
-                      <p className="text-xs font-bold text-white/35">
-                        {config.description}
-                      </p>
-                    </div>
+                      return (
+                        <button
+                          key={status}
+                          onClick={() => setKitchenTab(status)}
+                          className={`rounded-md border px-2 py-1 text-left transition ${
+                            isActive
+                              ? `${config.wrapper} border-current shadow-lg`
+                              : "border-white/10 bg-black/30 text-white/45 hover:bg-white/[0.06] hover:text-white"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-lg font-black">
+                              {config.label}
+                            </span>
 
-                    <span
-                      className={`rounded-full px-3 py-1 text-sm font-black ${config.badge}`}
+                            <span
+                              className={`rounded-full px-3 py-1 text-sm font-black ${
+                                isActive
+                                  ? config.badge
+                                  : "bg-white/10 text-white/60"
+                              }`}
+                            >
+                              {count}
+                            </span>
+                          </div>
+
+                          <p className="mt-px text-[9px] font-bold leading-none text-white/20">
+                            {config.description}
+                          </p>
+                        </button>
+                      );
+                    },
+                  )}
+                </div>
+
+                {(() => {
+                  const config = columnConfig[kitchenTab];
+                  const tabOrders = filteredOrders.filter(
+                    (order) => order.status === kitchenTab,
+                  );
+
+                  return (
+                    <section
+                      className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border p-4 ${config.wrapper}`}
                     >
-                      {columnOrders.length}
-                    </span>
-                  </div>
+                      <div className="mb-2 flex shrink-0 items-center justify-between gap-3">
+                        <div>
+                          <h2 className="text-xl font-black leading-none">
+                            {config.label}
+                          </h2>
+                          <p className="text-xs font-bold text-white/35">
+                            {config.description}
+                          </p>
+                        </div>
 
-                  <div
-                    className={`space-y-5 ${
-                      isKitchenMode
-                        ? "min-h-0 flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
-                        : ""
-                    }`}
-                  >
-                    {columnOrders.length === 0 ? (
-                      <EmptyColumn message={config.empty} />
-                    ) : (
-                      columnOrders.map((order) => (
-                        <OrderCard
-                          key={`${order.id}-${nowTick}`}
-                          order={order}
-                          isKitchenMode={isKitchenMode}
-                          onChangeStatus={changeStatus}
-                        />
-                      ))
-                    )}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+                        <span
+                          className={`rounded-full px-3 py-0.5 text-sm font-black ${config.badge}`}
+                        >
+                          {tabOrders.length}
+                        </span>
+                      </div>
+
+                      <div className="grid min-h-0 flex-1 grid-cols-2 gap-4 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                        {tabOrders.length === 0 ? (
+                          <div className="col-span-2">
+                            <EmptyColumn message={config.empty} />
+                          </div>
+                        ) : (
+                          tabOrders.map((order) => (
+                            <OrderCard
+                              key={`${order.id}-${nowTick}`}
+                              order={order}
+                              isKitchenMode={isKitchenMode}
+                              onChangeStatus={changeStatus}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </section>
+                  );
+                })()}
+              </div>
+            ) : (
+              <div className="grid gap-5 xl:grid-cols-3">
+                {(["received", "preparing", "ready"] as const).map((status) => {
+                  const columnOrders = filteredOrders.filter(
+                    (order) => order.status === status,
+                  );
+
+                  const config = columnConfig[status];
+
+                  return (
+                    <section
+                      key={status}
+                      className={`rounded-3xl border p-4 ${config.wrapper}`}
+                    >
+                      <div className="mb-4 flex items-start justify-between gap-3">
+                        <div>
+                          <h2 className="text-xl font-black">{config.label}</h2>
+                          <p className="text-xs font-bold text-white/35">
+                            {config.description}
+                          </p>
+                        </div>
+
+                        <span
+                          className={`rounded-full px-3 py-1 text-sm font-black ${config.badge}`}
+                        >
+                          {columnOrders.length}
+                        </span>
+                      </div>
+
+                      <div className="space-y-5">
+                        {columnOrders.length === 0 ? (
+                          <EmptyColumn message={config.empty} />
+                        ) : (
+                          columnOrders.map((order) => (
+                            <OrderCard
+                              key={`${order.id}-${nowTick}`}
+                              order={order}
+                              isKitchenMode={isKitchenMode}
+                              onChangeStatus={changeStatus}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
 
         {!loading && !error && filteredOrders.length > 0 && !showColumns && (

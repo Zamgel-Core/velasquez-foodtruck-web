@@ -18,11 +18,13 @@
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "twilio": "^6.0.2",
     "vite": "^6.2.3"
   },
   "devDependencies": {
-    "typescript": "~5.8.2",
     "@types/react": "^19.0.12",
-    "@types/react-dom": "^19.0.4"
+    "@types/react-dom": "^19.0.4",
+    "@vercel/node": "^5.8.2",
+    "typescript": "~5.8.2"
   }
 }

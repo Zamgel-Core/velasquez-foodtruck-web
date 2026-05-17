@@ -1,10 +1,7 @@
 // 📍 Ruta: src/services/orders.service.ts
 
 import { supabase } from "../lib/supabase";
-import type {
-  CartItem,
-  CheckoutCustomer,
-} from "../features/cart/cart.types";
+import type { CartItem, CheckoutCustomer } from "../features/cart/cart.types";
 
 type PaymentMethod = "cash" | "card";
 
@@ -22,7 +19,7 @@ function isValidUuid(value?: string) {
   if (!value) return false;
 
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value
+    value,
   );
 }
 
@@ -66,7 +63,7 @@ export async function createOrder(
   customer: CheckoutCustomer,
   items: CartItem[],
   subtotal: number,
-  payment?: OrderPaymentData
+  payment?: OrderPaymentData,
 ) {
   if (items.length === 0) {
     return { success: false, error: "El carrito está vacío." };
@@ -94,11 +91,11 @@ export async function createOrder(
   const orderNumber = generateOrderNumber();
   const registerSessionId = await getActiveRegisterSessionId();
   if (!registerSessionId) {
-  return {
-    success: false,
-    error: "Por el momento no estamos tomando órdenes. Intenta más tarde.",
-  };
-}
+    return {
+      success: false,
+      error: "Por el momento no estamos tomando órdenes. Intenta más tarde.",
+    };
+  }
 
   const { data: orderData, error: orderError } = await supabase
     .from("orders")
@@ -127,15 +124,28 @@ export async function createOrder(
     items.map(async (item) => {
       const productId = await resolveProductId(item);
 
+      const itemNotes = [
+        item.selectedProtein
+          ? `Proteína: ${item.selectedProtein.label}${
+              item.selectedProtein.extraPrice > 0
+                ? ` (+$${item.selectedProtein.extraPrice.toFixed(2)})`
+                : ""
+            }`
+          : "",
+        item.notes?.trim() || "",
+      ]
+        .filter(Boolean)
+        .join(" | ");
+
       return {
         order_id: orderData.id,
         product_id: productId,
         quantity: item.quantity,
         unit_price: item.price,
         total_price: item.price * item.quantity,
-        notes: item.notes?.trim() || null,
+        notes: itemNotes || null,
       };
-    })
+    }),
   );
 
   const { error: itemsError } = await supabase

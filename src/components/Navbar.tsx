@@ -1,3 +1,6 @@
+// 📍 Ruta: src/components/Navbar.tsx
+
+import { useRef } from "react";
 import { Menu, PackageSearch, X } from "lucide-react";
 import type { Lang } from "../types";
 
@@ -23,14 +26,53 @@ export function Navbar({
   scrollTo,
   t,
 }: NavbarProps) {
+  const logoTapCount = useRef(0);
+  const logoTapTimer = useRef<number | null>(null);
+  const adminPressTimer = useRef<number | null>(null);
+
+  const goToAdmin = () => {
+    window.location.assign("/admin");
+  };
+
+  const handleLogoClick = () => {
+    logoTapCount.current += 1;
+
+    if (logoTapTimer.current) {
+      window.clearTimeout(logoTapTimer.current);
+    }
+
+    if (logoTapCount.current >= 2) {
+      logoTapCount.current = 0;
+      goToAdmin();
+      return;
+    }
+
+    logoTapTimer.current = window.setTimeout(() => {
+      logoTapCount.current = 0;
+      scrollTo("home");
+    }, 280);
+  };
+
+  const startAdminPress = () => {
+    adminPressTimer.current = window.setTimeout(goToAdmin, 1200);
+  };
+
+  const cancelAdminPress = () => {
+    if (adminPressTimer.current) {
+      window.clearTimeout(adminPressTimer.current);
+      adminPressTimer.current = null;
+    }
+  };
+
   return (
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <button
-          onClick={() => scrollTo("home")}
-          onDoubleClick={() => {
-            window.location.href = "/admin";
-          }}
+          onClick={handleLogoClick}
+          onPointerDown={startAdminPress}
+          onPointerUp={cancelAdminPress}
+          onPointerLeave={cancelAdminPress}
+          onPointerCancel={cancelAdminPress}
           className="flex items-center gap-3"
         >
           <img
@@ -38,26 +80,41 @@ export function Navbar({
             alt="Velasquez Food Truck"
             className="h-12 w-12 rounded-full object-contain"
           />
+
           <div className="text-left">
-            <p className="text-sm font-black tracking-wide sm:text-base">Velasquez</p>
+            <p className="text-sm font-black tracking-wide sm:text-base">
+              Velasquez
+            </p>
             <p className="text-xs text-orange-400">Food Truck</p>
           </div>
         </button>
 
         <div className="hidden items-center gap-7 md:flex">
-          <button onClick={() => scrollTo("home")} className="hover:text-orange-400">
+          <button
+            onClick={() => scrollTo("home")}
+            className="hover:text-orange-400"
+          >
             {t.navHome}
           </button>
 
-          <button onClick={() => scrollTo("menu")} className="hover:text-orange-400">
+          <button
+            onClick={() => scrollTo("menu")}
+            className="hover:text-orange-400"
+          >
             {t.navMenu}
           </button>
 
-          <button onClick={() => scrollTo("location")} className="hover:text-orange-400">
+          <button
+            onClick={() => scrollTo("location")}
+            className="hover:text-orange-400"
+          >
             {t.navLocation}
           </button>
 
-          <button onClick={() => scrollTo("contact")} className="hover:text-orange-400">
+          <button
+            onClick={() => scrollTo("contact")}
+            className="hover:text-orange-400"
+          >
             {t.navContact}
           </button>
 
@@ -91,7 +148,9 @@ export function Navbar({
           <div className="flex flex-col gap-4">
             <button onClick={() => scrollTo("home")}>{t.navHome}</button>
             <button onClick={() => scrollTo("menu")}>{t.navMenu}</button>
-            <button onClick={() => scrollTo("location")}>{t.navLocation}</button>
+            <button onClick={() => scrollTo("location")}>
+              {t.navLocation}
+            </button>
             <button onClick={() => scrollTo("contact")}>{t.navContact}</button>
 
             <a
