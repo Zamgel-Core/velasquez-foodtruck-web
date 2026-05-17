@@ -12,7 +12,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Lang } from "../../../types";
 import type { CartItem } from "../cart.types";
 import CheckoutModal from "./CheckoutModal";
@@ -111,25 +111,58 @@ export default function CartDrawer({
     null,
   );
 
+  const shouldLockScroll =
+    isOpen ||
+    isCheckoutOpen ||
+    Boolean(editingItem) ||
+    Boolean(successOrderNumber);
+
+  useEffect(() => {
+    if (!shouldLockScroll) return;
+
+    const scrollY = window.scrollY;
+
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalBodyPosition = document.body.style.position;
+    const originalBodyTop = document.body.style.top;
+    const originalBodyWidth = document.body.style.width;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.body.style.position = originalBodyPosition;
+      document.body.style.top = originalBodyTop;
+      document.body.style.width = originalBodyWidth;
+
+      window.scrollTo(0, scrollY);
+    };
+  }, [shouldLockScroll]);
+
   const proteinOptions: ProteinOption[] =
     lang === "es"
       ? [
           { label: "Pastor", extraPrice: 0 },
-          { label: "Bistec", extraPrice: 0 },
           { label: "Pollo", extraPrice: 0 },
           { label: "Chorizo", extraPrice: 0 },
           { label: "Fajita", extraPrice: 0 },
+
           { label: "Barbacoa", extraPrice: 2.5 },
           { label: "Campechano", extraPrice: 2.5 },
+          { label: "Tripa", extraPrice: 2.5 },
         ]
       : [
           { label: "Pastor", extraPrice: 0 },
-          { label: "Beef", extraPrice: 0 },
           { label: "Chicken", extraPrice: 0 },
           { label: "Chorizo", extraPrice: 0 },
           { label: "Fajita", extraPrice: 0 },
+
           { label: "Barbacoa", extraPrice: 2.5 },
           { label: "Campechano", extraPrice: 2.5 },
+          { label: "Tripe", extraPrice: 2.5 },
         ];
 
   const quickNotes =
@@ -309,6 +342,15 @@ export default function CartDrawer({
           </span>
         )}
       </button>
+
+      {isOpen && !isCheckoutOpen && !editingItem && !successOrderNumber && (
+        <button
+          type="button"
+          aria-label={t.closeCart}
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 z-[9998] bg-black/65 backdrop-blur-[2px]"
+        />
+      )}
 
       {isOpen && (
         <div className="fixed bottom-24 right-5 z-[9999] w-[380px] max-w-[calc(100vw-24px)] overflow-hidden rounded-3xl border border-orange-500/20 bg-[#0a0a0a]/95 shadow-[0_0_48px_rgba(234,88,12,0.18)] backdrop-blur-xl">

@@ -4,6 +4,7 @@ export const categories = [
   "Tacos",
   "Tortas",
   "Burritos",
+  "Quesadillas",
   "Antojitos",
   "Bebidas",
   "Hot Dogs",
@@ -59,7 +60,7 @@ export const menuItems: Record<string, MenuItem[]> = {
       enDesc: "Special burrito with authentic flavor",
     },
   ],
-  Antojitos: [
+  Quesadillas: [
     {
       name: "Quesadilla",
       price: "$10.00",
@@ -67,6 +68,8 @@ export const menuItems: Record<string, MenuItem[]> = {
       desc: "Quesadilla caliente hecha al momento",
       enDesc: "Hot quesadilla made to order",
     },
+  ],
+  Antojitos: [
     {
       name: "Sope",
       price: "$11.00",

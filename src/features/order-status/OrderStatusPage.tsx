@@ -23,34 +23,44 @@ import {
 const STORAGE_KEY = "velasquez_last_order";
 const STORAGE_TTL_MS = 30 * 60 * 1000;
 
-const statusSteps: {
-  key: PublicOrderStatus;
-  label: string;
-  description: string;
-  icon: React.ElementType;
-}[] = [
+const language =
+  typeof window !== "undefined" && localStorage.getItem("lang") === "en"
+    ? "en"
+    : "es";
+
+const isEnglish = language === "en";
+
+const statusSteps = (isEnglish: boolean) => [
   {
-    key: "received",
-    label: "Recibido",
-    description: "Tu orden llegó a cocina.",
+    key: "received" as PublicOrderStatus,
+    label: isEnglish ? "Received" : "Recibido",
+    description: isEnglish
+      ? "Your order arrived in the kitchen."
+      : "Tu orden llegó a cocina.",
     icon: Clock3,
   },
   {
-    key: "preparing",
-    label: "Preparando",
-    description: "Estamos preparando tu comida.",
+    key: "preparing" as PublicOrderStatus,
+    label: isEnglish ? "Preparing" : "Preparando",
+    description: isEnglish
+      ? "We are preparing your food."
+      : "Estamos preparando tu comida.",
     icon: Flame,
   },
   {
-    key: "ready",
-    label: "Listo",
-    description: "Tu pedido está listo para recoger.",
+    key: "ready" as PublicOrderStatus,
+    label: isEnglish ? "Ready" : "Listo",
+    description: isEnglish
+      ? "Your order is ready for pickup."
+      : "Tu pedido está listo para recoger.",
     icon: PackageCheck,
   },
   {
-    key: "delivered",
-    label: "Entregado",
-    description: "Pedido entregado. ¡Gracias!",
+    key: "delivered" as PublicOrderStatus,
+    label: isEnglish ? "Delivered" : "Entregado",
+    description: isEnglish
+      ? "Order delivered. Thank you!"
+      : "Pedido entregado. ¡Gracias!",
     icon: Truck,
   },
 ];
@@ -69,13 +79,13 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
-function getStatusLabel(status: PublicOrderStatus) {
+function getStatusLabel(status: PublicOrderStatus, isEnglish: boolean) {
   const labels: Record<PublicOrderStatus, string> = {
-    received: "Recibido",
-    preparing: "Preparando",
-    ready: "Listo",
-    delivered: "Entregado",
-    cancelled: "Cancelado",
+    received: isEnglish ? "Received" : "Recibido",
+    preparing: isEnglish ? "Preparing" : "Preparando",
+    ready: isEnglish ? "Ready" : "Listo",
+    delivered: isEnglish ? "Delivered" : "Entregado",
+    cancelled: isEnglish ? "Cancelled" : "Cancelado",
   };
 
   return labels[status] ?? status;
@@ -88,7 +98,7 @@ function saveLastOrder(order: PublicOrder) {
       orderId: order.id,
       orderNumber: order.order_number,
       expiresAt: Date.now() + STORAGE_TTL_MS,
-    })
+    }),
   );
 }
 
@@ -103,7 +113,11 @@ function readLastOrder() {
       expiresAt?: number;
     };
 
-    if ((!parsed.orderId && !parsed.orderNumber) || !parsed.expiresAt || parsed.expiresAt < Date.now()) {
+    if (
+      (!parsed.orderId && !parsed.orderNumber) ||
+      !parsed.expiresAt ||
+      parsed.expiresAt < Date.now()
+    ) {
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }
@@ -121,6 +135,8 @@ export default function OrderStatusPage() {
   const [autoLoading, setAutoLoading] = React.useState(true);
   const [order, setOrder] = React.useState<PublicOrder | null>(null);
   const [error, setError] = React.useState("");
+
+  const translatedStatusSteps = statusSteps(isEnglish);
 
   const loadOrderById = React.useCallback(async (orderId: string) => {
     const result = await findOrderById(orderId);
@@ -194,7 +210,7 @@ export default function OrderStatusPage() {
             setOrder(updated);
             saveLastOrder(updated);
           }
-        }
+        },
       )
       .subscribe();
 
@@ -207,7 +223,11 @@ export default function OrderStatusPage() {
     const query = search.trim();
 
     if (!query) {
-      setError("Escribe tu número de orden o teléfono.");
+      setError(
+        isEnglish
+          ? "Enter your order number or phone."
+          : "Escribe tu número de orden o teléfono.",
+      );
       return;
     }
 
@@ -219,7 +239,11 @@ export default function OrderStatusPage() {
 
       if (!result) {
         setOrder(null);
-        setError("No encontramos ninguna orden con esos datos.");
+        setError(
+          isEnglish
+            ? "We couldn't find any orders with those details."
+            : "No encontramos ninguna orden con esos datos.",
+        );
         return;
       }
 
@@ -227,7 +251,11 @@ export default function OrderStatusPage() {
       saveLastOrder(result);
     } catch (err) {
       console.error(err);
-      setError("Error buscando la orden. Intenta de nuevo.");
+      setError(
+        isEnglish
+          ? "Error searching for the order. Try again."
+          : "Error buscando la orden. Intenta de nuevo.",
+      );
     } finally {
       setLoading(false);
     }
@@ -241,14 +269,18 @@ export default function OrderStatusPage() {
       await loadOrderById(order.id);
     } catch (err) {
       console.error(err);
-      setError("No se pudo actualizar tu orden.");
+      setError(
+        isEnglish
+          ? "Could not refresh your order."
+          : "No se pudo actualizar tu orden.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   const currentStepIndex = order
-    ? statusSteps.findIndex((step) => step.key === order.status)
+    ? translatedStatusSteps.findIndex((step) => step.key === order.status)
     : -1;
 
   const isCancelled = order?.status === "cancelled";
@@ -261,22 +293,32 @@ export default function OrderStatusPage() {
           className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-white/70 transition hover:bg-white/[0.08] hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
-          Volver al menú
+          {isEnglish ? "Back to menu" : "Volver al menú"}
         </a>
 
         <div className="rounded-[2rem] border border-orange-500/25 bg-zinc-950 p-6 shadow-2xl shadow-orange-950/20 sm:p-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="mb-2 inline-flex rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-black text-orange-300">
-                Seguimiento en vivo
+                {isEnglish ? "Live tracking" : "Seguimiento en vivo"}
               </p>
 
               <h1 className="text-4xl font-black sm:text-5xl">
-                Mi <span className="text-orange-500">Pedido</span>
+                {isEnglish ? (
+                  <>
+                    My <span className="text-orange-500">Order</span>
+                  </>
+                ) : (
+                  <>
+                    Mi <span className="text-orange-500">Pedido</span>
+                  </>
+                )}
               </h1>
 
               <p className="mt-2 text-sm font-semibold text-zinc-400 sm:text-base">
-                Consulta el estado con tu número de orden o teléfono.
+                {isEnglish
+                  ? "Check your order status using your order number or phone."
+                  : "Consulta el estado con tu número de orden o teléfono."}
               </p>
             </div>
 
@@ -288,7 +330,7 @@ export default function OrderStatusPage() {
                 type="button"
               >
                 <RefreshCw className="h-5 w-5" />
-                Actualizar
+                {isEnglish ? "Refresh" : "Actualizar"}
               </button>
             )}
           </div>
@@ -300,7 +342,11 @@ export default function OrderStatusPage() {
               onKeyDown={(event) => {
                 if (event.key === "Enter") handleSearch();
               }}
-              placeholder="Número de orden o teléfono"
+              placeholder={
+                isEnglish
+                  ? "Order number or phone"
+                  : "Número de orden o teléfono"
+              }
               className="min-h-16 flex-1 rounded-2xl border border-white/10 bg-zinc-900 px-5 py-4 text-lg font-bold outline-none transition placeholder:text-white/35 focus:border-orange-500/70"
             />
 
@@ -311,13 +357,21 @@ export default function OrderStatusPage() {
               type="button"
             >
               <Search className="h-6 w-6" />
-              {loading ? "Buscando..." : "Buscar"}
+              {loading
+                ? isEnglish
+                  ? "Searching..."
+                  : "Buscando..."
+                : isEnglish
+                  ? "Search"
+                  : "Buscar"}
             </button>
           </div>
 
           {autoLoading && (
             <p className="mt-4 text-sm font-bold text-white/40">
-              Revisando si tienes un pedido reciente...
+              {isEnglish
+                ? "Checking for recent orders..."
+                : "Revisando si tienes un pedido reciente..."}
             </p>
           )}
 
@@ -331,21 +385,25 @@ export default function OrderStatusPage() {
             <div className="mt-8 rounded-3xl border border-white/10 bg-black/45 p-5 sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-sm font-bold text-white/45">Orden</p>
+                  <p className="text-sm font-bold text-white/45">
+                    {isEnglish ? "Order" : "Orden"}
+                  </p>
                   <h2 className="text-4xl font-black text-orange-400">
                     #{order.order_number}
                   </h2>
                   <p className="mt-1 text-sm font-bold text-white/45">
-                    {order.customer?.name ?? "Cliente"} · {formatTime(order.created_at)}
+                    {order.customer?.name ??
+                      (isEnglish ? "Customer" : "Cliente")}{" "}
+                    · {formatTime(order.created_at)}
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-orange-500/25 bg-orange-500/10 px-5 py-4 sm:text-right">
                   <p className="text-xs font-black uppercase tracking-wide text-orange-300">
-                    Estado actual
+                    {isEnglish ? "Current status" : "Estado actual"}
                   </p>
                   <p className="mt-1 text-2xl font-black">
-                    {getStatusLabel(order.status)}
+                    {getStatusLabel(order.status, isEnglish)}
                   </p>
                 </div>
               </div>
@@ -356,17 +414,19 @@ export default function OrderStatusPage() {
                     <XCircle className="h-8 w-8 text-red-300" />
                     <div>
                       <p className="text-xl font-black text-red-200">
-                        Pedido cancelado
+                        {isEnglish ? "Order cancelled" : "Pedido cancelado"}
                       </p>
                       <p className="text-sm font-bold text-red-200/70">
-                        Contacta al food truck si tienes dudas.
+                        {isEnglish
+                          ? "Contact the food truck if you have any questions."
+                          : "Contacta al food truck si tienes dudas."}
                       </p>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="mt-8 grid gap-3">
-                  {statusSteps.map((step, index) => {
+                  {translatedStatusSteps.map((step, index) => {
                     const Icon = step.icon;
                     const active = index <= currentStepIndex;
                     const current = index === currentStepIndex;
@@ -395,9 +455,19 @@ export default function OrderStatusPage() {
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <p className="text-lg font-black text-white">{step.label}</p>
+                          <p className="text-lg font-black text-white">
+                            {step.label}
+                          </p>
                           <p className="text-sm font-semibold text-white/45">
-                            {current ? "Estado actual" : active ? "Completado" : step.description}
+                            {current
+                              ? isEnglish
+                                ? "Current status"
+                                : "Estado actual"
+                              : active
+                                ? isEnglish
+                                  ? "Completed"
+                                  : "Completado"
+                                : step.description}
                           </p>
                         </div>
                       </div>
@@ -407,7 +477,9 @@ export default function OrderStatusPage() {
               )}
 
               <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-                <h3 className="text-xl font-black">Detalle del pedido</h3>
+                <h3 className="text-xl font-black">
+                  {isEnglish ? "Order details" : "Detalle del pedido"}
+                </h3>
 
                 <div className="mt-4 space-y-3">
                   {order.items.map((item) => (
@@ -435,14 +507,18 @@ export default function OrderStatusPage() {
                 </div>
 
                 <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-5">
-                  <p className="text-lg font-black text-white/60">Total</p>
+                  <p className="text-lg font-black text-white/60">
+                    {isEnglish ? "Total" : "Total"}
+                  </p>
                   <p className="text-3xl font-black text-orange-400">
                     {formatMoney(order.total)}
                   </p>
                 </div>
 
                 <p className="mt-4 text-center text-xs font-bold text-white/35">
-                  Esta información se actualiza automáticamente cuando el food truck cambia el estado.
+                  {isEnglish
+                    ? "This information updates automatically when the food truck changes the order status."
+                    : "Esta información se actualiza automáticamente cuando el food truck cambia el estado."}
                 </p>
               </div>
             </div>

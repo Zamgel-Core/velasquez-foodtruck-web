@@ -93,12 +93,12 @@ export function MenuSection({
           {t.popular}
         </h3>
 
-        <div className="scrollbar-hide mx-auto mt-8 flex w-full max-w-full gap-3 overflow-x-auto px-4 pb-2 sm:max-w-4xl sm:justify-center">
+        <div className="scrollbar-hide mx-auto mt-8 flex w-full max-w-full gap-2 overflow-x-auto px-1 pb-2 sm:max-w-6xl sm:justify-center lg:gap-3">
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
-              className={`shrink-0 whitespace-nowrap rounded-full border px-5 py-3 text-xs font-black uppercase tracking-wider transition ${
+              className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-3 text-[11px] font-black uppercase tracking-wider transition lg:px-5 lg:text-xs ${
                 activeCategory === category
                   ? "border-orange-500 bg-orange-600 text-white shadow-[0_0_22px_rgba(234,88,12,0.5)]"
                   : "border-white/10 bg-white/[0.04] text-white/70 hover:border-orange-500/50"
@@ -121,15 +121,16 @@ export function MenuSection({
 
             {[
               lang === "es" ? "Pollo" : "Chicken",
-              lang === "es" ? "Fajita de res" : "Beef fajita",
+              "Fajita",
               "Pastor",
               "Chorizo",
-              "Barbacoa +$2",
+              "Barbacoa +$2.50",
               "Campechano +$2.50",
+              lang === "es" ? "Tripa +$2.50" : "Tripe +$2.50",
             ].map((protein) => (
               <span
                 key={protein}
-                className="rounded-full border border-orange-500/35 bg-orange-500/10 px-3 py-1 text-[11px] font-black text-orange-200"
+                className="rounded-full border border-orange-500/35 bg-orange-500/10 px-2.5 py-1 text-[10px] font-black text-orange-200 lg:px-3 lg:text-[11px]"
               >
                 {protein}
               </span>

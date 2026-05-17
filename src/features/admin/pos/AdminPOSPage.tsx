@@ -23,6 +23,46 @@ function formatMoney(value: number) {
 }
 
 const POS_DRAFT_KEY = "velasquez_pos_draft";
+const CATEGORY_ORDER = [
+  "Tacos",
+  "Tortas",
+  "Burritos",
+  "Quesadillas",
+  "Antojitos",
+  "Hot Dogs",
+  "Extras",
+  "Bebidas",
+];
+
+const PRODUCT_ORDER = [
+  "Regular Tacos",
+  "Special Tacos",
+  "Mini Tacos",
+  "Torta Mexicana",
+  "Burrito",
+  "Burrito Especial",
+  "Quesadillas",
+  "Gorditas",
+  "Sopes",
+  "Street Hot Dog",
+  "Salchipapas",
+  "Coca-Cola Mexicana",
+  "Coca-Cola Lata",
+  "Horchata",
+  "Jamaica",
+  "Pepino Limón",
+  "Jarritos",
+];
+
+function getCategoryIndex(category?: string | null) {
+  const index = CATEGORY_ORDER.indexOf(category ?? "");
+  return index === -1 ? 999 : index;
+}
+
+function getProductIndex(name: string) {
+  const index = PRODUCT_ORDER.indexOf(name);
+  return index === -1 ? 999 : index;
+}
 
 function createCartItemId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -53,9 +93,14 @@ export default function AdminPOSPage() {
       return [];
     }
   });
-  const [selectedProduct, setSelectedProduct] = React.useState<POSProduct | null>(null);
-  const [productOptions, setProductOptions] = React.useState<POSProductOption[]>([]);
-  const [selectedOptions, setSelectedOptions] = React.useState<POSSelectedOption[]>([]);
+  const [selectedProduct, setSelectedProduct] =
+    React.useState<POSProduct | null>(null);
+  const [productOptions, setProductOptions] = React.useState<
+    POSProductOption[]
+  >([]);
+  const [selectedOptions, setSelectedOptions] = React.useState<
+    POSSelectedOption[]
+  >([]);
   const [itemNotes, setItemNotes] = React.useState("");
   const [loadingOptions, setLoadingOptions] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
@@ -65,7 +110,9 @@ export default function AdminPOSPage() {
   const [customerName, setCustomerName] = React.useState("");
   const [customerPhone, setCustomerPhone] = React.useState("");
   const [notes, setNotes] = React.useState("");
-  const [paymentMethod, setPaymentMethod] = React.useState<"cash" | "card" | "pending">("cash");
+  const [paymentMethod, setPaymentMethod] = React.useState<
+    "cash" | "card" | "pending"
+  >("cash");
   const [amountPaid, setAmountPaid] = React.useState("");
   const [success, setSuccess] = React.useState("");
   const [error, setError] = React.useState("");
@@ -124,78 +171,99 @@ export default function AdminPOSPage() {
         notes,
         paymentMethod,
         amountPaid,
-      })
+      }),
     );
-  }, [draftReady, cart, customerName, customerPhone, notes, paymentMethod, amountPaid]);
+  }, [
+    draftReady,
+    cart,
+    customerName,
+    customerPhone,
+    notes,
+    paymentMethod,
+    amountPaid,
+  ]);
 
   const categories = React.useMemo(() => {
-  return Array.from(
-    new Set(products.map((product) => product.category?.name).filter(Boolean))
-  ) as string[];
-}, [products]);
+    return (
+      Array.from(
+        new Set(
+          products.map((product) => product.category?.name).filter(Boolean),
+        ),
+      ) as string[]
+    ).sort((a, b) => getCategoryIndex(a) - getCategoryIndex(b));
+  }, [products]);
 
-  const filteredProducts = products.filter((product) => {
-  const query = searchTerm.trim().toLowerCase();
+  const filteredProducts = products
+    .filter((product) => {
+      const query = searchTerm.trim().toLowerCase();
 
-  const matchesSearch =
-    !query ||
-    product.name.toLowerCase().includes(query) ||
-    product.category?.name?.toLowerCase().includes(query);
+      const matchesSearch =
+        !query ||
+        product.name.toLowerCase().includes(query) ||
+        product.category?.name?.toLowerCase().includes(query);
 
-  const matchesCategory =
-    categoryFilter === "all" || product.category?.name === categoryFilter;
+      const matchesCategory =
+        categoryFilter === "all" || product.category?.name === categoryFilter;
 
-  return matchesSearch && matchesCategory;
-});
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      const categoryDiff =
+        getCategoryIndex(a.category?.name) - getCategoryIndex(b.category?.name);
+
+      if (categoryDiff !== 0) return categoryDiff;
+
+      return getProductIndex(a.name) - getProductIndex(b.name);
+    });
 
   const safeCart = Array.isArray(cart) ? cart : [];
 
   const subtotal = safeCart.reduce(
     (sum, item) => sum + getPOSItemUnitPrice(item) * item.quantity,
-    0
+    0,
   );
 
   const paid = Number(amountPaid || 0);
   const changeDue = paymentMethod === "cash" ? Math.max(0, paid - subtotal) : 0;
 
   const openProductModal = async (product: POSProduct) => {
-  try {
-    setSelectedProduct(product);
+    try {
+      setSelectedProduct(product);
+      setSelectedOptions([]);
+      setItemNotes("");
+      setLoadingOptions(true);
+
+      const options = await getPOSProductOptions(product.id);
+
+      setProductOptions(options);
+      setSelectedOptions(options.filter((option) => option.is_default));
+    } catch (err) {
+      console.error(err);
+      setError("No se pudieron cargar los modificadores.");
+    } finally {
+      setLoadingOptions(false);
+    }
+  };
+
+  const addProductToCart = () => {
+    if (!selectedProduct) return;
+
+    setCart((current) => [
+      ...(Array.isArray(current) ? current : []),
+      {
+        cart_item_id: createCartItemId(),
+        product: selectedProduct,
+        quantity: 1,
+        selectedOptions,
+        notes: itemNotes.trim() || undefined,
+      },
+    ]);
+
+    setSelectedProduct(null);
+    setProductOptions([]);
     setSelectedOptions([]);
     setItemNotes("");
-    setLoadingOptions(true);
-
-    const options = await getPOSProductOptions(product.id);
-
-    setProductOptions(options);
-    setSelectedOptions(options.filter((option) => option.is_default));
-  } catch (err) {
-    console.error(err);
-    setError("No se pudieron cargar los modificadores.");
-  } finally {
-    setLoadingOptions(false);
-  }
-};
-
-const addProductToCart = () => {
-  if (!selectedProduct) return;
-
-  setCart((current) => [
-    ...(Array.isArray(current) ? current : []),
-    {
-      cart_item_id: createCartItemId(),
-      product: selectedProduct,
-      quantity: 1,
-      selectedOptions,
-      notes: itemNotes.trim() || undefined,
-    },
-  ]);
-
-  setSelectedProduct(null);
-  setProductOptions([]);
-  setSelectedOptions([]);
-  setItemNotes("");
-};
+  };
 
   const updateQuantity = (cartItemId: string, change: number) => {
     setCart((current) =>
@@ -203,15 +271,17 @@ const addProductToCart = () => {
         .map((item) =>
           item.cart_item_id === cartItemId
             ? { ...item, quantity: Math.max(0, item.quantity + change) }
-            : item
+            : item,
         )
-        .filter((item) => item.quantity > 0)
+        .filter((item) => item.quantity > 0),
     );
   };
 
   const removeItem = (cartItemId: string) => {
     setCart((current) =>
-      (Array.isArray(current) ? current : []).filter((item) => item.cart_item_id !== cartItemId)
+      (Array.isArray(current) ? current : []).filter(
+        (item) => item.cart_item_id !== cartItemId,
+      ),
     );
   };
 
@@ -246,7 +316,9 @@ const addProductToCart = () => {
       setPaymentMethod("cash");
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : "No se pudo crear la orden.");
+      setError(
+        err instanceof Error ? err.message : "No se pudo crear la orden.",
+      );
     } finally {
       setSaving(false);
     }
@@ -272,7 +344,8 @@ const addProductToCart = () => {
                   </h1>
 
                   <p className="mt-1 text-sm text-white/60">
-                    Toma órdenes presenciales y envíalas directo al panel de cocina.
+                    Toma órdenes presenciales y envíalas directo al panel de
+                    cocina.
                   </p>
                 </div>
 
@@ -299,34 +372,34 @@ const addProductToCart = () => {
               </div>
             </div>
 
-<div className="mb-5 flex gap-2 overflow-x-auto pb-1">
-  <button
-    onClick={() => setCategoryFilter("all")}
-    className={`shrink-0 rounded-2xl border px-4 py-2 text-sm font-black transition ${
-      categoryFilter === "all"
-        ? "border-orange-500 bg-orange-500 text-white"
-        : "border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/10"
-    }`}
-    type="button"
-  >
-    Todos
-  </button>
+            <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+              <button
+                onClick={() => setCategoryFilter("all")}
+                className={`shrink-0 rounded-2xl border px-4 py-2 text-sm font-black transition ${
+                  categoryFilter === "all"
+                    ? "border-orange-500 bg-orange-500 text-white"
+                    : "border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/10"
+                }`}
+                type="button"
+              >
+                Todos
+              </button>
 
-  {categories.map((category) => (
-    <button
-      key={category}
-      onClick={() => setCategoryFilter(category)}
-      className={`shrink-0 rounded-2xl border px-4 py-2 text-sm font-black transition ${
-        categoryFilter === category
-          ? "border-orange-500 bg-orange-500 text-white"
-          : "border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/10"
-      }`}
-      type="button"
-    >
-      {category}
-    </button>
-  ))}
-</div>
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setCategoryFilter(category)}
+                  className={`shrink-0 rounded-2xl border px-4 py-2 text-sm font-black transition ${
+                    categoryFilter === category
+                      ? "border-orange-500 bg-orange-500 text-white"
+                      : "border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/10"
+                  }`}
+                  type="button"
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
 
             {loading && (
               <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center text-white/60">
@@ -338,47 +411,47 @@ const addProductToCart = () => {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredProducts.map((product) => (
                   <button
-  key={product.id}
-  onClick={() => openProductModal(product)}
-  className="flex items-start gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-left transition hover:-translate-y-1 hover:border-orange-500/40 hover:bg-orange-500/[0.08]"
-  type="button"
->
-  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-white/5">
-    {product.image_url ? (
-      <img
-        src={product.image_url}
-        alt={product.name}
-        className="h-full w-full object-cover"
-      />
-    ) : (
-      <div className="flex h-full w-full items-center justify-center text-xs font-black text-white/30">
-        IMG
-      </div>
-    )}
-  </div>
+                    key={product.id}
+                    onClick={() => openProductModal(product)}
+                    className="flex items-start gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-left transition hover:-translate-y-1 hover:border-orange-500/40 hover:bg-orange-500/[0.08]"
+                    type="button"
+                  >
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-white/5">
+                      {product.image_url ? (
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs font-black text-white/30">
+                          IMG
+                        </div>
+                      )}
+                    </div>
 
-  <div className="min-w-0 flex-1">
-    <div className="mb-2 flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h2 className="truncate text-lg font-black">
-          {product.name}
-        </h2>
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-2 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h2 className="truncate text-lg font-black">
+                            {product.name}
+                          </h2>
 
-        <p className="text-xs font-bold text-white/40">
-          {product.category?.name ?? "Sin categoría"}
-        </p>
-      </div>
+                          <p className="text-xs font-bold text-white/40">
+                            {product.category?.name ?? "Sin categoría"}
+                          </p>
+                        </div>
 
-      <span className="shrink-0 rounded-full bg-orange-500 px-3 py-1 text-sm font-black">
-        {formatMoney(Number(product.price))}
-      </span>
-    </div>
+                        <span className="shrink-0 rounded-full bg-orange-500 px-3 py-1 text-sm font-black">
+                          {formatMoney(Number(product.price))}
+                        </span>
+                      </div>
 
-    <p className="line-clamp-2 text-sm text-white/50">
-      {product.description || "Sin descripción."}
-    </p>
-  </div>
-</button>
+                      <p className="line-clamp-2 text-sm text-white/50">
+                        {product.description || "Sin descripción."}
+                      </p>
+                    </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -422,21 +495,22 @@ const addProductToCart = () => {
                         {formatMoney(getPOSItemUnitPrice(item))}
                       </p>
 
-                      {item.selectedOptions && item.selectedOptions.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {item.selectedOptions.map((option) => (
-                            <p
-                              key={option.id}
-                              className="text-xs font-bold text-white/45"
-                            >
-                              {option.option_group}: {option.option_name}
-                              {Number(option.extra_price || 0) > 0
-                                ? ` +${formatMoney(Number(option.extra_price))}`
-                                : ""}
-                            </p>
-                          ))}
-                        </div>
-                      )}
+                      {item.selectedOptions &&
+                        item.selectedOptions.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {item.selectedOptions.map((option) => (
+                              <p
+                                key={option.id}
+                                className="text-xs font-bold text-white/45"
+                              >
+                                {option.option_group}: {option.option_name}
+                                {Number(option.extra_price || 0) > 0
+                                  ? ` +${formatMoney(Number(option.extra_price))}`
+                                  : ""}
+                              </p>
+                            ))}
+                          </div>
+                        )}
 
                       {item.notes && (
                         <p className="mt-2 text-xs font-bold text-orange-200/70">
@@ -446,7 +520,9 @@ const addProductToCart = () => {
                     </div>
 
                     <button
-                      onClick={() => removeItem(item.cart_item_id ?? item.product.id)}
+                      onClick={() =>
+                        removeItem(item.cart_item_id ?? item.product.id)
+                      }
                       className="rounded-xl bg-red-500/10 p-2 text-red-200 hover:bg-red-500/20"
                       type="button"
                     >
@@ -457,7 +533,12 @@ const addProductToCart = () => {
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => updateQuantity(item.cart_item_id ?? item.product.id, -1)}
+                        onClick={() =>
+                          updateQuantity(
+                            item.cart_item_id ?? item.product.id,
+                            -1,
+                          )
+                        }
                         className="rounded-xl border border-white/10 bg-white/5 p-2 hover:bg-white/10"
                         type="button"
                       >
@@ -469,7 +550,12 @@ const addProductToCart = () => {
                       </span>
 
                       <button
-                        onClick={() => updateQuantity(item.cart_item_id ?? item.product.id, 1)}
+                        onClick={() =>
+                          updateQuantity(
+                            item.cart_item_id ?? item.product.id,
+                            1,
+                          )
+                        }
                         className="rounded-xl border border-white/10 bg-white/5 p-2 hover:bg-white/10"
                         type="button"
                       >
@@ -505,7 +591,11 @@ const addProductToCart = () => {
                   }`}
                   type="button"
                 >
-                  {method === "cash" ? "Cash" : method === "card" ? "Card" : "Pendiente"}
+                  {method === "cash"
+                    ? "Cash"
+                    : method === "card"
+                      ? "Card"
+                      : "Pendiente"}
                 </button>
               ))}
             </div>
@@ -564,7 +654,7 @@ const addProductToCart = () => {
           </aside>
         </section>
       </main>
-            {selectedProduct && (
+      {selectedProduct && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
           <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/10 bg-[#0a0a0a] p-5 text-white shadow-2xl">
             <div className="mb-5 flex items-start justify-between gap-4">
@@ -607,8 +697,8 @@ const addProductToCart = () => {
                     groups[option.option_group].push(option);
                     return groups;
                   },
-                  {}
-                )
+                  {},
+                ),
               ).map(([group, options]) => {
                 const isRequired = options.some((option) => option.is_required);
 
@@ -629,7 +719,7 @@ const addProductToCart = () => {
                     <div className="grid gap-2 sm:grid-cols-2">
                       {options.map((option) => {
                         const active = selectedOptions.some(
-                          (selected) => selected.id === option.id
+                          (selected) => selected.id === option.id,
                         );
 
                         return (
@@ -638,12 +728,12 @@ const addProductToCart = () => {
                             onClick={() => {
                               setSelectedOptions((current) => {
                                 const exists = current.some(
-                                  (selected) => selected.id === option.id
+                                  (selected) => selected.id === option.id,
                                 );
 
                                 if (exists) {
                                   return current.filter(
-                                    (selected) => selected.id !== option.id
+                                    (selected) => selected.id !== option.id,
                                   );
                                 }
 
@@ -653,7 +743,8 @@ const addProductToCart = () => {
                                   return [
                                     ...current.filter(
                                       (selected) =>
-                                        selected.option_group !== option.option_group
+                                        selected.option_group !==
+                                        option.option_group,
                                     ),
                                     option,
                                   ];

@@ -3,7 +3,7 @@
 import React from "react";
 import type { AdminOrder } from "./admin-orders.types";
 
-const ALERT_INTERVAL = 20000;
+const ALERT_INTERVAL = 10000;
 const SOUND_KEY = "velasquez_orders_sound_enabled";
 
 export function useOrderAlerts(orders: AdminOrder[]) {
@@ -15,8 +15,14 @@ export function useOrderAlerts(orders: AdminOrder[]) {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   React.useEffect(() => {
-    const audio = new Audio("/sounds/new-order.mp3");
+    const audio = new Audio();
+
+    audio.src = `/sounds/new-order.mp3?v=${Date.now()}`;
+    audio.preload = "auto";
     audio.volume = 1;
+
+    audio.load();
+
     audioRef.current = audio;
   }, []);
 
@@ -27,6 +33,12 @@ export function useOrderAlerts(orders: AdminOrder[]) {
     audio.currentTime = 0;
     audio.play().catch((err) => {
       console.error("Audio blocked:", err);
+
+      audio.load();
+
+      setTimeout(() => {
+        audio.play().catch(console.error);
+      }, 250);
     });
   }, [soundEnabled]);
 
@@ -43,7 +55,7 @@ export function useOrderAlerts(orders: AdminOrder[]) {
       setSoundEnabled(true);
 
       const hasPendingOrders = orders.some(
-        (order) => order.status === "received"
+        (order) => order.status === "received",
       );
 
       if (hasPendingOrders) {
@@ -73,7 +85,7 @@ export function useOrderAlerts(orders: AdminOrder[]) {
     const currentIds = pendingOrders.map((order) => order.id);
 
     const hasNewOrder = currentIds.some(
-      (id) => !previousOrderIds.current.includes(id)
+      (id) => !previousOrderIds.current.includes(id),
     );
 
     if (hasNewOrder) {
@@ -88,7 +100,7 @@ export function useOrderAlerts(orders: AdminOrder[]) {
 
     const interval = window.setInterval(() => {
       const hasPendingOrders = orders.some(
-        (order) => order.status === "received"
+        (order) => order.status === "received",
       );
 
       if (hasPendingOrders) {
