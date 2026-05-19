@@ -87,20 +87,20 @@ const adminCards = [
     status: "active",
   },
   {
-    title: "Ajustes",
-    description:
-      "Configurar página, sonidos, TV Menu, radio de órdenes y negocio.",
-    href: "/admin/settings",
-    icon: Settings,
-    roles: ["super_admin", "admin"],
-    status: "active",
-  },
-  {
     title: "Inventario",
     description:
       "Control de stock, ingredientes, mínimos y alertas operativas.",
     href: "/admin/inventory",
     icon: Package,
+    roles: ["super_admin", "admin"],
+    status: "active",
+  },
+  {
+    title: "Ajustes",
+    description:
+      "Configurar página, sonidos, TV Menu, radio de órdenes y negocio.",
+    href: "/admin/settings",
+    icon: Settings,
     roles: ["super_admin", "admin"],
     status: "active",
   },
