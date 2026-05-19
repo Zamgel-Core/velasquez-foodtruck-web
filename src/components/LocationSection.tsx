@@ -1,42 +1,51 @@
 // 📍 Ruta: src/components/LocationSection.tsx
 
 import { Clock, MapPin, Navigation, Phone, Store } from "lucide-react";
-import { mapEmbed } from "../data/business";
 import type { Lang } from "../types";
+import {
+  normalizePhoneForHref,
+  type AdminSettings,
+} from "../features/admin/settings/admin-settings.service";
+import { formatBusinessHours } from "../utils/businessStatus";
 
 export function LocationSection({
   lang,
   title,
+  settings,
 }: {
   lang: Lang;
   title: string;
+  settings: AdminSettings;
 }) {
   const isSpanish = lang === "es";
+  const directionsUrl = settings.google_maps_url;
+  const phoneHref = normalizePhoneForHref(settings.phone);
 
-  const directionsUrl =
-    "https://www.google.com/maps/dir/?api=1&destination=Velasquez%20Food%20Truck%2C%2010010%20Beechnut%20St%2C%20Houston%2C%20TX%2077072";
+  const dayLabels: Record<string, { es: string; en: string }> = {
+    monday: { es: "Lun", en: "Mon" },
+    tuesday: { es: "Mar", en: "Tue" },
+    wednesday: { es: "Mié", en: "Wed" },
+    thursday: { es: "Jue", en: "Thu" },
+    friday: { es: "Vie", en: "Fri" },
+    saturday: { es: "Sáb", en: "Sat" },
+    sunday: { es: "Dom", en: "Sun" },
+  };
 
-  const phoneNumber = "+13468608728";
+  const orderedHours = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+  ]
+    .map((key) => settings.business_hours.find((day) => day.key === key))
+    .filter(Boolean);
 
-  const hours = isSpanish
-    ? [
-        ["Dom", "Cerrado"],
-        ["Lun", "11:00 a.m. – 10:00 p.m."],
-        ["Mar", "11:00 a.m. – 10:00 p.m."],
-        ["Mié", "11:00 a.m. – 10:00 p.m."],
-        ["Jue", "11:00 a.m. – 10:00 p.m."],
-        ["Vie", "11:00 a.m. – 11:00 p.m."],
-        ["Sáb", "11:00 a.m. – 11:00 p.m."],
-      ]
-    : [
-        ["Sun", "Closed"],
-        ["Mon", "11:00 AM – 10:00 PM"],
-        ["Tue", "11:00 AM – 10:00 PM"],
-        ["Wed", "11:00 AM – 10:00 PM"],
-        ["Thu", "11:00 AM – 10:00 PM"],
-        ["Fri", "11:00 AM – 11:00 PM"],
-        ["Sat", "11:00 AM – 11:00 PM"],
-      ];
+  const mapSrc = settings.google_maps_url.includes("output=embed")
+    ? settings.google_maps_url
+    : `https://www.google.com/maps?q=${encodeURIComponent(settings.address)}&hl=${isSpanish ? "es" : "en"}&z=15&output=embed`;
 
   return (
     <section id="location" className="relative overflow-hidden px-4 py-20">
@@ -51,11 +60,7 @@ export function LocationSection({
 
           <h2 className="mt-5 text-4xl font-black sm:text-5xl">{title}</h2>
 
-          <p className="mt-3 text-white/65">
-            {isSpanish
-              ? "10010 Beechnut St, Houston, TX 77072"
-              : "10010 Beechnut St, Houston, TX 77072"}
-          </p>
+          <p className="mt-3 text-white/65">{settings.address}</p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <a
@@ -74,14 +79,14 @@ export function LocationSection({
             </a>
 
             <a
-              href={`tel:${phoneNumber}`}
+              href={`tel:${phoneHref}`}
               className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-orange-500/40 hover:bg-orange-500/10"
             >
               <Phone className="h-6 w-6 text-orange-400" />
               <p className="mt-3 text-lg font-black">
                 {isSpanish ? "Llámanos" : "Call us"}
               </p>
-              <p className="mt-1 text-sm text-white/55">+1 (346) 860-8728</p>
+              <p className="mt-1 text-sm text-white/55">{settings.phone}</p>
             </a>
           </div>
 
@@ -92,14 +97,16 @@ export function LocationSection({
             </h3>
 
             <div className="grid gap-2 sm:grid-cols-2">
-              {hours.map(([day, time]) => (
+              {orderedHours.map((day) => (
                 <div
-                  key={day}
+                  key={day!.key}
                   className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/25 px-4 py-3"
                 >
-                  <span className="font-black text-orange-300">{day}</span>
+                  <span className="font-black text-orange-300">
+                    {dayLabels[day!.key]?.[lang] ?? day!.label}
+                  </span>
                   <span className="text-sm font-semibold text-white/70">
-                    {time}
+                    {formatBusinessHours(day!, lang)}
                   </span>
                 </div>
               ))}
@@ -111,7 +118,7 @@ export function LocationSection({
           <div className="flex items-center justify-between border-b border-white/10 bg-black/35 px-5 py-4">
             <div className="flex items-center gap-3">
               <Store className="h-5 w-5 text-orange-400" />
-              <p className="font-black">Velasquez Food Truck</p>
+              <p className="font-black">{settings.business_name}</p>
             </div>
 
             <a
@@ -126,7 +133,7 @@ export function LocationSection({
 
           <iframe
             title="Velasquez Food Truck location"
-            src={mapEmbed}
+            src={mapSrc}
             className="h-[520px] w-full"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"

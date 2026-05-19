@@ -2,11 +2,13 @@
 
 import React from "react";
 import type { AdminOrder } from "./admin-orders.types";
+import { useBusinessSettings } from "../../../hooks/useBusinessSettings";
 
 const ALERT_INTERVAL = 10000;
 const SOUND_KEY = "velasquez_orders_sound_enabled";
 
 export function useOrderAlerts(orders: AdminOrder[]) {
+  const { settings } = useBusinessSettings();
   const [soundEnabled, setSoundEnabled] = React.useState(() => {
     return localStorage.getItem(SOUND_KEY) === "true";
   });
@@ -28,7 +30,14 @@ export function useOrderAlerts(orders: AdminOrder[]) {
 
   const playSound = React.useCallback(() => {
     const audio = audioRef.current;
-    if (!audio || !soundEnabled) return;
+    if (
+      !audio ||
+      !soundEnabled ||
+      !settings.sound_enabled ||
+      !settings.order_alert_sound_enabled
+    ) {
+      return;
+    }
 
     audio.currentTime = 0;
     audio.play().catch((err) => {
@@ -40,7 +49,11 @@ export function useOrderAlerts(orders: AdminOrder[]) {
         audio.play().catch(console.error);
       }, 250);
     });
-  }, [soundEnabled]);
+  }, [
+    soundEnabled,
+    settings.sound_enabled,
+    settings.order_alert_sound_enabled,
+  ]);
 
   const enableSound = React.useCallback(async () => {
     const audio = audioRef.current;
@@ -67,7 +80,7 @@ export function useOrderAlerts(orders: AdminOrder[]) {
     } catch (err) {
       console.error("No se pudo activar el sonido:", err);
     }
-  }, [orders]);
+  }, [orders, settings.sound_enabled, settings.order_alert_sound_enabled]);
 
   const disableSound = React.useCallback(() => {
     localStorage.setItem(SOUND_KEY, "false");
@@ -96,7 +109,13 @@ export function useOrderAlerts(orders: AdminOrder[]) {
   }, [orders, playSound]);
 
   React.useEffect(() => {
-    if (!soundEnabled) return;
+    if (
+      !soundEnabled ||
+      !settings.sound_enabled ||
+      !settings.order_alert_sound_enabled
+    ) {
+      return;
+    }
 
     const interval = window.setInterval(() => {
       const hasPendingOrders = orders.some(
@@ -109,7 +128,13 @@ export function useOrderAlerts(orders: AdminOrder[]) {
     }, ALERT_INTERVAL);
 
     return () => window.clearInterval(interval);
-  }, [orders, soundEnabled, playSound]);
+  }, [
+    orders,
+    soundEnabled,
+    settings.sound_enabled,
+    settings.order_alert_sound_enabled,
+    playSound,
+  ]);
 
   return {
     soundEnabled,

@@ -17,6 +17,7 @@ import {
   Truck,
   Users,
   Wallet,
+  Share2,
 } from "lucide-react";
 import { useStaffAuth } from "./auth/useStaffAuth";
 
@@ -78,13 +79,21 @@ const adminCards = [
     status: "active",
   },
   {
+    title: "Redes Sociales",
+    description: "Agregar videos de TikTok para mostrarlos en la página.",
+    href: "/admin/social-videos",
+    icon: Share2,
+    roles: ["super_admin", "admin"],
+    status: "active",
+  },
+  {
     title: "Ajustes",
     description:
       "Configurar página, sonidos, TV Menu, radio de órdenes y negocio.",
     href: "/admin/settings",
     icon: Settings,
     roles: ["super_admin", "admin"],
-    status: "coming_soon",
+    status: "active",
   },
   {
     title: "Inventario",

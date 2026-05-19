@@ -7,7 +7,10 @@ import {
   LayoutGrid,
   Package,
   ShoppingCart,
+  Settings,
+  Share2,
   SlidersHorizontal,
+  Users,
   WalletCards,
 } from "lucide-react";
 import AdminUserBadge from "./AdminUserBadge";
@@ -48,6 +51,21 @@ const links = [
     label: "Extras",
     href: "/admin/product-options",
     icon: SlidersHorizontal,
+  },
+  {
+    label: "Redes",
+    href: "/admin/social-videos",
+    icon: Share2,
+  },
+  {
+    label: "Staff",
+    href: "/admin/staff",
+    icon: Users,
+  },
+  {
+    label: "Ajustes",
+    href: "/admin/settings",
+    icon: Settings,
   },
 ];
 

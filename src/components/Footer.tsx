@@ -18,13 +18,13 @@ export function Footer({ setLegalModal, t }: FooterProps) {
 
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center gap-7 text-center">
         <a
-          href="https://instagram.com/zamgelcore"
+          href="https://zamgelcore.com"
           target="_blank"
           rel="noreferrer"
           className="group flex items-center gap-4 rounded-3xl border border-orange-500/20 bg-white/[0.03] px-6 py-4 shadow-[0_0_35px_rgba(249,115,22,0.08)] transition duration-300 hover:scale-[1.02] hover:border-orange-500/40 hover:bg-orange-500/10"
         >
           <img
-            src="/images/Logo-ZC-sinfondo.png"
+            src="/images/zamgelcore-zc-logo.png"
             alt="Zamgel Core"
             className="h-14 w-14 object-contain transition duration-300 group-hover:scale-110"
           />

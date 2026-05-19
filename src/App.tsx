@@ -16,6 +16,7 @@ import { MenuSection } from "./components/MenuSection";
 import { Navbar } from "./components/Navbar";
 import type { Lang, LegalModalType } from "./types";
 import { getBusinessStatus } from "./utils/businessStatus";
+import { useBusinessSettings } from "./hooks/useBusinessSettings";
 import { useCart } from "./hooks/useCart";
 import CartDrawer from "./features/cart/components/CartDrawer";
 import { ReviewsSection } from "./components/ReviewsSection";
@@ -27,6 +28,9 @@ import AdminRegisterPage from "./features/admin/register/AdminRegisterPage";
 import AdminReportsPage from "./features/admin/reports/AdminReportsPage";
 import OrderStatusPage from "./features/order-status/OrderStatusPage";
 import TvMenuPage from "./features/tv-menu/TvMenuPage";
+import SocialVideosAdminPage from "./features/admin/social-videos/SocialVideosAdminPage";
+import AdminSettingsPage from "./features/admin/settings/AdminSettingsPage";
+import { TikTokSection } from "./components/TikTokSection";
 
 export default function App() {
   const pathname = window.location.pathname;
@@ -103,6 +107,22 @@ export default function App() {
     );
   }
 
+  if (pathname === "/admin/settings") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <AdminSettingsPage />
+      </ProtectedAdminRoute>
+    );
+  }
+
+  if (pathname === "/admin/social-videos") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <SocialVideosAdminPage />
+      </ProtectedAdminRoute>
+    );
+  }
+
   if (pathname === "/admin/staff") {
     return (
       <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
@@ -123,6 +143,7 @@ export default function App() {
   const [activeCategory, setActiveCategory] = React.useState("Tacos");
   const [legalModal, setLegalModal] = React.useState<LegalModalType>(null);
   const [timeTick, setTimeTick] = React.useState(0);
+  const { settings } = useBusinessSettings();
 
   const [lang, setLang] = React.useState<Lang>(() => {
     const saved = localStorage.getItem("lang");
@@ -149,8 +170,8 @@ export default function App() {
   }, []);
 
   const businessStatus = React.useMemo(
-    () => getBusinessStatus(lang),
-    [lang, timeTick],
+    () => getBusinessStatus(lang, settings.business_hours),
+    [lang, timeTick, settings.business_hours],
   );
 
   const cart = useCart();
@@ -241,20 +262,28 @@ export default function App() {
           setActiveCategory={setActiveCategory}
           t={t}
           addItem={(item) => {
-            const audio = new Audio("/sounds/Add_to_cart.mp3");
-            audio.volume = 0.35;
-            audio.play().catch(() => {});
+            if (settings.sound_enabled) {
+              const audio = new Audio("/sounds/Add_to_cart.mp3");
+              audio.volume = 0.35;
+              audio.play().catch(() => {});
+            }
             cart.addItem(item);
           }}
         />
 
         <ReviewsSection lang={lang} title={t.reviews} />
-        <LocationSection lang={lang} title={t.locationTitle} />
+        <LocationSection
+          lang={lang}
+          title={t.locationTitle}
+          settings={settings}
+        />
         <ContactSection
           title={t.contactTitle}
           text={t.contactText}
           orderNow={t.orderNow}
+          settings={settings}
         />
+        {settings.tiktok_feed_enabled && <TikTokSection lang={lang} />}
         <Footer setLegalModal={setLegalModal} t={t} />
         {legalModal && (
           <LegalModal

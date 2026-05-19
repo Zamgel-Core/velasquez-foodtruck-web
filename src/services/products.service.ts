@@ -20,7 +20,8 @@ type ProductRow = {
 export async function getProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
-    .select(`
+    .select(
+      `
       id,
       name,
       description,
@@ -32,7 +33,8 @@ export async function getProducts(): Promise<Product[]> {
         name,
         slug
       )
-    `)
+    `,
+    )
     .eq("is_available", true)
     .order("sort_order", { ascending: true });
 
@@ -46,7 +48,7 @@ export async function getProducts(): Promise<Product[]> {
     name: product.name,
     description: product.description ?? "",
     price: Number(product.price),
-    image_url: product.image_url ?? "/images/Regular_tacos.jpg",
+    image_url: product.image_url ?? "/images/regular_tacos.png",
     category: product.categories?.name ?? "Extras",
     is_available: product.is_available,
   }));

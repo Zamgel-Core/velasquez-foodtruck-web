@@ -403,7 +403,7 @@ export default function CartDrawer({
                           src={
                             item.imageUrl ||
                             item.image ||
-                            "/images/Regular_tacos.jpg"
+                            "/images/regular_tacos.png"
                           }
                           alt={item.name}
                           className="h-20 w-20 rounded-xl object-cover"

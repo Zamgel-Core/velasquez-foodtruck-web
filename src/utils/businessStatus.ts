@@ -1,6 +1,48 @@
-import type { Lang } from "../types";
+// 📍 Ruta: src/utils/businessStatus.ts
 
-export function getBusinessStatus(lang: Lang) {
+import type { Lang } from "../types";
+import { type BusinessHoursDay, defaultBusinessHours } from "../features/admin/settings/admin-settings.service";
+
+const weekdayKeyByShortName: Record<string, string> = {
+  Sun: "sunday",
+  Mon: "monday",
+  Tue: "tuesday",
+  Wed: "wednesday",
+  Thu: "thursday",
+  Fri: "friday",
+  Sat: "saturday",
+};
+
+function timeToMinutes(value: string) {
+  const [hours = "0", minutes = "0"] = value.split(":");
+  return Number(hours) * 60 + Number(minutes);
+}
+
+function formatBusinessTime(value: string, lang: Lang) {
+  const [hourText = "0", minuteText = "0"] = value.split(":");
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  if (lang === "en") {
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
+  }
+
+  const suffix = hour >= 12 ? "p.m." : "a.m.";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
+}
+
+export function formatBusinessHours(day: BusinessHoursDay, lang: Lang) {
+  if (!day.is_open) return lang === "es" ? "Cerrado" : "Closed";
+  return `${formatBusinessTime(day.open_time, lang)} – ${formatBusinessTime(day.close_time, lang)}`;
+}
+
+export function getBusinessStatus(
+  lang: Lang,
+  businessHours: BusinessHoursDay[] = defaultBusinessHours,
+) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Chicago",
     weekday: "short",
@@ -9,28 +51,27 @@ export function getBusinessStatus(lang: Lang) {
     hour12: false,
   }).formatToParts(new Date());
 
-  const weekday = parts.find((part) => part.type === "weekday")?.value;
-  const hour = Number(parts.find((part) => part.type === "hour")?.value);
-  const minute = Number(parts.find((part) => part.type === "minute")?.value);
+  const weekday = parts.find((part) => part.type === "weekday")?.value ?? "Sun";
+  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? 0);
+  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? 0);
 
   const current = hour * 60 + minute;
+  const todayKey = weekdayKeyByShortName[weekday] ?? "sunday";
+  const today = businessHours.find((day) => day.key === todayKey);
 
-  const schedule: Record<string, { open: number; close: number } | null> = {
-    Sun: null,
-    Mon: { open: 11 * 60, close: 22 * 60 },
-    Tue: { open: 11 * 60, close: 22 * 60 },
-    Wed: { open: 11 * 60, close: 22 * 60 },
-    Thu: { open: 11 * 60, close: 22 * 60 },
-    Fri: { open: 11 * 60, close: 23 * 60 },
-    Sat: { open: 11 * 60, close: 23 * 60 },
-  };
+  if (!today?.is_open) {
+    return {
+      isOpen: false,
+      isClosingSoon: false,
+      label: lang === "es" ? "Cerrado ahora en Houston" : "Closed now in Houston",
+      todayLabel: lang === "es" ? "Hoy cerrado" : "Closed today",
+    };
+  }
 
-  const today = schedule[weekday || "Sun"];
-
-  const isOpen = !!today && current >= today.open && current < today.close;
-
-  const minutesUntilClose = today && isOpen ? today.close - current : 0;
-
+  const open = timeToMinutes(today.open_time);
+  const close = timeToMinutes(today.close_time);
+  const isOpen = current >= open && current < close;
+  const minutesUntilClose = isOpen ? close - current : 0;
   const isClosingSoon = isOpen && minutesUntilClose <= 60;
 
   const formatRemaining = () => {
@@ -62,5 +103,6 @@ export function getBusinessStatus(lang: Lang) {
     isOpen,
     isClosingSoon,
     label,
+    todayLabel: formatBusinessHours(today, lang),
   };
 }
