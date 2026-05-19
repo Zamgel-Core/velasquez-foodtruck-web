@@ -48,6 +48,11 @@ const links = [
     icon: Package,
   },
   {
+    label: "Inventario",
+    href: "/admin/inventory",
+    icon: Package,
+  },
+  {
     label: "Extras",
     href: "/admin/product-options",
     icon: SlidersHorizontal,

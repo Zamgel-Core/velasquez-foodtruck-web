@@ -98,11 +98,11 @@ const adminCards = [
   {
     title: "Inventario",
     description:
-      "Control de stock, ingredientes, alertas y productos agotados.",
+      "Control de stock, ingredientes, mínimos y alertas operativas.",
     href: "/admin/inventory",
     icon: Package,
     roles: ["super_admin", "admin"],
-    status: "coming_soon",
+    status: "active",
   },
   {
     title: "Kaizen IA",

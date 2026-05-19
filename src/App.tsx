@@ -30,6 +30,7 @@ import OrderStatusPage from "./features/order-status/OrderStatusPage";
 import TvMenuPage from "./features/tv-menu/TvMenuPage";
 import SocialVideosAdminPage from "./features/admin/social-videos/SocialVideosAdminPage";
 import AdminSettingsPage from "./features/admin/settings/AdminSettingsPage";
+import InventoryPage from "./features/admin/inventory/InventoryPage";
 import { TikTokSection } from "./components/TikTokSection";
 
 export default function App() {
@@ -111,6 +112,14 @@ export default function App() {
     return (
       <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
         <AdminSettingsPage />
+      </ProtectedAdminRoute>
+    );
+  }
+
+  if (pathname === "/admin/inventory") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <InventoryPage />
       </ProtectedAdminRoute>
     );
   }
