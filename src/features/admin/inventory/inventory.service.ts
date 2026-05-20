@@ -10,6 +10,8 @@ import type {
   InventoryMovementType,
   InventoryStatus,
   InventoryStockAdjustmentForm,
+  InventoryWasteEvent,
+  InventoryWasteForm,
 } from "./inventory.types";
 
 type InventoryCategoryPayload = {
@@ -54,6 +56,17 @@ function normalizeInventoryItem(item: InventoryItem): InventoryItem {
     min_stock: normalizeNumber(item.min_stock),
     cost_per_unit: item.cost_per_unit === null ? null : normalizeNumber(item.cost_per_unit),
     sort_order: item.sort_order === null ? null : normalizeNumber(item.sort_order),
+  };
+}
+
+
+function normalizeWasteEvent(event: InventoryWasteEvent): InventoryWasteEvent {
+  return {
+    ...event,
+    quantity: normalizeNumber(event.quantity),
+    estimated_loss: event.estimated_loss === null ? null : normalizeNumber(event.estimated_loss),
+    stock_before: normalizeNumber(event.stock_before),
+    stock_after: normalizeNumber(event.stock_after),
   };
 }
 
@@ -128,6 +141,16 @@ export function createEmptyInventoryForm(): InventoryFormData {
     notes: "",
     is_active: true,
     sort_order: "",
+  };
+}
+
+export function createInventoryWasteForm(item: InventoryItem): InventoryWasteForm {
+  return {
+    item,
+    quantity: "1",
+    reason_type: "manual_waste",
+    notes: "",
+    created_by: "",
   };
 }
 
@@ -317,6 +340,21 @@ export async function getRecentInventoryMovements(limit = 12): Promise<Inventory
   }));
 }
 
+export async function getRecentInventoryWasteEvents(limit = 8): Promise<InventoryWasteEvent[]> {
+  const { data, error } = await supabase
+    .from("inventory_waste_events")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.warn("Error loading inventory waste events:", error);
+    return [];
+  }
+
+  return ((data ?? []) as InventoryWasteEvent[]).map(normalizeWasteEvent);
+}
+
 export async function saveInventoryItem(form: InventoryFormData) {
   const payload = toInventoryPayload(form);
 
@@ -420,6 +458,73 @@ export async function adjustInventoryStock(form: InventoryStockAdjustmentForm) {
     stockBefore,
     stockAfter,
     reason: form.reason,
+  });
+
+  return stockAfter;
+}
+
+export async function registerInventoryWaste(form: InventoryWasteForm) {
+  const quantity = normalizeNumber(form.quantity);
+
+  if (quantity <= 0) {
+    throw new Error("La cantidad de merma debe ser mayor a cero.");
+  }
+
+  const stockBefore = normalizeNumber(form.item.current_stock);
+
+  if (stockBefore <= 0) {
+    throw new Error("Este item no tiene stock disponible para registrar merma.");
+  }
+
+  if (quantity > stockBefore) {
+    throw new Error("La merma no puede ser mayor al stock actual.");
+  }
+
+  const stockAfter = Math.max(0, stockBefore - quantity);
+  const estimatedLoss = form.item.cost_per_unit === null
+    ? null
+    : quantity * normalizeNumber(form.item.cost_per_unit);
+  const noteParts = [
+    `Merma: ${form.reason_type}`,
+    form.notes.trim(),
+    form.created_by.trim() ? `Registrado por: ${form.created_by.trim()}` : "",
+  ].filter(Boolean);
+
+  const { error: updateError } = await supabase
+    .from("inventory_items")
+    .update({ current_stock: stockAfter })
+    .eq("id", form.item.id);
+
+  if (updateError) {
+    console.error("Error registering inventory waste:", updateError);
+    throw new Error("No se pudo descontar la merma del inventario.");
+  }
+
+  const { error: wasteError } = await supabase.from("inventory_waste_events").insert({
+    item_id: form.item.id,
+    item_name: form.item.name,
+    quantity,
+    unit: form.item.unit,
+    reason_type: form.reason_type,
+    notes: form.notes.trim() || null,
+    created_by: form.created_by.trim() || null,
+    estimated_loss: estimatedLoss,
+    stock_before: stockBefore,
+    stock_after: stockAfter,
+  });
+
+  if (wasteError) {
+    console.warn("Inventory waste event was not saved:", wasteError);
+  }
+
+  await createMovement({
+    itemId: form.item.id,
+    itemName: form.item.name,
+    movementType: "stock_out",
+    quantityChange: -quantity,
+    stockBefore,
+    stockAfter,
+    reason: noteParts.join(" | "),
   });
 
   return stockAfter;

@@ -23,6 +23,11 @@ export type InventoryMovementType =
   | "manual_adjustment"
   | "stock_in"
   | "stock_out"
+  | "waste"
+  | "gift"
+  | "internal_use"
+  | "damaged"
+  | "kitchen_error"
   | "correction";
 
 export type InventoryCategoryRecord = {
@@ -84,6 +89,39 @@ export type InventoryStockAdjustmentForm = {
   mode: "add" | "subtract" | "set";
   amount: string;
   reason: string;
+};
+
+export type InventoryWasteReason =
+  | "kitchen_error"
+  | "gift"
+  | "internal_use"
+  | "operational_use"
+  | "damaged"
+  | "expired"
+  | "spillage"
+  | "manual_waste";
+
+export type InventoryWasteForm = {
+  item: InventoryItem;
+  quantity: string;
+  reason_type: InventoryWasteReason;
+  notes: string;
+  created_by: string;
+};
+
+export type InventoryWasteEvent = {
+  id: string;
+  item_id: string;
+  item_name: string | null;
+  quantity: number;
+  unit: InventoryUnit | null;
+  reason_type: InventoryWasteReason;
+  notes: string | null;
+  created_by: string | null;
+  estimated_loss: number | null;
+  stock_before: number;
+  stock_after: number;
+  created_at: string;
 };
 
 export type InventoryMovement = {

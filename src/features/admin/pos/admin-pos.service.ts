@@ -48,6 +48,7 @@ export type CreatePOSOrderInput = {
   items: POSCartItem[];
   loyaltyRewardId?: string | null;
   loyaltyDiscountAmount?: number;
+  loyaltyFreeProductId?: string | null;
   loyaltyRewardLabel?: string;
 };
 
@@ -60,7 +61,7 @@ export function getPOSItemUnitPrice(item: POSCartItem) {
   const optionsTotal =
     item.selectedOptions?.reduce(
       (sum, option) => sum + Number(option.extra_price || 0),
-      0
+      0,
     ) ?? 0;
 
   return Number(item.product.price) + optionsTotal;
@@ -73,9 +74,9 @@ function getPOSItemNotes(item: POSCartItem) {
           .map((option) =>
             Number(option.extra_price || 0) > 0
               ? `${option.option_group}: ${option.option_name} +$${Number(
-                  option.extra_price
+                  option.extra_price,
                 ).toFixed(2)}`
-              : `${option.option_group}: ${option.option_name}`
+              : `${option.option_group}: ${option.option_name}`,
           )
           .join(" | ")
       : "";
@@ -87,7 +88,7 @@ export async function getPOSProducts() {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, category_id, name, description, price, image_url, is_available, category:categories(name)"
+      "id, category_id, name, description, price, image_url, is_available, category:categories(name)",
     )
     .eq("is_available", true)
     .order("name", { ascending: true });
@@ -101,7 +102,7 @@ export async function getPOSProductOptions(productId: string) {
   const { data, error } = await supabase
     .from("product_options")
     .select(
-      "id, product_id, option_group, option_name, extra_price, is_required, is_default, sort_order"
+      "id, product_id, option_group, option_name, extra_price, is_required, is_default, sort_order",
     )
     .eq("product_id", productId)
     .order("option_group", { ascending: true })
@@ -121,12 +122,27 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
 
   const subtotal = validItems.reduce(
     (sum, item) => sum + getPOSItemUnitPrice(item) * item.quantity,
-    0
+    0,
   );
 
-  const requestedDiscount = Math.max(0, Number(input.loyaltyDiscountAmount || 0));
-  const loyaltyDiscount = Math.min(subtotal, requestedDiscount);
-  const total = Math.max(0, subtotal - loyaltyDiscount);
+  const freeRewardProductId = input.loyaltyFreeProductId || null;
+  const freeRewardDiscount = freeRewardProductId
+    ? validItems.reduce((sum, item) => {
+        if (item.product.id !== freeRewardProductId) return sum;
+        return sum + getPOSItemUnitPrice(item) * item.quantity;
+      }, 0)
+    : 0;
+  const discountableSubtotal = Math.max(0, subtotal - freeRewardDiscount);
+  const requestedDiscount = Math.max(
+    0,
+    Number(input.loyaltyDiscountAmount || 0),
+  );
+  const loyaltyDiscount = Math.min(discountableSubtotal, requestedDiscount);
+  const totalDiscount = Math.min(
+    subtotal,
+    freeRewardDiscount + loyaltyDiscount,
+  );
+  const total = Math.max(0, subtotal - totalDiscount);
   const amountPaid = input.paymentMethod === "cash" ? input.amountPaid : total;
   const changeDue =
     input.paymentMethod === "cash" ? Math.max(0, amountPaid - total) : 0;
@@ -136,10 +152,12 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
   const loyaltyNote =
     input.loyaltyRewardId && input.loyaltyRewardLabel
       ? `Canje lealtad: ${input.loyaltyRewardLabel}${
-          loyaltyDiscount > 0 ? ` (-$${loyaltyDiscount.toFixed(2)})` : ""
+          totalDiscount > 0 ? ` (-$${totalDiscount.toFixed(2)})` : ""
         }`
       : "";
-  const combinedNotes = [input.notes.trim(), loyaltyNote].filter(Boolean).join(" | ");
+  const combinedNotes = [input.notes.trim(), loyaltyNote]
+    .filter(Boolean)
+    .join(" | ");
 
   const { data: customer, error: customerError } = await supabase
     .from("customers")
@@ -155,9 +173,9 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
 
   const openSession = await getOpenRegisterSession();
   if (!openSession) {
-  throw new Error("Primero debes abrir caja antes de crear órdenes POS.");
-}
-  
+    throw new Error("Primero debes abrir caja antes de crear órdenes POS.");
+  }
+
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
@@ -169,7 +187,8 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
       fee_amount: 0,
       total,
       payment_status: input.paymentMethod === "pending" ? "pending" : "paid",
-      payment_method: input.paymentMethod === "pending" ? "cash" : input.paymentMethod,
+      payment_method:
+        input.paymentMethod === "pending" ? "cash" : input.paymentMethod,
       amount_paid: amountPaid,
       change_due: changeDue,
       notes: combinedNotes || null,
@@ -183,8 +202,18 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
   if (orderError) throw orderError;
 
   const orderItems = validItems.map((item) => {
-    const unitPrice = getPOSItemUnitPrice(item);
-    const notes = getPOSItemNotes(item);
+    const originalUnitPrice = getPOSItemUnitPrice(item);
+    const isFreeRewardItem =
+      Boolean(freeRewardProductId) && item.product.id === freeRewardProductId;
+    const unitPrice = isFreeRewardItem ? 0 : originalUnitPrice;
+    const notes = [
+      getPOSItemNotes(item),
+      isFreeRewardItem
+        ? `Producto gratis por lealtad (precio original $${originalUnitPrice.toFixed(2)})`
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" | ");
 
     return {
       order_id: order.id,

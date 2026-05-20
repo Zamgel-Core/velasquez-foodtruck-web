@@ -1,6 +1,10 @@
 // 📍 Ruta: src/features/admin/inventory/inventory.constants.ts
 
-import type { InventoryCategory, InventoryUnit } from "./inventory.types";
+import type {
+  InventoryCategory,
+  InventoryUnit,
+  InventoryWasteReason,
+} from "./inventory.types";
 
 export const INVENTORY_CATEGORY_LABELS: Record<string, string> = {
   proteins: "Proteinas",
@@ -65,3 +69,25 @@ export const INVENTORY_SUPPLIER_OPTIONS = [
   "Sysco",
   "Proveedor local",
 ];
+
+export const INVENTORY_WASTE_REASON_LABELS: Record<
+  InventoryWasteReason,
+  string
+> = {
+  kitchen_error: "Error de cocina",
+  gift: "Regalo / cortesia",
+  internal_use: "Consumo interno",
+  operational_use: "Uso operativo",
+  damaged: "Producto dañado",
+  expired: "Producto vencido",
+  spillage: "Derrame / caida",
+  manual_waste: "Merma general",
+};
+
+export const INVENTORY_WASTE_REASON_OPTIONS: Array<{
+  value: InventoryWasteReason;
+  label: string;
+}> = Object.entries(INVENTORY_WASTE_REASON_LABELS).map(([value, label]) => ({
+  value: value as InventoryWasteReason,
+  label,
+}));

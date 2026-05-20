@@ -35,6 +35,8 @@ import {
   INVENTORY_SUPPLIER_OPTIONS,
   INVENTORY_UNIT_LABELS,
   INVENTORY_UNIT_OPTIONS,
+  INVENTORY_WASTE_REASON_LABELS,
+  INVENTORY_WASTE_REASON_OPTIONS,
 } from "./inventory.constants";
 import type {
   InventoryCategory,
@@ -45,15 +47,19 @@ import type {
   InventoryMovement,
   InventoryStatus,
   InventoryStockAdjustmentForm,
+  InventoryWasteEvent,
+  InventoryWasteForm,
 } from "./inventory.types";
 import {
   adjustInventoryStock,
   createEmptyCategoryForm,
+  createInventoryWasteForm,
   createEmptyInventoryForm,
   getInventoryCategories,
   getInventoryItems,
   getInventoryStatus,
   getRecentInventoryMovements,
+  getRecentInventoryWasteEvents,
   inventoryCategoryToForm,
   inventoryItemToForm,
   saveInventoryCategory,
@@ -62,6 +68,7 @@ import {
   toggleInventoryItemActive,
   updateInventoryStock,
   deleteInventoryCategory,
+  registerInventoryWaste,
 } from "./inventory.service";
 
 const STATUS_STYLES: Record<InventoryStatus, string> = {
@@ -580,6 +587,130 @@ function StockAdjustmentModal({
               <SlidersHorizontal className="h-4 w-4" />
             )}
             Aplicar ajuste
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WasteModal({
+  form,
+  saving,
+  onChange,
+  onClose,
+  onSave,
+}: {
+  form: InventoryWasteForm;
+  saving: boolean;
+  onChange: (form: InventoryWasteForm) => void;
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  const estimatedLoss =
+    form.item.cost_per_unit === null
+      ? null
+      : Number(form.quantity || 0) * Number(form.item.cost_per_unit || 0);
+
+  return (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-xl rounded-3xl border border-orange-500/20 bg-[#0a0a0a] p-5 text-white shadow-2xl shadow-orange-500/10">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p className="mb-2 inline-flex rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-orange-200">
+              Merma / perdida
+            </p>
+            <h2 className="text-2xl font-black">Registrar merma</h2>
+            <p className="text-sm text-white/50">
+              {form.item.name} tiene {formatNumber(form.item.current_stock)} {INVENTORY_UNIT_LABELS[form.item.unit]} disponibles.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-full bg-white/10 p-2 transition hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="grid gap-4">
+          <label>
+            <span className="mb-2 block text-sm font-bold text-white/70">Cantidad perdida</span>
+            <input
+              value={form.quantity}
+              onChange={(event) => onChange({ ...form, quantity: event.target.value })}
+              type="number"
+              min="0"
+              max={form.item.current_stock}
+              step="0.01"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              placeholder="0"
+            />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-white/70">Motivo</span>
+            <select
+              value={form.reason_type}
+              onChange={(event) =>
+                onChange({ ...form, reason_type: event.target.value as InventoryWasteForm["reason_type"] })
+              }
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+            >
+              {INVENTORY_WASTE_REASON_OPTIONS.map((reason) => (
+                <option key={reason.value} value={reason.value} className="bg-[#111]">
+                  {reason.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-white/70">Empleado / responsable</span>
+            <input
+              value={form.created_by}
+              onChange={(event) => onChange({ ...form, created_by: event.target.value })}
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              placeholder="Nombre opcional"
+            />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-white/70">Notas</span>
+            <textarea
+              value={form.notes}
+              onChange={(event) => onChange({ ...form, notes: event.target.value })}
+              rows={3}
+              className="w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              placeholder="Ej. orden equivocada, bebida regalada, salsa vencida..."
+            />
+          </label>
+
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-red-200/80">Impacto estimado</p>
+            <p className="mt-1 text-sm text-white/60">
+              Se descontara del stock y no contara como venta.
+            </p>
+            <p className="mt-3 text-2xl font-black text-red-100">
+              {estimatedLoss === null ? "Costo no definido" : formatMoney(estimatedLoss)}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <button
+            onClick={onClose}
+            className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 font-black text-white/70 transition hover:bg-white/10"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onSave}
+            disabled={saving}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <PackageMinus className="h-4 w-4" />}
+            Registrar merma
           </button>
         </div>
       </div>
@@ -1118,6 +1249,7 @@ export default function InventoryPage() {
     [],
   );
   const [movements, setMovements] = React.useState<InventoryMovement[]>([]);
+  const [wasteEvents, setWasteEvents] = React.useState<InventoryWasteEvent[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -1136,6 +1268,7 @@ export default function InventoryPage() {
   const [categoryManagerOpen, setCategoryManagerOpen] = React.useState(false);
   const [adjustment, setAdjustment] =
     React.useState<InventoryStockAdjustmentForm | null>(null);
+  const [wasteForm, setWasteForm] = React.useState<InventoryWasteForm | null>(null);
   const [exportModalOpen, setExportModalOpen] = React.useState(false);
   const [exporting, setExporting] = React.useState(false);
 
@@ -1144,15 +1277,17 @@ export default function InventoryPage() {
     setError("");
 
     try {
-      const [inventoryItems, inventoryCategories, recentMovements] =
+      const [inventoryItems, inventoryCategories, recentMovements, recentWaste] =
         await Promise.all([
           getInventoryItems(),
           getInventoryCategories(),
           getRecentInventoryMovements(10),
+          getRecentInventoryWasteEvents(8),
         ]);
       setItems(inventoryItems);
       setCategories(inventoryCategories);
       setMovements(recentMovements);
+      setWasteEvents(recentWaste);
     } catch (loadError) {
       setError(
         loadError instanceof Error
@@ -1342,6 +1477,29 @@ export default function InventoryPage() {
         adjustError instanceof Error
           ? adjustError.message
           : "No se pudo ajustar stock.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleWasteSave = async () => {
+    if (!wasteForm) return;
+
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await registerInventoryWaste(wasteForm);
+      setSuccess("Merma registrada y stock descontado correctamente.");
+      setWasteForm(null);
+      await loadData();
+    } catch (wasteError) {
+      setError(
+        wasteError instanceof Error
+          ? wasteError.message
+          : "No se pudo registrar la merma.",
       );
     } finally {
       setSaving(false);
@@ -2307,6 +2465,13 @@ export default function InventoryPage() {
                           <TrendingUp className="h-4 w-4" /> +1
                         </button>
                         <button
+                          onClick={() => setWasteForm(createInventoryWasteForm(item))}
+                          className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-black text-red-200 transition hover:bg-red-500/20"
+                        >
+                          <PackageMinus className="h-4 w-4" />
+                          Merma
+                        </button>
+                        <button
                           onClick={() =>
                             setAdjustment({
                               item,
@@ -2379,6 +2544,45 @@ export default function InventoryPage() {
                 ))
               )}
             </div>
+
+            <div className="mt-6 border-t border-white/10 pt-5">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-black">Mermas recientes</h3>
+                  <p className="text-xs text-white/40">Perdidas, regalos y errores.</p>
+                </div>
+                <PackageMinus className="h-4 w-4 text-red-300" />
+              </div>
+
+              <div className="space-y-3">
+                {wasteEvents.length === 0 ? (
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/45">
+                    Todavia no hay mermas registradas.
+                  </div>
+                ) : (
+                  wasteEvents.map((event) => (
+                    <div key={event.id} className="rounded-2xl border border-red-500/15 bg-red-500/5 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-black">{event.item_name || "Item"}</p>
+                          <p className="mt-1 text-xs text-white/40">{formatDateTime(event.created_at)}</p>
+                        </div>
+                        <span className="rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-black text-red-200">
+                          -{formatNumber(event.quantity)}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs font-bold text-orange-100/80">
+                        {INVENTORY_WASTE_REASON_LABELS[event.reason_type] ?? event.reason_type}
+                      </p>
+                      {event.estimated_loss !== null && (
+                        <p className="mt-1 text-xs text-white/45">Perdida estimada: {formatMoney(event.estimated_loss)}</p>
+                      )}
+                      {event.notes && <p className="mt-2 text-sm text-white/55">{event.notes}</p>}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </aside>
         </div>
       </section>
@@ -2401,6 +2605,16 @@ export default function InventoryPage() {
           onChange={setAdjustment}
           onClose={() => setAdjustment(null)}
           onSave={handleAdjustmentSave}
+        />
+      )}
+
+      {wasteForm && (
+        <WasteModal
+          form={wasteForm}
+          saving={saving}
+          onChange={setWasteForm}
+          onClose={() => setWasteForm(null)}
+          onSave={handleWasteSave}
         />
       )}
 

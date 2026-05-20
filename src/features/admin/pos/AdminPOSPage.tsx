@@ -106,6 +106,21 @@ function calculatePOSRewardDiscount(
   return 0;
 }
 
+function calculatePOSFreeRewardDiscount(
+  availability: LoyaltyRewardAvailability | null,
+  cart: POSCartItem[],
+) {
+  if (availability?.reward.reward_type !== "free_item") return 0;
+
+  const freeProductId = availability.reward.reward_product_id;
+  if (!freeProductId) return 0;
+
+  return cart.reduce((sum, item) => {
+    if (item.product.id !== freeProductId) return sum;
+    return sum + getPOSItemUnitPrice(item) * item.quantity;
+  }, 0);
+}
+
 function getRewardKindLabel(type: string) {
   if (type === "free_item") return "Producto gratis";
   if (type === "fixed_discount") return "Descuento fijo";
@@ -323,20 +338,25 @@ export default function AdminPOSPage() {
       ? selectedLoyaltyReward.reward.reward_product_id
       : null;
 
-  const subtotal = safeCart.reduce((sum, item) => {
-    const isFreeRewardItem =
-      freeRewardProductId && item.product.id === freeRewardProductId;
+  const subtotal = safeCart.reduce(
+    (sum, item) => sum + getPOSItemUnitPrice(item) * item.quantity,
+    0,
+  );
 
-    return (
-      sum + (isFreeRewardItem ? 0 : getPOSItemUnitPrice(item)) * item.quantity
-    );
-  }, 0);
-
+  const freeRewardDiscount = calculatePOSFreeRewardDiscount(
+    selectedLoyaltyReward,
+    safeCart,
+  );
+  const discountableSubtotal = Math.max(0, subtotal - freeRewardDiscount);
   const loyaltyDiscount = calculatePOSRewardDiscount(
     selectedLoyaltyReward,
-    subtotal,
+    discountableSubtotal,
   );
-  const total = Math.max(0, subtotal - loyaltyDiscount);
+  const totalDiscount = Math.min(
+    subtotal,
+    freeRewardDiscount + loyaltyDiscount,
+  );
+  const total = Math.max(0, subtotal - totalDiscount);
 
   const paid = Number(amountPaid || 0);
   const changeDue = paymentMethod === "cash" ? Math.max(0, paid - total) : 0;
@@ -421,6 +441,7 @@ export default function AdminPOSPage() {
         items: safeCart,
         loyaltyRewardId: selectedLoyaltyReward?.reward.id ?? null,
         loyaltyDiscountAmount: loyaltyDiscount,
+        loyaltyFreeProductId: freeRewardProductId,
         loyaltyRewardLabel: selectedLoyaltyReward
           ? getRewardDisplayValue(selectedLoyaltyReward.reward)
           : "",
@@ -886,20 +907,28 @@ export default function AdminPOSPage() {
                 <span>{formatMoney(subtotal)}</span>
               </div>
 
+              {freeRewardDiscount > 0 && (
+                <div className="mt-2 flex justify-between gap-3 text-sm font-bold text-green-300">
+                  <span>Producto gratis</span>
+                  <span className="text-right">
+                    -{formatMoney(freeRewardDiscount)} ·{" "}
+                    {getRewardDisplayValue(selectedLoyaltyReward!.reward)}
+                  </span>
+                </div>
+              )}
+
+              {selectedLoyaltyReward?.reward.reward_type === "free_item" &&
+                freeRewardDiscount <= 0 && (
+                  <div className="mt-2 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-3 py-2 text-xs font-bold text-yellow-100">
+                    Esta recompensa necesita un producto vinculado y agregado a
+                    la orden para aplicar el descuento real.
+                  </div>
+                )}
+
               {loyaltyDiscount > 0 && (
                 <div className="mt-2 flex justify-between text-sm font-bold text-green-300">
                   <span>Descuento lealtad</span>
                   <span>-{formatMoney(loyaltyDiscount)}</span>
-                </div>
-              )}
-
-              {selectedLoyaltyReward?.reward.reward_type === "free_item" && (
-                <div className="mt-2 flex justify-between text-sm font-bold text-green-300">
-                  <span>Producto gratis</span>
-                  <span>
-                    {getRewardDisplayValue(selectedLoyaltyReward.reward)} ·
-                    $0.00
-                  </span>
                 </div>
               )}
 
