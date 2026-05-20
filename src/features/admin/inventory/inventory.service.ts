@@ -2,6 +2,8 @@
 
 import { supabase } from "../../../lib/supabase";
 import type {
+  InventoryCategoryFormData,
+  InventoryCategoryRecord,
   InventoryFormData,
   InventoryItem,
   InventoryMovement,
@@ -9,6 +11,16 @@ import type {
   InventoryStatus,
   InventoryStockAdjustmentForm,
 } from "./inventory.types";
+
+type InventoryCategoryPayload = {
+  name: string;
+  slug: string;
+  description: string | null;
+  color: string | null;
+  icon: string | null;
+  sort_order: number | null;
+  is_active: boolean;
+};
 
 type InventoryPayload = {
   name: string;
@@ -26,6 +38,13 @@ type InventoryPayload = {
 function normalizeNumber(value: unknown): number {
   const numericValue = Number(value ?? 0);
   return Number.isFinite(numericValue) ? numericValue : 0;
+}
+
+function normalizeInventoryCategory(category: InventoryCategoryRecord): InventoryCategoryRecord {
+  return {
+    ...category,
+    sort_order: category.sort_order === null ? null : normalizeNumber(category.sort_order),
+  };
 }
 
 function normalizeInventoryItem(item: InventoryItem): InventoryItem {
@@ -48,6 +67,53 @@ export function getInventoryStatus(
   if (minStock > 0 && currentStock <= minStock * 0.5) return "critical";
   if (minStock > 0 && currentStock <= minStock) return "low";
   return "healthy";
+}
+
+export function slugifyInventoryCategory(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "categoria";
+}
+
+export function createEmptyCategoryForm(): InventoryCategoryFormData {
+  return {
+    name: "",
+    slug: "",
+    description: "",
+    color: "#f97316",
+    icon: "📦",
+    sort_order: "",
+    is_active: true,
+  };
+}
+
+export function inventoryCategoryToForm(category: InventoryCategoryRecord): InventoryCategoryFormData {
+  return {
+    id: category.id,
+    name: category.name ?? "",
+    slug: category.slug ?? "",
+    description: category.description ?? "",
+    color: category.color ?? "#f97316",
+    icon: category.icon ?? "📦",
+    sort_order: category.sort_order === null ? "" : String(category.sort_order),
+    is_active: category.is_active,
+  };
+}
+
+function toInventoryCategoryPayload(form: InventoryCategoryFormData): InventoryCategoryPayload {
+  return {
+    name: form.name.trim(),
+    slug: slugifyInventoryCategory(form.slug.trim() || form.name),
+    description: form.description.trim() || null,
+    color: form.color.trim() || null,
+    icon: form.icon.trim() || null,
+    sort_order: form.sort_order.trim() ? normalizeNumber(form.sort_order) : null,
+    is_active: form.is_active,
+  };
 }
 
 export function createEmptyInventoryForm(): InventoryFormData {
@@ -121,6 +187,98 @@ async function createMovement(params: {
   if (error) {
     console.warn("Inventory movement was not saved:", error);
   }
+}
+
+export async function getInventoryCategories(): Promise<InventoryCategoryRecord[]> {
+  const { data, error } = await supabase
+    .from("inventory_categories")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error loading inventory categories:", error);
+    throw new Error("No se pudieron cargar las categorias.");
+  }
+
+  return ((data ?? []) as InventoryCategoryRecord[]).map(normalizeInventoryCategory);
+}
+
+export async function saveInventoryCategory(form: InventoryCategoryFormData) {
+  const payload = toInventoryCategoryPayload(form);
+
+  if (!payload.name) {
+    throw new Error("El nombre de la categoria es requerido.");
+  }
+
+  if (!payload.slug) {
+    throw new Error("El slug de la categoria es requerido.");
+  }
+
+  if (form.id) {
+    const { error } = await supabase
+      .from("inventory_categories")
+      .update(payload)
+      .eq("id", form.id);
+
+    if (error) {
+      console.error("Error updating inventory category:", error);
+      throw new Error("No se pudo actualizar la categoria.");
+    }
+
+    return true;
+  }
+
+  const { error } = await supabase.from("inventory_categories").insert(payload);
+
+  if (error) {
+    console.error("Error creating inventory category:", error);
+    throw new Error("No se pudo crear la categoria. Revisa si ya existe.");
+  }
+
+  return true;
+}
+
+export async function toggleInventoryCategoryActive(category: InventoryCategoryRecord) {
+  const { error } = await supabase
+    .from("inventory_categories")
+    .update({ is_active: !category.is_active })
+    .eq("id", category.id);
+
+  if (error) {
+    console.error("Error toggling inventory category:", error);
+    throw new Error("No se pudo cambiar el estado de la categoria.");
+  }
+
+  return true;
+}
+
+export async function deleteInventoryCategory(category: InventoryCategoryRecord) {
+  const { count, error: countError } = await supabase
+    .from("inventory_items")
+    .select("id", { count: "exact", head: true })
+    .eq("category", category.slug);
+
+  if (countError) {
+    console.error("Error checking category usage:", countError);
+    throw new Error("No se pudo validar si la categoria tiene items.");
+  }
+
+  if ((count ?? 0) > 0) {
+    throw new Error("No se puede eliminar una categoria con items. Desactivala o mueve los items primero.");
+  }
+
+  const { error } = await supabase
+    .from("inventory_categories")
+    .delete()
+    .eq("id", category.id);
+
+  if (error) {
+    console.error("Error deleting inventory category:", error);
+    throw new Error("No se pudo eliminar la categoria.");
+  }
+
+  return true;
 }
 
 export async function getInventoryItems(): Promise<InventoryItem[]> {

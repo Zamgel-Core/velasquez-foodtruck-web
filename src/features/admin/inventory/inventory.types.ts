@@ -1,15 +1,6 @@
 // 📍 Ruta: src/features/admin/inventory/inventory.types.ts
 
-export type InventoryCategory =
-  | "proteins"
-  | "tortillas"
-  | "vegetables"
-  | "salsas"
-  | "drinks"
-  | "extras"
-  | "disposables"
-  | "cleaning"
-  | "other";
+export type InventoryCategory = string;
 
 export type InventoryUnit =
   | "lb"
@@ -33,6 +24,30 @@ export type InventoryMovementType =
   | "stock_in"
   | "stock_out"
   | "correction";
+
+export type InventoryCategoryRecord = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  color: string | null;
+  icon: string | null;
+  sort_order: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type InventoryCategoryFormData = {
+  id?: string;
+  name: string;
+  slug: string;
+  description: string;
+  color: string;
+  icon: string;
+  sort_order: string;
+  is_active: boolean;
+};
 
 export type InventoryItem = {
   id: string;

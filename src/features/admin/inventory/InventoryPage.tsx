@@ -14,6 +14,7 @@ import {
   EyeOff,
   Gauge,
   History,
+  Package,
   PackageCheck,
   PackageMinus,
   Plus,
@@ -22,6 +23,8 @@ import {
   Search,
   SlidersHorizontal,
   Sparkles,
+  Tags,
+  Trash2,
   TrendingDown,
   TrendingUp,
   X,
@@ -35,6 +38,8 @@ import {
 } from "./inventory.constants";
 import type {
   InventoryCategory,
+  InventoryCategoryFormData,
+  InventoryCategoryRecord,
   InventoryFormData,
   InventoryItem,
   InventoryMovement,
@@ -43,14 +48,20 @@ import type {
 } from "./inventory.types";
 import {
   adjustInventoryStock,
+  createEmptyCategoryForm,
   createEmptyInventoryForm,
+  getInventoryCategories,
   getInventoryItems,
   getInventoryStatus,
   getRecentInventoryMovements,
+  inventoryCategoryToForm,
   inventoryItemToForm,
+  saveInventoryCategory,
   saveInventoryItem,
+  toggleInventoryCategoryActive,
   toggleInventoryItemActive,
   updateInventoryStock,
+  deleteInventoryCategory,
 } from "./inventory.service";
 
 const STATUS_STYLES: Record<InventoryStatus, string> = {
@@ -59,6 +70,14 @@ const STATUS_STYLES: Record<InventoryStatus, string> = {
   critical: "border-orange-500/35 bg-orange-500/15 text-orange-200",
   out: "border-red-500/35 bg-red-500/15 text-red-200",
 };
+
+const CATEGORY_ICONS = {
+  package: Package,
+} as const;
+
+function getCategoryIcon(icon?: string | null) {
+  return CATEGORY_ICONS[icon as keyof typeof CATEGORY_ICONS] || Package;
+}
 
 const STATUS_LABELS: Record<InventoryStatus, string> = {
   healthy: "Saludable",
@@ -113,6 +132,27 @@ function escapeHtml(value: string | number | null | undefined) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function getCategoryLabel(
+  category: string,
+  categories: InventoryCategoryRecord[] = [],
+) {
+  return (
+    categories.find((item) => item.slug === category)?.name ??
+    INVENTORY_CATEGORY_LABELS[category] ??
+    category
+  );
+}
+
+function getCategoryOptions(categories: InventoryCategoryRecord[] = []) {
+  if (categories.length > 0) {
+    return categories
+      .filter((category) => category.is_active)
+      .map((category) => ({ value: category.slug, label: category.name }));
+  }
+
+  return INVENTORY_CATEGORY_OPTIONS;
 }
 
 async function assetToDataUri(path: string) {
@@ -185,12 +225,14 @@ function StatCard({
 }
 
 function InventoryFormModal({
+  categories,
   form,
   saving,
   onChange,
   onClose,
   onSave,
 }: {
+  categories: InventoryCategoryRecord[];
   form: InventoryFormData;
   saving: boolean;
   onChange: (form: InventoryFormData) => void;
@@ -248,7 +290,7 @@ function InventoryFormModal({
               }
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
             >
-              {INVENTORY_CATEGORY_OPTIONS.map((option) => (
+              {getCategoryOptions(categories).map((option) => (
                 <option
                   key={option.value}
                   value={option.value}
@@ -545,6 +587,320 @@ function StockAdjustmentModal({
   );
 }
 
+function CategoryFormModal({
+  form,
+  saving,
+  onChange,
+  onClose,
+  onSave,
+}: {
+  form: InventoryCategoryFormData;
+  saving: boolean;
+  onChange: (form: InventoryCategoryFormData) => void;
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-2xl rounded-3xl border border-white/10 bg-[#0a0a0a] p-5 text-white shadow-2xl">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-black">
+              {form.id ? "Editar categoria" : "Nueva categoria"}
+            </h2>
+            <p className="text-sm text-white/50">
+              Administra categorias del inventario sin tocar productos
+              existentes.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-full bg-white/10 p-2 transition hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label>
+            <span className="mb-2 block text-sm font-bold text-white/70">
+              Nombre
+            </span>
+            <input
+              value={form.name}
+              onChange={(event) => {
+                const name = event.target.value;
+                onChange({
+                  ...form,
+                  name,
+                  slug: form.id ? form.slug : name,
+                });
+              }}
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              placeholder="Ej. Mariscos, Cocina, Postres..."
+            />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-white/70">
+              Clave interna
+            </span>
+            <input
+              value={form.slug}
+              onChange={(event) =>
+                onChange({ ...form, slug: event.target.value })
+              }
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              placeholder="Se genera automatico"
+            />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-white/70">
+              Icono
+            </span>
+            <input
+              value={form.icon}
+              onChange={(event) =>
+                onChange({ ...form, icon: event.target.value })
+              }
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              placeholder="📦"
+            />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-white/70">
+              Color
+            </span>
+            <input
+              value={form.color}
+              onChange={(event) =>
+                onChange({ ...form, color: event.target.value })
+              }
+              type="color"
+              className="h-[50px] w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 outline-none focus:border-orange-500"
+            />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-white/70">
+              Orden visual
+            </span>
+            <input
+              value={form.sort_order}
+              onChange={(event) =>
+                onChange({ ...form, sort_order: event.target.value })
+              }
+              type="number"
+              min="0"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              placeholder="Opcional"
+            />
+          </label>
+
+          <label className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+            <div>
+              <p className="font-black">Categoria activa</p>
+              <p className="text-sm text-white/45">
+                Si se apaga, no aparece al crear nuevos items.
+              </p>
+            </div>
+            <input
+              checked={form.is_active}
+              onChange={(event) =>
+                onChange({ ...form, is_active: event.target.checked })
+              }
+              type="checkbox"
+              className="h-5 w-5 accent-orange-500"
+            />
+          </label>
+
+          <label className="sm:col-span-2">
+            <span className="mb-2 block text-sm font-bold text-white/70">
+              Descripcion
+            </span>
+            <textarea
+              value={form.description}
+              onChange={(event) =>
+                onChange({ ...form, description: event.target.value })
+              }
+              rows={3}
+              className="w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              placeholder="Uso interno de la categoria..."
+            />
+          </label>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <button
+            onClick={onClose}
+            className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 font-black text-white/70 transition hover:bg-white/10"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onSave}
+            disabled={saving}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saving ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            Guardar categoria
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CategoryManagerModal({
+  categories,
+  itemCountsByCategory,
+  saving,
+  onClose,
+  onCreate,
+  onDelete,
+  onEdit,
+  onToggle,
+}: {
+  categories: InventoryCategoryRecord[];
+  itemCountsByCategory: Record<string, number>;
+  saving: boolean;
+  onClose: () => void;
+  onCreate: () => void;
+  onDelete: (category: InventoryCategoryRecord) => void;
+  onEdit: (category: InventoryCategoryRecord) => void;
+  onToggle: (category: InventoryCategoryRecord) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
+      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-white/10 bg-[#0a0a0a] p-5 text-white shadow-2xl">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-black">Administrar categorias</h2>
+            <p className="text-sm text-white/50">
+              Edita, activa/desactiva o elimina categorias vacias sin afectar el
+              inventario del cliente.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-full bg-white/10 p-2 transition hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="mb-4 flex justify-end">
+          <button
+            onClick={() => {
+              onClose();
+
+              window.setTimeout(() => {
+                onCreate();
+              }, 80);
+            }}
+            className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-4 py-3 font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400"
+          >
+            <Plus className="h-4 w-4" /> Nueva categoria
+          </button>
+        </div>
+
+        <div className="grid gap-3">
+          {categories.map((category) => {
+            const itemCount = itemCountsByCategory[category.slug] ?? 0;
+            return (
+              <div
+                key={category.id}
+                className={`rounded-2xl border p-4 transition ${
+                  category.is_active
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-white/5 bg-white/[0.02] opacity-60"
+                }`}
+              >
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 text-xl"
+                      style={{
+                        backgroundColor: `${category.color ?? "#f97316"}22`,
+                      }}
+                    >
+                      {(() => {
+                        const Icon = getCategoryIcon(category.icon);
+                        return <Icon className="h-5 w-5 text-orange-200" />;
+                      })()}
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg font-black">{category.name}</h3>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs font-bold text-white/45">
+                          {category.slug}
+                        </span>
+                        <span className="rounded-full border border-orange-500/25 bg-orange-500/10 px-2 py-1 text-xs font-bold text-orange-100">
+                          {itemCount} items
+                        </span>
+                      </div>
+                      {category.description && (
+                        <p className="mt-1 text-sm text-white/45">
+                          {category.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        onClose();
+
+                        window.setTimeout(() => {
+                          onEdit(category);
+                        }, 80);
+                      }}
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-black text-white/70 transition hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-100"
+                    >
+                      <Edit3 className="h-4 w-4" /> Editar
+                    </button>
+                    <button
+                      onClick={() => onToggle(category)}
+                      disabled={saving}
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-black text-white/70 transition hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-100 disabled:opacity-50"
+                    >
+                      {category.is_active ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                      {category.is_active ? "Desactivar" : "Activar"}
+                    </button>
+                    <button
+                      onClick={() => onDelete(category)}
+                      disabled={saving || itemCount > 0}
+                      title={
+                        itemCount > 0
+                          ? "No se puede eliminar si tiene items"
+                          : "Eliminar categoria"
+                      }
+                      className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm font-black text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Trash2 className="h-4 w-4" /> Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ExportReportModal({
   activeCount,
   alertCount,
@@ -604,7 +960,7 @@ function ExportReportModal({
                     Generado el: {formatReportDate()}
                   </p>
                   <p className="text-xs text-white/55">
-                    Generado por: Velasquez Admin Portal
+                    Generado por: Zamgel Admin
                   </p>
                 </div>
                 <img
@@ -758,6 +1114,9 @@ function ExportReportModal({
 
 export default function InventoryPage() {
   const [items, setItems] = React.useState<InventoryItem[]>([]);
+  const [categories, setCategories] = React.useState<InventoryCategoryRecord[]>(
+    [],
+  );
   const [movements, setMovements] = React.useState<InventoryMovement[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -772,6 +1131,9 @@ export default function InventoryPage() {
   >("all");
   const [showInactive, setShowInactive] = React.useState(false);
   const [form, setForm] = React.useState<InventoryFormData | null>(null);
+  const [categoryForm, setCategoryForm] =
+    React.useState<InventoryCategoryFormData | null>(null);
+  const [categoryManagerOpen, setCategoryManagerOpen] = React.useState(false);
   const [adjustment, setAdjustment] =
     React.useState<InventoryStockAdjustmentForm | null>(null);
   const [exportModalOpen, setExportModalOpen] = React.useState(false);
@@ -782,11 +1144,14 @@ export default function InventoryPage() {
     setError("");
 
     try {
-      const [inventoryItems, recentMovements] = await Promise.all([
-        getInventoryItems(),
-        getRecentInventoryMovements(10),
-      ]);
+      const [inventoryItems, inventoryCategories, recentMovements] =
+        await Promise.all([
+          getInventoryItems(),
+          getInventoryCategories(),
+          getRecentInventoryMovements(10),
+        ]);
       setItems(inventoryItems);
+      setCategories(inventoryCategories);
       setMovements(recentMovements);
     } catch (loadError) {
       setError(
@@ -843,6 +1208,99 @@ export default function InventoryPage() {
       }, 0),
     [activeItems],
   );
+
+  const itemCountsByCategory = React.useMemo(() => {
+    return items.reduce<Record<string, number>>((acc, item) => {
+      acc[item.category] = (acc[item.category] ?? 0) + 1;
+      return acc;
+    }, {});
+  }, [items]);
+
+  const handleSaveCategory = async () => {
+    if (!categoryForm) return;
+
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await saveInventoryCategory(categoryForm);
+      setSuccess("Categoria guardada correctamente.");
+      setCategoryForm(null);
+      await loadData();
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "No se pudo guardar la categoria.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleCategory = async (
+    categoryToToggle: InventoryCategoryRecord,
+  ) => {
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await toggleInventoryCategoryActive(categoryToToggle);
+      setSuccess(
+        categoryToToggle.is_active
+          ? "Categoria desactivada."
+          : "Categoria activada.",
+      );
+      await loadData();
+    } catch (toggleError) {
+      setError(
+        toggleError instanceof Error
+          ? toggleError.message
+          : "No se pudo cambiar la categoria.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteCategory = async (
+    categoryToDelete: InventoryCategoryRecord,
+  ) => {
+    const itemCount = itemCountsByCategory[categoryToDelete.slug] ?? 0;
+
+    if (itemCount > 0) {
+      setError(
+        "No se puede eliminar una categoria con items. Desactivala o mueve los items primero.",
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Eliminar categoria ${categoryToDelete.name}? Esta accion no se puede deshacer.`,
+    );
+
+    if (!confirmed) return;
+
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await deleteInventoryCategory(categoryToDelete);
+      setSuccess("Categoria eliminada correctamente.");
+      await loadData();
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "No se pudo eliminar la categoria.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!form) return;
@@ -1049,28 +1507,14 @@ export default function InventoryPage() {
       };
 
       // Header premium
-      // IMPORTANTE: no fusionar todo el header completo, porque despues se fusionan
-      // rangos internos para titulo/subtitulo. Si se enciman merges, ExcelJS marca:
-      // "Cannot merge already merged cells".
+      sheet.mergeCells("A1:M6");
       setRangeFill("A1:M6", BLACK);
-      for (let col = 1; col <= 13; col += 1) {
-        sheet.getCell(1, col).border = {
-          top: { style: "medium", color: { argb: ORANGE_DARK } },
-        };
-        sheet.getCell(6, col).border = {
-          bottom: { style: "medium", color: { argb: ORANGE } },
-        };
-      }
-      for (let row = 1; row <= 6; row += 1) {
-        sheet.getCell(row, 1).border = {
-          ...sheet.getCell(row, 1).border,
-          left: { style: "medium", color: { argb: ORANGE_DARK } },
-        };
-        sheet.getCell(row, 13).border = {
-          ...sheet.getCell(row, 13).border,
-          right: { style: "medium", color: { argb: ORANGE_DARK } },
-        };
-      }
+      sheet.getCell("A1").border = {
+        top: { style: "medium", color: { argb: ORANGE_DARK } },
+        left: { style: "medium", color: { argb: ORANGE_DARK } },
+        bottom: { style: "medium", color: { argb: ORANGE } },
+        right: { style: "medium", color: { argb: ORANGE_DARK } },
+      };
 
       if (velasquezLogo) {
         const velasquezImage = workbook.addImage({
@@ -1136,7 +1580,7 @@ export default function InventoryPage() {
       };
 
       sheet.mergeCells("D4:J4");
-      sheet.getCell("D4").value = "Generado por: Velasquez Admin Portal";
+      sheet.getCell("D4").value = "Generado por: Zamgel Admin";
       sheet.getCell("D4").font = {
         name: "Arial",
         size: 11,
@@ -1167,7 +1611,7 @@ export default function InventoryPage() {
         size: 9,
         color: { argb: MUTED },
       };
-      sheet.getCell("K8").alignment = { horizontal: "center" };
+      sheet.getCell("K4").alignment = { horizontal: "center" };
       sheet.mergeCells("K5:M5");
       sheet.getCell("K5").value = "Zamgel Core (ZC)";
       sheet.getCell("K5").font = {
@@ -1289,12 +1733,8 @@ export default function InventoryPage() {
         "Notas",
       ];
       const header = sheet.getRow(tableHeaderRow);
-      sheet.getRow(7).height = 34;
-      sheet.getRow(8).height = 42;
-      sheet.getRow(9).height = 28;
-      sheet.getRow(10).height = 24;
       header.values = headers;
-      header.height = 32;
+      header.height = 34;
       header.eachCell((cell) => {
         cell.fill = fill(ORANGE);
         cell.font = {
@@ -1318,7 +1758,7 @@ export default function InventoryPage() {
         const row = sheet.addRow([
           index + 1,
           item.name,
-          INVENTORY_CATEGORY_LABELS[item.category] ?? item.category,
+          getCategoryLabel(item.category, categories),
           INVENTORY_UNIT_LABELS[item.unit] ?? item.unit,
           Number(item.current_stock ?? 0),
           Number(item.min_stock ?? 0),
@@ -1528,23 +1968,23 @@ export default function InventoryPage() {
 
       <section className="mx-auto w-full max-w-[1800px] px-4 pb-12">
         <div className="mb-8 overflow-hidden rounded-[2rem] border border-orange-500/20 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.22),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-6 shadow-2xl shadow-black/40 sm:p-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
+          <div className="grid gap-6 xl:grid-cols-[1fr_auto] xl:items-end">
+            <div className="max-w-3xl">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-orange-200">
                 <Sparkles className="h-4 w-4" />
                 Inventario V2 operativo
               </div>
-              <h1 className="text-3xl font-black tracking-tight sm:text-5xl">
+              <h1 className="max-w-none text-4xl font-black leading-tight tracking-tight sm:text-5xl xl:text-6xl">
                 Control de stock
               </h1>
-              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/60 sm:text-base">
+              <p className="mt-3 max-w-[460px] text-sm leading-relaxed text-white/60 sm:text-base">
                 Inventario simple, limpio y listo para prueba del cliente.
                 Controla entradas, salidas, minimos, costos, proveedores y
                 alertas sin afectar POS ni Home.
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:flex xl:flex-row">
               <button
                 onClick={() => setExportModalOpen(true)}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 font-black text-white/75 transition hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-100"
@@ -1561,6 +2001,22 @@ export default function InventoryPage() {
                   className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
                 />
                 Actualizar
+              </button>
+
+              <button
+                onClick={() => setCategoryManagerOpen(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-5 py-3 font-black text-orange-100 transition hover:bg-orange-500/20"
+              >
+                <Tags className="h-4 w-4" />
+                Administrar categorias
+              </button>
+
+              <button
+                onClick={() => setCategoryForm(createEmptyCategoryForm())}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-5 py-3 font-black text-orange-100 transition hover:bg-orange-500/20"
+              >
+                <Plus className="h-4 w-4" />
+                Nueva categoria
               </button>
 
               <button
@@ -1634,7 +2090,7 @@ export default function InventoryPage() {
               <option value="all" className="bg-black">
                 Todas las categorias
               </option>
-              {INVENTORY_CATEGORY_OPTIONS.map((option) => (
+              {getCategoryOptions(categories).map((option) => (
                 <option
                   key={option.value}
                   value={option.value}
@@ -1733,8 +2189,7 @@ export default function InventoryPage() {
                               {STATUS_LABELS[status]}
                             </span>
                             <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-white/50">
-                              {INVENTORY_CATEGORY_LABELS[item.category] ??
-                                item.category}
+                              {getCategoryLabel(item.category, categories)}
                             </span>
                           </div>
 
@@ -1930,6 +2385,7 @@ export default function InventoryPage() {
 
       {form && (
         <InventoryFormModal
+          categories={categories}
           form={form}
           saving={saving}
           onChange={setForm}
@@ -1945,6 +2401,31 @@ export default function InventoryPage() {
           onChange={setAdjustment}
           onClose={() => setAdjustment(null)}
           onSave={handleAdjustmentSave}
+        />
+      )}
+
+      {categoryForm && (
+        <CategoryFormModal
+          form={categoryForm}
+          saving={saving}
+          onChange={setCategoryForm}
+          onClose={() => setCategoryForm(null)}
+          onSave={handleSaveCategory}
+        />
+      )}
+
+      {categoryManagerOpen && (
+        <CategoryManagerModal
+          categories={categories}
+          itemCountsByCategory={itemCountsByCategory}
+          saving={saving}
+          onClose={() => setCategoryManagerOpen(false)}
+          onCreate={() => setCategoryForm(createEmptyCategoryForm())}
+          onEdit={(categoryToEdit) =>
+            setCategoryForm(inventoryCategoryToForm(categoryToEdit))
+          }
+          onToggle={handleToggleCategory}
+          onDelete={handleDeleteCategory}
         />
       )}
 
