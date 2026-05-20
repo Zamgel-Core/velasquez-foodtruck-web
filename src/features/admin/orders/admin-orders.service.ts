@@ -2,6 +2,7 @@
 
 import { supabase } from "../../../lib/supabase";
 import type { AdminOrder, OrderStatus, PaymentMethod } from "./admin-orders.types";
+import { registerLoyaltyOrder } from "../loyalty/loyalty.service";
 
 type RawOrderItem = {
   id: string;
@@ -100,6 +101,28 @@ export async function getAdminOrders(): Promise<AdminOrder[]> {
 }
 
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
+  const { data: currentOrder, error: currentOrderError } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      order_number,
+      status,
+      total,
+      customers (
+        name,
+        phone
+      )
+    `)
+    .eq("id", orderId)
+    .single();
+
+  if (currentOrderError) {
+    console.error("Error loading order before status update:", currentOrderError);
+    throw new Error("No se pudo cargar la orden.");
+  }
+
+  const previousStatus = currentOrder?.status as OrderStatus | undefined;
+
   const { error } = await supabase
     .from("orders")
     .update({ status })
@@ -108,6 +131,29 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   if (error) {
     console.error("Error updating order status:", error);
     throw new Error("No se pudo actualizar el estado.");
+  }
+
+  const shouldRegisterLoyalty =
+    (status === "ready" || status === "delivered") &&
+    previousStatus !== "ready" &&
+    previousStatus !== "delivered";
+
+  if (shouldRegisterLoyalty) {
+    const customer = Array.isArray(currentOrder.customers)
+      ? currentOrder.customers[0]
+      : currentOrder.customers;
+
+    try {
+      await registerLoyaltyOrder({
+        customerName: customer?.name ?? "Cliente Velasquez",
+        customerPhone: customer?.phone ?? "",
+        orderNumber: currentOrder.order_number,
+        orderTotal: Number(currentOrder.total ?? 0),
+        source: "admin_pos",
+      });
+    } catch (loyaltyError) {
+      console.error("Loyalty status reward error:", loyaltyError);
+    }
   }
 
   return true;

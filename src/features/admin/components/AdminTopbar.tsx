@@ -8,6 +8,7 @@ import {
   Package,
   ShoppingCart,
   Settings,
+  Gift,
   Share2,
   SlidersHorizontal,
   Users,
@@ -66,6 +67,11 @@ const links = [
     label: "Staff",
     href: "/admin/staff",
     icon: Users,
+  },
+  {
+    label: "Lealtad",
+    href: "/admin/loyalty",
+    icon: Gift,
   },
   {
     label: "Ajustes",

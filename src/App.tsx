@@ -32,6 +32,8 @@ import SocialVideosAdminPage from "./features/admin/social-videos/SocialVideosAd
 import AdminSettingsPage from "./features/admin/settings/AdminSettingsPage";
 import InventoryPage from "./features/admin/inventory/InventoryPage";
 import { TikTokSection } from "./components/TikTokSection";
+import LoyaltyPage from "./features/admin/loyalty/LoyaltyPage";
+import LoyaltyClientPage from "./features/loyalty/LoyaltyClientPage";
 
 export default function App() {
   const pathname = window.location.pathname;
@@ -140,12 +142,24 @@ export default function App() {
     );
   }
 
+  if (pathname === "/admin/loyalty") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <LoyaltyPage />
+      </ProtectedAdminRoute>
+    );
+  }
+
   if (pathname === "/mi-pedido") {
     return <OrderStatusPage />;
   }
 
   if (pathname === "/tv-menu") {
     return <TvMenuPage />;
+  }
+
+  if (pathname === "/lealtad") {
+    return <LoyaltyClientPage />;
   }
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);

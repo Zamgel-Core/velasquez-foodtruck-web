@@ -1,6 +1,6 @@
 // 📍 Ruta: src/features/cart/components/CheckoutModal.tsx
 
-import { CreditCard, DollarSign, X } from "lucide-react";
+import { CreditCard, DollarSign, Gift, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Lang } from "../../../types";
 import type { CartItem, CheckoutCustomer } from "../cart.types";
@@ -68,6 +68,11 @@ export default function CheckoutModal({
       lang === "es"
         ? "El pago con tarjeta agrega 8.25%."
         : "Card payments include an 8.25% fee.",
+    loyaltyTitle: lang === "es" ? "Lealtad automática" : "Automatic loyalty",
+    loyaltyText:
+      lang === "es"
+        ? "Si este teléfono ya existe en Lealtad, se sumarán puntos automáticamente. Si no existe, se creará el cliente."
+        : "If this phone already exists in Loyalty, points will be added automatically. If it does not exist, the customer will be created.",
   };
 
   const feeAmount = useMemo(() => {
@@ -143,6 +148,14 @@ export default function CheckoutModal({
             placeholder={t.phone}
             className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
           />
+
+          <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-xs text-orange-100">
+            <div className="mb-1 flex items-center gap-2 font-black">
+              <Gift className="h-4 w-4" />
+              {t.loyaltyTitle}
+            </div>
+            <p className="leading-relaxed text-orange-100/75">{t.loyaltyText}</p>
+          </div>
 
           <textarea
             value={customer.notes}

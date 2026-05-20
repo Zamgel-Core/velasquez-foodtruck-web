@@ -96,6 +96,15 @@ const adminCards = [
     status: "active",
   },
   {
+    title: "Lealtad",
+    description:
+      "Clientes frecuentes, puntos manuales, niveles y recompensas futuras.",
+    href: "/admin/loyalty",
+    icon: Gift,
+    roles: ["super_admin", "admin"],
+    status: "active",
+  },
+  {
     title: "Ajustes",
     description:
       "Configurar página, sonidos, TV Menu, radio de órdenes y negocio.",
@@ -110,15 +119,6 @@ const adminCards = [
       "IA estratégica para ayudarte a administrar y optimizar tu food truck.",
     href: "/admin/ai",
     icon: Brain,
-    roles: ["super_admin", "admin"],
-    status: "coming_soon",
-  },
-  {
-    title: "Lealtad",
-    description:
-      "Clientes frecuentes, recompensas, puntos y promociones especiales.",
-    href: "/admin/loyalty",
-    icon: Gift,
     roles: ["super_admin", "admin"],
     status: "coming_soon",
   },

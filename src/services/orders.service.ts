@@ -160,5 +160,6 @@ export async function createOrder(
   return {
     success: true,
     orderNumber: orderData.order_number,
+    loyaltyPoints: 0,
   };
 }

@@ -1,7 +1,17 @@
 // 📍 Ruta: src/features/admin/pos/AdminPOSPage.tsx
 
 import React from "react";
-import { Minus, Plus, Receipt, RefreshCw, Search, Trash2 } from "lucide-react";
+import {
+  Gift,
+  Minus,
+  Percent,
+  Plus,
+  Receipt,
+  RefreshCw,
+  Search,
+  Star,
+  Trash2,
+} from "lucide-react";
 import AdminTopbar from "../components/AdminTopbar";
 import { useStaffAuth } from "../auth/useStaffAuth";
 import {
@@ -14,6 +24,11 @@ import {
   type POSProductOption,
   type POSSelectedOption,
 } from "./admin-pos.service";
+import {
+  getAvailableLoyaltyRewardsForPhone,
+  getRewardDisplayValue,
+} from "../loyalty/loyalty.service";
+import type { LoyaltyRewardAvailability } from "../loyalty/loyalty.types";
 
 function formatMoney(value: number) {
   return new Intl.NumberFormat("en-US", {
@@ -68,6 +83,36 @@ function createCartItemId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function calculatePOSRewardDiscount(
+  availability: LoyaltyRewardAvailability | null,
+  subtotal: number,
+) {
+  if (!availability?.available) return 0;
+
+  const reward = availability.reward;
+
+  if (reward.reward_type === "fixed_discount") {
+    return Math.min(subtotal, Math.max(0, Number(reward.value_amount || 0)));
+  }
+
+  if (reward.reward_type === "percent_discount") {
+    const percent = Math.min(
+      100,
+      Math.max(0, Number(reward.value_amount || 0)),
+    );
+    return Math.min(subtotal, Number(((subtotal * percent) / 100).toFixed(2)));
+  }
+
+  return 0;
+}
+
+function getRewardKindLabel(type: string) {
+  if (type === "free_item") return "Producto gratis";
+  if (type === "fixed_discount") return "Descuento fijo";
+  if (type === "percent_discount") return "Descuento %";
+  return "Recompensa";
+}
+
 export default function AdminPOSPage() {
   const { profile } = useStaffAuth();
 
@@ -116,6 +161,13 @@ export default function AdminPOSPage() {
   const [amountPaid, setAmountPaid] = React.useState("");
   const [success, setSuccess] = React.useState("");
   const [error, setError] = React.useState("");
+  const [loyaltyRewards, setLoyaltyRewards] = React.useState<
+    LoyaltyRewardAvailability[]
+  >([]);
+  const [selectedLoyaltyReward, setSelectedLoyaltyReward] =
+    React.useState<LoyaltyRewardAvailability | null>(null);
+  const [loyaltyLoading, setLoyaltyLoading] = React.useState(false);
+  const [loyaltyMessage, setLoyaltyMessage] = React.useState("");
   const [draftReady, setDraftReady] = React.useState(false);
 
   React.useEffect(() => {
@@ -159,6 +211,48 @@ export default function AdminPOSPage() {
     loadProducts();
   }, [loadProducts]);
 
+  const loadLoyaltyRewards = React.useCallback(async () => {
+    const phone = customerPhone.trim();
+
+    if (phone.replace(/\D/g, "").length < 7) {
+      setLoyaltyRewards([]);
+      setSelectedLoyaltyReward(null);
+      setLoyaltyMessage("");
+      return;
+    }
+
+    try {
+      setLoyaltyLoading(true);
+      const rewards = await getAvailableLoyaltyRewardsForPhone(phone);
+      setLoyaltyRewards(rewards);
+      setLoyaltyMessage(
+        rewards.length > 0
+          ? "Cliente de lealtad detectado. Puedes canjear recompensas disponibles."
+          : "No hay cliente de lealtad activo con este telefono.",
+      );
+
+      setSelectedLoyaltyReward((current) => {
+        if (!current) return null;
+        return (
+          rewards.find((entry) => entry.reward.id === current.reward.id) ?? null
+        );
+      });
+    } catch (err) {
+      console.error(err);
+      setLoyaltyMessage("No se pudieron cargar las recompensas de lealtad.");
+    } finally {
+      setLoyaltyLoading(false);
+    }
+  }, [customerPhone]);
+
+  React.useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      loadLoyaltyRewards();
+    }, 450);
+
+    return () => window.clearTimeout(timeout);
+  }, [loadLoyaltyRewards]);
+
   React.useEffect(() => {
     if (!draftReady) return;
 
@@ -184,14 +278,18 @@ export default function AdminPOSPage() {
   ]);
 
   const categories = React.useMemo(() => {
-    return (
+    const baseCategories = (
       Array.from(
         new Set(
           products.map((product) => product.category?.name).filter(Boolean),
         ),
       ) as string[]
     ).sort((a, b) => getCategoryIndex(a) - getCategoryIndex(b));
-  }, [products]);
+
+    return loyaltyRewards.length > 0
+      ? [...baseCategories, "Lealtad"]
+      : baseCategories;
+  }, [products, loyaltyRewards.length]);
 
   const filteredProducts = products
     .filter((product) => {
@@ -203,7 +301,9 @@ export default function AdminPOSPage() {
         product.category?.name?.toLowerCase().includes(query);
 
       const matchesCategory =
-        categoryFilter === "all" || product.category?.name === categoryFilter;
+        categoryFilter === "all" ||
+        (categoryFilter !== "Lealtad" &&
+          product.category?.name === categoryFilter);
 
       return matchesSearch && matchesCategory;
     })
@@ -218,13 +318,28 @@ export default function AdminPOSPage() {
 
   const safeCart = Array.isArray(cart) ? cart : [];
 
-  const subtotal = safeCart.reduce(
-    (sum, item) => sum + getPOSItemUnitPrice(item) * item.quantity,
-    0,
+  const freeRewardProductId =
+    selectedLoyaltyReward?.reward.reward_type === "free_item"
+      ? selectedLoyaltyReward.reward.reward_product_id
+      : null;
+
+  const subtotal = safeCart.reduce((sum, item) => {
+    const isFreeRewardItem =
+      freeRewardProductId && item.product.id === freeRewardProductId;
+
+    return (
+      sum + (isFreeRewardItem ? 0 : getPOSItemUnitPrice(item)) * item.quantity
+    );
+  }, 0);
+
+  const loyaltyDiscount = calculatePOSRewardDiscount(
+    selectedLoyaltyReward,
+    subtotal,
   );
+  const total = Math.max(0, subtotal - loyaltyDiscount);
 
   const paid = Number(amountPaid || 0);
-  const changeDue = paymentMethod === "cash" ? Math.max(0, paid - subtotal) : 0;
+  const changeDue = paymentMethod === "cash" ? Math.max(0, paid - total) : 0;
 
   const openProductModal = async (product: POSProduct) => {
     try {
@@ -304,6 +419,11 @@ export default function AdminPOSPage() {
         amountPaid: Number(amountPaid || 0),
         staffProfileId: profile.id,
         items: safeCart,
+        loyaltyRewardId: selectedLoyaltyReward?.reward.id ?? null,
+        loyaltyDiscountAmount: loyaltyDiscount,
+        loyaltyRewardLabel: selectedLoyaltyReward
+          ? getRewardDisplayValue(selectedLoyaltyReward.reward)
+          : "",
       });
 
       setSuccess(`Orden ${order.order_number} creada correctamente.`);
@@ -314,6 +434,9 @@ export default function AdminPOSPage() {
       setNotes("");
       setAmountPaid("");
       setPaymentMethod("cash");
+      setSelectedLoyaltyReward(null);
+      setLoyaltyRewards([]);
+      setLoyaltyMessage("");
     } catch (err) {
       console.error(err);
       setError(
@@ -407,7 +530,95 @@ export default function AdminPOSPage() {
               </div>
             )}
 
-            {!loading && (
+            {!loading && categoryFilter === "Lealtad" && (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {loyaltyRewards.length === 0 && (
+                  <div className="rounded-3xl border border-dashed border-orange-500/20 bg-orange-500/[0.04] p-8 text-center text-sm font-bold text-white/50 sm:col-span-2 lg:col-span-3">
+                    Escribe el telefono de un cliente de lealtad para ver
+                    recompensas.
+                  </div>
+                )}
+
+                {loyaltyRewards.map((entry) => {
+                  const reward = entry.reward;
+                  const active = selectedLoyaltyReward?.reward.id === reward.id;
+                  const discount = calculatePOSRewardDiscount(entry, subtotal);
+
+                  return (
+                    <button
+                      key={reward.id}
+                      onClick={() =>
+                        entry.available
+                          ? setSelectedLoyaltyReward(active ? null : entry)
+                          : undefined
+                      }
+                      disabled={!entry.available}
+                      className={`rounded-3xl border p-4 text-left transition ${
+                        active
+                          ? "border-orange-500 bg-orange-500/15 shadow-lg shadow-orange-500/15"
+                          : entry.available
+                            ? "border-white/10 bg-white/[0.04] hover:-translate-y-1 hover:border-orange-500/40 hover:bg-orange-500/[0.08]"
+                            : "cursor-not-allowed border-white/10 bg-white/[0.02] opacity-45"
+                      }`}
+                      type="button"
+                    >
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10 text-orange-200">
+                            {reward.reward_type === "percent_discount" ? (
+                              <Percent className="h-6 w-6" />
+                            ) : (
+                              <Gift className="h-6 w-6" />
+                            )}
+                          </div>
+
+                          <div>
+                            <h2 className="font-black">{reward.title}</h2>
+                            <p className="text-xs font-bold text-white/40">
+                              {getRewardKindLabel(reward.reward_type)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-black text-orange-200">
+                          {reward.points_required} pts
+                        </span>
+                      </div>
+
+                      <p className="text-sm font-bold text-white/60">
+                        {getRewardDisplayValue(reward)}
+                      </p>
+
+                      {discount > 0 && (
+                        <p className="mt-2 text-sm font-black text-green-300">
+                          Descuento actual: -{formatMoney(discount)}
+                        </p>
+                      )}
+
+                      {reward.description && (
+                        <p className="mt-2 line-clamp-2 text-xs font-semibold text-white/40">
+                          {reward.description}
+                        </p>
+                      )}
+
+                      {!entry.available && (
+                        <p className="mt-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200">
+                          {entry.reason}
+                        </p>
+                      )}
+
+                      {active && (
+                        <p className="mt-3 rounded-2xl border border-green-500/20 bg-green-500/10 px-3 py-2 text-xs font-black text-green-200">
+                          Recompensa aplicada a esta orden.
+                        </p>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {!loading && categoryFilter !== "Lealtad" && (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredProducts.map((product) => (
                   <button
@@ -476,6 +687,55 @@ export default function AdminPOSPage() {
               />
             </div>
 
+            <div className="mt-4 rounded-3xl border border-orange-500/20 bg-orange-500/[0.06] p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-orange-300" />
+                  <p className="text-sm font-black text-orange-100">
+                    Lealtad en ventanilla
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setCategoryFilter("Lealtad")}
+                  className="rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-xs font-black text-orange-200 transition hover:bg-orange-500/20"
+                  type="button"
+                >
+                  Ver recompensas
+                </button>
+              </div>
+
+              <p className="text-xs font-bold text-white/50">
+                {loyaltyLoading
+                  ? "Buscando recompensas..."
+                  : loyaltyMessage ||
+                    "Escribe el telefono del cliente para consultar recompensas."}
+              </p>
+
+              {selectedLoyaltyReward && (
+                <div className="mt-3 rounded-2xl border border-green-500/25 bg-green-500/10 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-black text-green-100">
+                        {selectedLoyaltyReward.reward.title}
+                      </p>
+                      <p className="text-xs font-bold text-green-200/70">
+                        {getRewardDisplayValue(selectedLoyaltyReward.reward)}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedLoyaltyReward(null)}
+                      className="rounded-xl border border-white/10 bg-black/20 px-2 py-1 text-xs font-black text-white/70 hover:bg-white/10"
+                      type="button"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="mt-5 space-y-3">
               {safeCart.length === 0 && (
                 <div className="rounded-3xl border border-dashed border-white/10 bg-black/20 p-6 text-center text-sm font-bold text-white/35">
@@ -492,7 +752,10 @@ export default function AdminPOSPage() {
                     <div>
                       <h3 className="font-black">{item.product.name}</h3>
                       <p className="text-sm font-bold text-orange-300">
-                        {formatMoney(getPOSItemUnitPrice(item))}
+                        {freeRewardProductId &&
+                        item.product.id === freeRewardProductId
+                          ? "$0.00"
+                          : formatMoney(getPOSItemUnitPrice(item))}
                       </p>
 
                       {item.selectedOptions &&
@@ -564,7 +827,12 @@ export default function AdminPOSPage() {
                     </div>
 
                     <span className="font-black">
-                      {formatMoney(getPOSItemUnitPrice(item) * item.quantity)}
+                      {freeRewardProductId &&
+                      item.product.id === freeRewardProductId
+                        ? "$0.00"
+                        : formatMoney(
+                            getPOSItemUnitPrice(item) * item.quantity,
+                          )}
                     </span>
                   </div>
                 </div>
@@ -618,9 +886,26 @@ export default function AdminPOSPage() {
                 <span>{formatMoney(subtotal)}</span>
               </div>
 
+              {loyaltyDiscount > 0 && (
+                <div className="mt-2 flex justify-between text-sm font-bold text-green-300">
+                  <span>Descuento lealtad</span>
+                  <span>-{formatMoney(loyaltyDiscount)}</span>
+                </div>
+              )}
+
+              {selectedLoyaltyReward?.reward.reward_type === "free_item" && (
+                <div className="mt-2 flex justify-between text-sm font-bold text-green-300">
+                  <span>Producto gratis</span>
+                  <span>
+                    {getRewardDisplayValue(selectedLoyaltyReward.reward)} ·
+                    $0.00
+                  </span>
+                </div>
+              )}
+
               <div className="mt-2 flex justify-between text-xl font-black">
                 <span>Total</span>
-                <span className="text-orange-300">{formatMoney(subtotal)}</span>
+                <span className="text-orange-300">{formatMoney(total)}</span>
               </div>
 
               {paymentMethod === "cash" && (

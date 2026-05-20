@@ -2,6 +2,7 @@
 
 import { supabase } from "../../../lib/supabase";
 import { getOpenRegisterSession } from "../register/admin-register.service";
+import { redeemLoyaltyReward } from "../loyalty/loyalty.service";
 
 export type POSProduct = {
   id: string;
@@ -45,6 +46,9 @@ export type CreatePOSOrderInput = {
   amountPaid: number;
   staffProfileId: string;
   items: POSCartItem[];
+  loyaltyRewardId?: string | null;
+  loyaltyDiscountAmount?: number;
+  loyaltyRewardLabel?: string;
 };
 
 function generateOrderNumber() {
@@ -120,20 +124,29 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
     0
   );
 
-  const total = subtotal;
+  const requestedDiscount = Math.max(0, Number(input.loyaltyDiscountAmount || 0));
+  const loyaltyDiscount = Math.min(subtotal, requestedDiscount);
+  const total = Math.max(0, subtotal - loyaltyDiscount);
   const amountPaid = input.paymentMethod === "cash" ? input.amountPaid : total;
   const changeDue =
     input.paymentMethod === "cash" ? Math.max(0, amountPaid - total) : 0;
 
   const customerName = input.customerName.trim() || "Cliente POS";
   const customerPhone = input.customerPhone.trim();
+  const loyaltyNote =
+    input.loyaltyRewardId && input.loyaltyRewardLabel
+      ? `Canje lealtad: ${input.loyaltyRewardLabel}${
+          loyaltyDiscount > 0 ? ` (-$${loyaltyDiscount.toFixed(2)})` : ""
+        }`
+      : "";
+  const combinedNotes = [input.notes.trim(), loyaltyNote].filter(Boolean).join(" | ");
 
   const { data: customer, error: customerError } = await supabase
     .from("customers")
     .insert({
       name: customerName,
       phone: customerPhone || null,
-      notes: input.notes.trim() || null,
+      notes: combinedNotes || null,
     })
     .select("id")
     .single();
@@ -159,7 +172,7 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
       payment_method: input.paymentMethod === "pending" ? "cash" : input.paymentMethod,
       amount_paid: amountPaid,
       change_due: changeDue,
-      notes: input.notes.trim() || null,
+      notes: combinedNotes || null,
       order_source: "pos",
       created_by_staff_id: input.staffProfileId,
       register_session_id: openSession.id,
@@ -194,6 +207,23 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
     await supabase.from("customers").delete().eq("id", customer.id);
 
     throw new Error("No se pudieron guardar los productos de la orden.");
+  }
+
+  if (input.loyaltyRewardId) {
+    try {
+      await redeemLoyaltyReward({
+        customerPhone,
+        rewardId: input.loyaltyRewardId,
+        orderNumber: order.order_number,
+        orderTotal: subtotal,
+        source: "admin_pos",
+      });
+    } catch (loyaltyError) {
+      console.error("POS loyalty redeem error:", loyaltyError);
+      throw loyaltyError instanceof Error
+        ? loyaltyError
+        : new Error("No se pudo canjear la recompensa de lealtad.");
+    }
   }
 
   return order;
