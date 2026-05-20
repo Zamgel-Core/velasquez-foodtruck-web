@@ -21,6 +21,7 @@ type TvItem = {
 };
 
 const SLIDE_INTERVAL_MS = 8000;
+const ZAMGEL_CORE_LOGO_SRC = "/images/zamgelcore-zc-logo.png";
 
 function normalizeCategory(category: string) {
   return category === "Especialidades" ? "Antojitos" : category;
@@ -58,9 +59,13 @@ export default function TvMenuPage() {
   const [activeCategoryIndex, setActiveCategoryIndex] = React.useState(0);
   const [activeItemIndex, setActiveItemIndex] = React.useState(0);
   const [time, setTime] = React.useState(() => new Date());
+  const groupedItemsRef = React.useRef<Record<string, TvItem[]>>({});
+  const tvCategoriesRef = React.useRef<string[]>([]);
+  const activeItemIndexRef = React.useRef(0);
 
   const searchParams = new URLSearchParams(window.location.search);
-  const recordingMode = searchParams.get("recording") === "true";
+  const recordingParam = searchParams.get("recording");
+  const recordingMode = recordingParam === "1" || recordingParam === "true";
 
   const orderUrl = "https://www.velasquezfoodtruck.com";
 
@@ -146,7 +151,31 @@ export default function TvMenuPage() {
     return grouped;
   }, [products]);
 
-  const activeCategory = categories[activeCategoryIndex] ?? "Tacos";
+  const tvCategories = React.useMemo(() => {
+    const availableCategories = categories.filter(
+      (category) => (groupedItems[category]?.length ?? 0) > 0,
+    );
+
+    return availableCategories.length > 0 ? availableCategories : categories;
+  }, [groupedItems]);
+
+  React.useEffect(() => {
+    groupedItemsRef.current = groupedItems;
+    tvCategoriesRef.current = tvCategories;
+
+    if (activeCategoryIndex >= tvCategories.length) {
+      setActiveCategoryIndex(0);
+      setActiveItemIndex(0);
+      activeItemIndexRef.current = 0;
+    }
+  }, [activeCategoryIndex, groupedItems, tvCategories]);
+
+  React.useEffect(() => {
+    activeItemIndexRef.current = activeItemIndex;
+  }, [activeItemIndex]);
+
+  const activeCategory =
+    tvCategories[activeCategoryIndex] ?? tvCategories[0] ?? "Tacos";
   const activeItems = groupedItems[activeCategory] ?? [];
   const featuredItem = activeItems[activeItemIndex] ?? activeItems[0];
 
@@ -156,29 +185,45 @@ export default function TvMenuPage() {
 
   React.useEffect(() => {
     const interval = window.setInterval(() => {
-      setActiveItemIndex((currentItemIndex) => {
-        const currentCategory = categories[activeCategoryIndex] ?? "Tacos";
-        const itemsInCategory = groupedItems[currentCategory] ?? [];
+      setActiveCategoryIndex((currentCategoryIndex) => {
+        const currentCategories = tvCategoriesRef.current;
+
+        if (currentCategories.length === 0) {
+          activeItemIndexRef.current = 0;
+          setActiveItemIndex(0);
+          return 0;
+        }
+
+        const safeCategoryIndex =
+          currentCategoryIndex >= currentCategories.length
+            ? 0
+            : currentCategoryIndex;
+
+        const currentCategory = currentCategories[safeCategoryIndex] ?? "Tacos";
+        const itemsInCategory = groupedItemsRef.current[currentCategory] ?? [];
+        const currentItemIndex = activeItemIndexRef.current;
 
         if (
           itemsInCategory.length > 0 &&
           currentItemIndex < itemsInCategory.length - 1
         ) {
-          return currentItemIndex + 1;
+          const nextItemIndex = currentItemIndex + 1;
+          activeItemIndexRef.current = nextItemIndex;
+          setActiveItemIndex(nextItemIndex);
+          return safeCategoryIndex;
         }
 
-        setActiveCategoryIndex((currentCategoryIndex) => {
-          return (currentCategoryIndex + 1) % categories.length;
-        });
+        activeItemIndexRef.current = 0;
+        setActiveItemIndex(0);
 
-        return 0;
+        return (safeCategoryIndex + 1) % currentCategories.length;
       });
     }, SLIDE_INTERVAL_MS);
 
     return () => {
       window.clearInterval(interval);
     };
-  }, [activeCategoryIndex, groupedItems]);
+  }, []);
 
   const formattedTime = time.toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -405,7 +450,7 @@ export default function TvMenuPage() {
 
               <div className="flex items-center gap-2 border-l border-white/10 pl-3">
                 <img
-                  src="/images/Logo-ZC-sinfondo.png"
+                  src={ZAMGEL_CORE_LOGO_SRC}
                   alt="Zamgel Core"
                   className="h-8 w-8 object-contain opacity-95"
                 />
@@ -424,24 +469,26 @@ export default function TvMenuPage() {
           </aside>
         </section>
 
-        <footer className="flex items-center gap-2 overflow-x-auto pt-2">
-          {categories.map((category, index) => (
-            <button
-              key={category}
-              onClick={() => {
-                setActiveCategoryIndex(index);
-                setActiveItemIndex(0);
-              }}
-              className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 ${
-                activeCategory === category
-                  ? "border-orange-500 bg-orange-600 text-white shadow-[0_0_20px_rgba(249,115,22,0.45)]"
-                  : "border-white/10 bg-white/[0.04] text-white/55"
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </footer>
+        {!recordingMode && (
+          <footer className="flex items-center gap-2 overflow-x-auto pt-2">
+            {tvCategories.map((category, index) => (
+              <button
+                key={category}
+                onClick={() => {
+                  setActiveCategoryIndex(index);
+                  setActiveItemIndex(0);
+                }}
+                className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 ${
+                  activeCategory === category
+                    ? "border-orange-500 bg-orange-600 text-white shadow-[0_0_20px_rgba(249,115,22,0.45)]"
+                    : "border-white/10 bg-white/[0.04] text-white/55"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </footer>
+        )}
       </div>
     </main>
   );

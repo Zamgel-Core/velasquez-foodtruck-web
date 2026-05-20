@@ -7,6 +7,7 @@ import {
   BellRing,
   Building2,
   Clock,
+  ExternalLink,
   Eye,
   MapPin,
   MessageSquareText,
@@ -17,6 +18,7 @@ import {
   Settings,
   Sparkles,
   Tv,
+  Video,
   Volume2,
 } from "lucide-react";
 import AdminTopbar from "../components/AdminTopbar";
@@ -225,6 +227,11 @@ export default function AdminSettingsPage() {
     setMessage("Ajustes base cargados. Presiona Guardar para aplicarlos.");
   };
 
+  const openTvMenu = (recordingMode = false) => {
+    const url = recordingMode ? "/tv-menu?recording=1" : "/tv-menu";
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <main className="min-h-screen bg-[#050505] text-white">
       <AdminTopbar />
@@ -351,6 +358,56 @@ export default function AdminSettingsPage() {
                   <ToggleRow icon={Eye} title="TikTok feed en Home" description="Preparado para conectar el encendido/apagado del feed público." checked={settings.tiktok_feed_enabled} onChange={(value) => updateSetting("tiktok_feed_enabled", value)} />
                   <ToggleRow icon={Tv} title="TV Menu" description="Permite mantener control del menú para pantalla." checked={settings.tv_menu_enabled} onChange={(value) => updateSetting("tv_menu_enabled", value)} />
                   <ToggleRow icon={MapPin} title="Página de tracking" description="Base para activar o pausar Mi Pedido cuando sea necesario." checked={settings.tracking_page_enabled} onChange={(value) => updateSetting("tracking_page_enabled", value)} />
+                </div>
+              </SettingsCard>
+
+              <SettingsCard
+                icon={Tv}
+                title="Pantalla / TV Menu"
+                description="Accesos rápidos para abrir el menú digital público o una versión limpia para grabar contenido."
+              >
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => openTvMenu(false)}
+                    className="group rounded-2xl border border-white/10 bg-black/35 p-4 text-left transition hover:border-orange-500/45 hover:bg-orange-500/[0.08]"
+                  >
+                    <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-orange-500/30 bg-orange-500/10 text-orange-200">
+                      <Tv className="h-5 w-5" />
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-black text-white">Abrir TV Menu</p>
+                        <p className="mt-1 text-xs font-semibold leading-relaxed text-white/45">
+                          Abre la pantalla completa del menú digital para TV.
+                        </p>
+                      </div>
+                      <ExternalLink className="h-4 w-4 shrink-0 text-white/35 transition group-hover:text-orange-200" />
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => openTvMenu(true)}
+                    className="group rounded-2xl border border-orange-500/25 bg-orange-500/[0.07] p-4 text-left transition hover:border-orange-500/60 hover:bg-orange-500/[0.12]"
+                  >
+                    <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-orange-500/35 bg-orange-500/15 text-orange-200">
+                      <Video className="h-5 w-5" />
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-black text-white">Modo grabación</p>
+                        <p className="mt-1 text-xs font-semibold leading-relaxed text-white/45">
+                          Abre /tv-menu?recording=1 con vista limpia para capturar promos.
+                        </p>
+                      </div>
+                      <ExternalLink className="h-4 w-4 shrink-0 text-white/35 transition group-hover:text-orange-200" />
+                    </div>
+                  </button>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-orange-500/20 bg-orange-500/[0.06] px-4 py-3 text-xs font-bold leading-relaxed text-orange-100/80">
+                  Tip: para grabar, abre el modo grabación en una pestaña nueva y usa pantalla completa del navegador.
                 </div>
               </SettingsCard>
 
