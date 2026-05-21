@@ -34,6 +34,7 @@ import InventoryPage from "./features/admin/inventory/InventoryPage";
 import { TikTokSection } from "./components/TikTokSection";
 import LoyaltyPage from "./features/admin/loyalty/LoyaltyPage";
 import LoyaltyClientPage from "./features/loyalty/LoyaltyClientPage";
+import KaizenAIPage from "./features/admin/kaizen/KaizenAIPage";
 
 export default function App() {
   const pathname = window.location.pathname;
@@ -146,6 +147,14 @@ export default function App() {
     return (
       <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
         <LoyaltyPage />
+      </ProtectedAdminRoute>
+    );
+  }
+
+  if (pathname === "/admin/kaizen") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <KaizenAIPage />
       </ProtectedAdminRoute>
     );
   }

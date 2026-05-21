@@ -105,6 +105,15 @@ const adminCards = [
     status: "active",
   },
   {
+    title: "Kaizen IA",
+    description:
+      "IA estratégica para ayudarte a administrar y optimizar tu food truck.",
+    href: "/admin/kaizen",
+    icon: Brain,
+    roles: ["super_admin", "admin"],
+    status: "active",
+  },
+  {
     title: "Ajustes",
     description:
       "Configurar página, sonidos, TV Menu, radio de órdenes y negocio.",
@@ -112,15 +121,6 @@ const adminCards = [
     icon: Settings,
     roles: ["super_admin", "admin"],
     status: "active",
-  },
-  {
-    title: "Kaizen IA",
-    description:
-      "IA estratégica para ayudarte a administrar y optimizar tu food truck.",
-    href: "/admin/ai",
-    icon: Brain,
-    roles: ["super_admin", "admin"],
-    status: "coming_soon",
   },
 ];
 

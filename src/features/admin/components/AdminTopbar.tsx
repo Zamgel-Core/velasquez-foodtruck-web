@@ -3,6 +3,7 @@
 import React from "react";
 import {
   BarChart3,
+  Brain,
   ClipboardList,
   LayoutGrid,
   Package,
@@ -72,6 +73,11 @@ const links = [
     label: "Lealtad",
     href: "/admin/loyalty",
     icon: Gift,
+  },
+  {
+    label: "Kaizen IA",
+    href: "/admin/kaizen",
+    icon: Brain,
   },
   {
     label: "Ajustes",
