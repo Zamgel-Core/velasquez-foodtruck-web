@@ -38,6 +38,8 @@ import LoyaltyClientPage from "./features/loyalty/LoyaltyClientPage";
 import KaizenAIPage from "./features/admin/kaizen/KaizenAIPage";
 import SurveysAdminPage from "./features/admin/surveys/SurveysAdminPage";
 import { SurveySection } from "./components/SurveySection";
+import AppUpdateNotice from "./components/AppUpdateNotice";
+import AppModePage from "./features/admin/app-mode/AppModePage";
 
 export default function App() {
   const pathname = window.location.pathname;
@@ -166,6 +168,14 @@ export default function App() {
     return (
       <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
         <SurveysAdminPage />
+      </ProtectedAdminRoute>
+    );
+  }
+
+  if (pathname === "/admin/app-mode") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <AppModePage />
       </ProtectedAdminRoute>
     );
   }
@@ -331,6 +341,7 @@ export default function App() {
         />
         {settings.tiktok_feed_enabled && <TikTokSection lang={lang} />}
         <Footer setLegalModal={setLegalModal} t={t} />
+        <AppUpdateNotice lang={lang} />
         {legalModal && (
           <LegalModal
             legalModal={legalModal}

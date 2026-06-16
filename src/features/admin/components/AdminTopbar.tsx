@@ -14,6 +14,7 @@ import {
   SlidersHorizontal,
   Users,
   WalletCards,
+  Smartphone,
 } from "lucide-react";
 import AdminUserBadge from "./AdminUserBadge";
 import { useStaffAuth } from "../auth/useStaffAuth";
@@ -83,6 +84,11 @@ const links = [
     label: "Kaizen IA",
     href: "/admin/kaizen",
     icon: Brain,
+  },
+  {
+    label: "Modo APP",
+    href: "/admin/app-mode",
+    icon: Smartphone,
   },
   {
     label: "Ajustes",

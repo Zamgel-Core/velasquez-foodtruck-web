@@ -1,0 +1,11 @@
+{
+  "version": "1.0.1",
+  "build": "2026-06-16-pwa-diagnostic",
+  "releasedAt": "2026-06-16",
+  "changes": [
+    "Se agregó diagnóstico del dispositivo en Modo APP.",
+    "Se agregó botón para copiar diagnóstico de soporte.",
+    "Se agregó exportación del diagnóstico en archivo .txt.",
+    "Se mejoró la verificación de versión y actualización PWA."
+  ]
+}

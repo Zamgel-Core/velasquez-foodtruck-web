@@ -18,6 +18,7 @@ import {
   Users,
   Wallet,
   Share2,
+  Smartphone,
 } from "lucide-react";
 import { useStaffAuth } from "./auth/useStaffAuth";
 
@@ -118,6 +119,14 @@ const adminCards = [
       "IA estratégica para ayudarte a administrar y optimizar tu food truck.",
     href: "/admin/kaizen",
     icon: Brain,
+    roles: ["super_admin", "admin"],
+    status: "active",
+  },
+  {
+    title: "Modo APP",
+    description: "Instalación PWA, versiones, actualizaciones y diagnóstico de soporte.",
+    href: "/admin/app-mode",
+    icon: Smartphone,
     roles: ["super_admin", "admin"],
     status: "active",
   },
