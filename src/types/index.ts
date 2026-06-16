@@ -8,6 +8,7 @@ export type MenuItem = {
   image: string;
   desc: string;
   enDesc: string;
+  isAvailable?: boolean;
 };
 
 export type LegalModalType = null | "terms" | "privacy" | "food";

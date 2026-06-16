@@ -75,11 +75,40 @@ const reviews: Review[] = [
     highlightEs: "Atención amable",
     highlightEn: "Friendly service",
   },
+
+  {
+    name: "Kaylee W",
+    whenEs: "Hace 2 semanas",
+    whenEn: "2 weeks ago",
+    textEs:"Vine a almorzar y pedí una gordita de pollo. ¡Estaba deliciosa! El personal fue muy amable y atento. ¡Volveré!",
+    textEn:"I came for lunch and ordered a chicken gordita. It was delicious! The staff was very kind and attentive. I'll definitely be back!",
+    highlightEs:"Gordita de pollo",
+    highlightEn:"Chicken gordita",
+  },
+  {
+    name: "Pedro Chacon",
+    whenEs: "Hace una semana",
+    whenEn: "A week ago",
+    textEs:"Comida deliciosa a muy buenos precios. Además, el personal es muy amable. Los tacos están riquísimos.",
+    textEn:"Delicious food at great prices. The staff is very friendly and the tacos are amazing.",
+    highlightEs:"Excelente relación calidad-precio",
+    highlightEn:"Great value",
+  },
+  {
+    name: "Amos Par",
+    whenEs: "Hace 3 semanas",
+    whenEn: "3 weeks ago",
+    textEs:"¡Me encanta su servicio al cliente!",
+    textEn:"I love their customer service!",
+    highlightEs:"Excelente servicio",
+    highlightEn:"Excellent service",
+  },
+
 ];
 
 function Stars({ large = false }: { large?: boolean }) {
   return (
-    <div className="flex items-center gap-1 text-orange-400">
+    <div className="flex items-center gap-1 text-red-400">
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
@@ -97,13 +126,13 @@ export function ReviewsSection({ lang, title }: { lang: Lang; title: string }) {
 
   return (
     <section className="relative overflow-hidden bg-zinc-950 px-4 py-24">
-      <div className="absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-orange-600/10 blur-3xl" />
-      <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-orange-500/10 blur-3xl" />
-      <div className="absolute inset-x-0 top-24 h-px bg-gradient-to-r from-transparent via-orange-500/25 to-transparent" />
+      <div className="absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-red-600/10 blur-3xl" />
+      <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-red-500/10 blur-3xl" />
+      <div className="absolute inset-x-0 top-24 h-px bg-gradient-to-r from-transparent via-red-500/25 to-transparent" />
 
       <div className="relative mx-auto max-w-7xl">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-orange-300">
+          <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-red-300">
             <MessageCircleHeart className="h-4 w-4" />
             {isEs ? "Reseñas reales de Google" : "Real Google Reviews"}
           </div>
@@ -129,7 +158,7 @@ export function ReviewsSection({ lang, title }: { lang: Lang; title: string }) {
               href="https://www.google.com/search?q=Velasquez+Food+Truck+Houston+reviews"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-5 py-3 text-sm font-black text-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-500/20 hover:shadow-lg hover:shadow-orange-600/10"
+              className="inline-flex items-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-black text-red-200 transition hover:-translate-y-0.5 hover:bg-red-500/20 hover:shadow-lg hover:shadow-red-600/10"
             >
               {isEs ? "Ver en Google" : "View on Google"}
               <ExternalLink className="h-4 w-4" />
@@ -162,8 +191,8 @@ export function ReviewsSection({ lang, title }: { lang: Lang; title: string }) {
           ))}
         </div>
 
-        <div className="mx-auto mt-10 max-w-4xl rounded-[2rem] border border-orange-500/20 bg-gradient-to-br from-orange-950/45 via-zinc-950 to-black p-6 text-center shadow-2xl shadow-orange-950/20">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-600 text-white shadow-lg shadow-orange-600/25">
+        <div className="mx-auto mt-10 max-w-4xl rounded-[2rem] border border-red-500/20 bg-gradient-to-br from-red-950/45 via-zinc-950 to-black p-6 text-center shadow-2xl shadow-red-950/20">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-600/25">
             <Utensils className="h-7 w-7" />
           </div>
 
@@ -184,7 +213,7 @@ export function ReviewsSection({ lang, title }: { lang: Lang; title: string }) {
                   behavior: "smooth",
                 })
               }
-              className="rounded-full bg-orange-600 px-6 py-3 font-black text-white shadow-lg shadow-orange-600/20 transition hover:-translate-y-0.5 hover:bg-orange-500"
+              className="rounded-full bg-red-600 px-6 py-3 font-black text-white shadow-lg shadow-red-600/20 transition hover:-translate-y-0.5 hover:bg-red-500"
               type="button"
             >
               {isEs ? "Ver menú" : "View menu"}
@@ -220,22 +249,22 @@ function ReviewCard({
 
   return (
     <article
-      className={`group relative flex h-full min-h-[285px] flex-col overflow-hidden rounded-[1.75rem] border p-6 text-left transition duration-300 hover:-translate-y-1 hover:border-orange-500/45 hover:shadow-2xl hover:shadow-orange-950/25 ${
+      className={`group relative flex h-full min-h-[285px] flex-col overflow-hidden rounded-[1.75rem] border p-6 text-left transition duration-300 hover:-translate-y-1 hover:border-red-500/45 hover:shadow-2xl hover:shadow-red-950/25 ${
         featured
-          ? "border-orange-500/20 bg-gradient-to-br from-orange-950/25 via-white/[0.04] to-white/[0.03]"
+          ? "border-red-500/20 bg-gradient-to-br from-red-950/25 via-white/[0.04] to-white/[0.03]"
           : "border-white/10 bg-white/[0.04]"
       }`}
     >
-      <div className="absolute right-5 top-5 text-orange-500/10 transition group-hover:scale-110 group-hover:text-orange-500/20">
+      <div className="absolute right-5 top-5 text-red-500/10 transition group-hover:scale-110 group-hover:text-red-500/20">
         <Quote className="h-16 w-16" fill="currentColor" />
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-400/40 to-transparent opacity-0 transition group-hover:opacity-100" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-400/40 to-transparent opacity-0 transition group-hover:opacity-100" />
 
       <div className="relative flex h-full flex-col">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-red-600 text-lg font-black text-white shadow-lg shadow-orange-600/20">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-red-600 text-lg font-black text-white shadow-lg shadow-red-600/20">
               {review.name.charAt(0)}
             </div>
 
@@ -247,7 +276,7 @@ function ReviewCard({
             </div>
           </div>
 
-          <span className="shrink-0 rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-[11px] font-black text-orange-200">
+          <span className="shrink-0 rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1 text-[11px] font-black text-red-200">
             {isEs ? review.highlightEs : review.highlightEn}
           </span>
         </div>
@@ -256,7 +285,7 @@ function ReviewCard({
           <Stars />
 
           {featured && (
-            <div className="inline-flex items-center gap-1 rounded-full bg-white/[0.04] px-2 py-1 text-[10px] font-black text-orange-200">
+            <div className="inline-flex items-center gap-1 rounded-full bg-white/[0.04] px-2 py-1 text-[10px] font-black text-red-200">
               <Sparkles className="h-3 w-3" />
               Google
             </div>
@@ -275,7 +304,7 @@ function ReviewCard({
           {shouldClamp && (
             <button
               onClick={() => setExpanded((value) => !value)}
-              className="mt-3 text-sm font-black text-orange-300 transition hover:text-orange-200"
+              className="mt-3 text-sm font-black text-red-300 transition hover:text-red-200"
               type="button"
             >
               {expanded
@@ -301,7 +330,7 @@ function ReviewCard({
                       ? "Service"
                       : "Atmosphere"}
               </p>
-              <p className="mt-1 font-black text-orange-300">5</p>
+              <p className="mt-1 font-black text-red-300">5</p>
             </div>
           ))}
         </div>

@@ -6,7 +6,9 @@ import type { AdminCategory, AdminProduct, ProductFormData } from "./admin-produ
 type ProductPayload = {
   category_id: string | null;
   name: string;
+  name_en: string | null;
   description: string | null;
+  description_en: string | null;
   price: number;
   image_url: string | null;
   is_available: boolean;
@@ -15,13 +17,15 @@ type ProductPayload = {
   sort_order: number | null;
 };
 
-function toProductPayload(form: ProductFormData): ProductPayload {
+function toProductPayload(form: ProductFormData, imageUrl?: string | null): ProductPayload {
   return {
     category_id: form.category_id || null,
     name: form.name.trim(),
+    name_en: form.name_en.trim() || null,
     description: form.description.trim() || null,
+    description_en: form.description_en.trim() || null,
     price: Number(form.price || 0),
-    image_url: form.image_url.trim() || null,
+    image_url: (imageUrl ?? form.image_url).trim() || null,
     is_available: form.is_available,
     is_featured: form.is_featured,
     prep_time_minutes: form.prep_time_minutes ? Number(form.prep_time_minutes) : null,
@@ -29,13 +33,50 @@ function toProductPayload(form: ProductFormData): ProductPayload {
   };
 }
 
+function sanitizeFileName(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 48);
+}
+
+export async function uploadProductImage(file: File, productName: string) {
+  const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const safeName = sanitizeFileName(productName || "producto") || "producto";
+  const filePath = `${safeName}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
+
+  const { error } = await supabase.storage
+    .from("product-images")
+    .upload(filePath, file, {
+      cacheControl: "31536000",
+      contentType: file.type || "image/jpeg",
+      upsert: false,
+    });
+
+  if (error) {
+    console.error("Error uploading product image:", error);
+    throw new Error("No se pudo subir la imagen. Revisa que exista el bucket product-images.");
+  }
+
+  const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
+
+  return data.publicUrl;
+}
+
 export function createEmptyProductForm(): ProductFormData {
   return {
     category_id: "",
     name: "",
+    name_en: "",
     description: "",
+    description_en: "",
     price: "",
     image_url: "",
+    image_file: null,
+    image_preview_url: "",
     is_available: true,
     is_featured: false,
     prep_time_minutes: "",
@@ -48,9 +89,13 @@ export function productToForm(product: AdminProduct): ProductFormData {
     id: product.id,
     category_id: product.category_id ?? "",
     name: product.name ?? "",
+    name_en: product.name_en ?? "",
     description: product.description ?? "",
+    description_en: product.description_en ?? "",
     price: String(product.price ?? ""),
     image_url: product.image_url ?? "",
+    image_file: null,
+    image_preview_url: product.image_url ?? "",
     is_available: product.is_available,
     is_featured: product.is_featured,
     prep_time_minutes: product.prep_time_minutes ? String(product.prep_time_minutes) : "",
@@ -79,7 +124,9 @@ export async function getAdminProducts(): Promise<AdminProduct[]> {
       id,
       category_id,
       name,
+      name_en,
       description,
+      description_en,
       price,
       image_url,
       is_available,
@@ -115,15 +162,21 @@ export async function getAdminProducts(): Promise<AdminProduct[]> {
 }
 
 export async function saveAdminProduct(form: ProductFormData) {
-  const payload = toProductPayload(form);
-
-  if (!payload.name) {
+  if (!form.name.trim()) {
     throw new Error("El nombre del producto es requerido.");
   }
 
-  if (!payload.price || payload.price <= 0) {
+  if (!Number(form.price || 0) || Number(form.price || 0) <= 0) {
     throw new Error("El precio debe ser mayor a 0.");
   }
+
+  let uploadedImageUrl: string | null | undefined;
+
+  if (form.image_file) {
+    uploadedImageUrl = await uploadProductImage(form.image_file, form.name);
+  }
+
+  const payload = toProductPayload(form, uploadedImageUrl);
 
   if (form.id) {
     const { error } = await supabase.from("products").update(payload).eq("id", form.id);

@@ -13,6 +13,8 @@ import {
   MessageSquareText,
   Palette,
   Power,
+  Printer,
+  Receipt,
   RefreshCw,
   Save,
   Settings,
@@ -48,7 +50,7 @@ function SettingsCard({
       className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/30"
     >
       <div className="mb-5 flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/15 text-orange-200 shadow-lg shadow-orange-500/10">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/15 text-red-200 shadow-lg shadow-red-500/10">
           <Icon className="h-6 w-6" />
         </div>
 
@@ -88,7 +90,7 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm font-semibold text-white outline-none transition placeholder:text-white/25 focus:border-orange-500/60"
+        className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm font-semibold text-white outline-none transition placeholder:text-white/25 focus:border-red-500/60"
       />
     </label>
   );
@@ -115,7 +117,7 @@ function TextArea({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         rows={4}
-        className="w-full resize-none rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm font-semibold leading-relaxed text-white outline-none transition placeholder:text-white/25 focus:border-orange-500/60"
+        className="w-full resize-none rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm font-semibold leading-relaxed text-white outline-none transition placeholder:text-white/25 focus:border-red-500/60"
       />
     </label>
   );
@@ -135,9 +137,9 @@ function ToggleRow({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/30 p-4 transition hover:border-orange-500/30 hover:bg-orange-500/[0.06]">
+    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/30 p-4 transition hover:border-red-500/30 hover:bg-red-500/[0.06]">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-orange-200">
+        <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-red-200">
           <Icon className="h-5 w-5" />
         </div>
         <div>
@@ -152,7 +154,7 @@ function ToggleRow({
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-5 w-5 shrink-0 accent-orange-500"
+        className="h-5 w-5 shrink-0 accent-red-500"
       />
     </label>
   );
@@ -241,13 +243,13 @@ export default function AdminSettingsPage() {
           <div>
             <a
               href="/admin"
-              className="mb-4 inline-flex items-center gap-2 text-sm font-bold text-white/50 transition hover:text-orange-200"
+              className="mb-4 inline-flex items-center gap-2 text-sm font-bold text-white/50 transition hover:text-red-200"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver al portal
             </a>
 
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.25em] text-orange-200">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.25em] text-red-200">
               <Settings className="h-4 w-4" />
               Ajustes generales
             </div>
@@ -266,7 +268,7 @@ export default function AdminSettingsPage() {
               type="button"
               onClick={loadSettings}
               disabled={isLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white/70 transition hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-100 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white/70 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-100 disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
               Actualizar
@@ -275,7 +277,7 @@ export default function AdminSettingsPage() {
             <button
               type="button"
               onClick={handleResetDefaults}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white/70 transition hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-100"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white/70 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-100"
             >
               <Sparkles className="h-4 w-4" />
               Restaurar base
@@ -285,7 +287,7 @@ export default function AdminSettingsPage() {
               type="button"
               onClick={handleSave}
               disabled={isSaving || isLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-500/20 transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               {isSaving ? "Guardando..." : "Guardar ajustes"}
@@ -294,7 +296,7 @@ export default function AdminSettingsPage() {
         </div>
 
         {message && (
-          <div className="mb-6 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm font-bold text-orange-100">
+          <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-100">
             {message}
           </div>
         )}
@@ -338,7 +340,7 @@ export default function AdminSettingsPage() {
                       <Field label="Cierra" type="time" value={day.close_time} onChange={(value) => updateBusinessHour(day.key, "close_time", value)} />
                       <label className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-bold text-white/70">
                         Abierto
-                        <input type="checkbox" checked={day.is_open} onChange={(event) => updateBusinessHour(day.key, "is_open", event.target.checked)} className="h-5 w-5 accent-orange-500" />
+                        <input type="checkbox" checked={day.is_open} onChange={(event) => updateBusinessHour(day.key, "is_open", event.target.checked)} className="h-5 w-5 accent-red-500" />
                       </label>
                     </div>
                   ))}
@@ -370,9 +372,9 @@ export default function AdminSettingsPage() {
                   <button
                     type="button"
                     onClick={() => openTvMenu(false)}
-                    className="group rounded-2xl border border-white/10 bg-black/35 p-4 text-left transition hover:border-orange-500/45 hover:bg-orange-500/[0.08]"
+                    className="group rounded-2xl border border-white/10 bg-black/35 p-4 text-left transition hover:border-red-500/45 hover:bg-red-500/[0.08]"
                   >
-                    <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-orange-500/30 bg-orange-500/10 text-orange-200">
+                    <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-200">
                       <Tv className="h-5 w-5" />
                     </div>
                     <div className="flex items-center justify-between gap-3">
@@ -382,16 +384,16 @@ export default function AdminSettingsPage() {
                           Abre la pantalla completa del menú digital para TV.
                         </p>
                       </div>
-                      <ExternalLink className="h-4 w-4 shrink-0 text-white/35 transition group-hover:text-orange-200" />
+                      <ExternalLink className="h-4 w-4 shrink-0 text-white/35 transition group-hover:text-red-200" />
                     </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => openTvMenu(true)}
-                    className="group rounded-2xl border border-orange-500/25 bg-orange-500/[0.07] p-4 text-left transition hover:border-orange-500/60 hover:bg-orange-500/[0.12]"
+                    className="group rounded-2xl border border-red-500/25 bg-red-500/[0.07] p-4 text-left transition hover:border-red-500/60 hover:bg-red-500/[0.12]"
                   >
-                    <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-orange-500/35 bg-orange-500/15 text-orange-200">
+                    <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-red-500/35 bg-red-500/15 text-red-200">
                       <Video className="h-5 w-5" />
                     </div>
                     <div className="flex items-center justify-between gap-3">
@@ -401,13 +403,123 @@ export default function AdminSettingsPage() {
                           Abre /tv-menu?recording=1 con vista limpia para capturar promos.
                         </p>
                       </div>
-                      <ExternalLink className="h-4 w-4 shrink-0 text-white/35 transition group-hover:text-orange-200" />
+                      <ExternalLink className="h-4 w-4 shrink-0 text-white/35 transition group-hover:text-red-200" />
                     </div>
                   </button>
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-orange-500/20 bg-orange-500/[0.06] px-4 py-3 text-xs font-bold leading-relaxed text-orange-100/80">
+                <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/[0.06] px-4 py-3 text-xs font-bold leading-relaxed text-red-100/80">
                   Tip: para grabar, abre el modo grabación en una pestaña nueva y usa pantalla completa del navegador.
+                </div>
+              </SettingsCard>
+
+              <SettingsCard
+                icon={Printer}
+                title="Impresión y tickets"
+                description="Controla qué tickets se pueden imprimir, tamaño de papel y datos visibles al final del recibo."
+              >
+                <div className="space-y-3">
+                  <ToggleRow
+                    icon={Power}
+                    title="Activar impresión"
+                    description="Permite usar los botones de impresión del portal."
+                    checked={settings.printing_enabled}
+                    onChange={(value) => updateSetting("printing_enabled", value)}
+                  />
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <ToggleRow
+                      icon={Receipt}
+                      title="Ticket de cliente"
+                      description="Recibo con precios, pago, total e información del negocio."
+                      checked={settings.print_customer_ticket_enabled}
+                      onChange={(value) => updateSetting("print_customer_ticket_enabled", value)}
+                    />
+
+                    <ToggleRow
+                      icon={Printer}
+                      title="Ticket de cocina"
+                      description="Ticket interno con productos, cantidades e indicaciones."
+                      checked={settings.print_kitchen_ticket_enabled}
+                      onChange={(value) => updateSetting("print_kitchen_ticket_enabled", value)}
+                    />
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                    <p className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-white/40">
+                      Tamaño de papel
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {(["58mm", "80mm"] as const).map((size) => (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => updateSetting("print_paper_size", size)}
+                          className={`rounded-2xl border px-4 py-3 text-sm font-black transition ${
+                            settings.print_paper_size === size
+                              ? "border-red-500/55 bg-red-600 text-white shadow-lg shadow-red-600/25"
+                              : "border-white/10 bg-white/[0.04] text-white/65 hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-100"
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <ToggleRow
+                      icon={ExternalLink}
+                      title="Mostrar sitio web"
+                      description="Incluye la página web en el pie del ticket."
+                      checked={settings.print_show_website}
+                      onChange={(value) => updateSetting("print_show_website", value)}
+                    />
+
+                    <ToggleRow
+                      icon={MessageSquareText}
+                      title="Mostrar teléfono"
+                      description="Incluye el teléfono principal del negocio."
+                      checked={settings.print_show_phone}
+                      onChange={(value) => updateSetting("print_show_phone", value)}
+                    />
+
+                    <ToggleRow
+                      icon={MapPin}
+                      title="Mostrar dirección"
+                      description="Incluye la dirección para publicidad y ubicación."
+                      checked={settings.print_show_address}
+                      onChange={(value) => updateSetting("print_show_address", value)}
+                    />
+
+                    <ToggleRow
+                      icon={Sparkles}
+                      title="Mostrar redes sociales"
+                      description="Incluye Facebook, Instagram y TikTok."
+                      checked={settings.print_show_socials}
+                      onChange={(value) => updateSetting("print_show_socials", value)}
+                    />
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <TextArea
+                      label="Mensaje final ES"
+                      value={settings.print_footer_message_es}
+                      onChange={(value) => updateSetting("print_footer_message_es", value)}
+                      placeholder="Gracias por tu preferencia."
+                    />
+
+                    <TextArea
+                      label="Mensaje final EN"
+                      value={settings.print_footer_message_en}
+                      onChange={(value) => updateSetting("print_footer_message_en", value)}
+                      placeholder="Thank you for your preference."
+                    />
+                  </div>
+
+                  <div className="rounded-2xl border border-red-500/20 bg-red-500/[0.06] px-4 py-3 text-xs font-bold leading-relaxed text-red-100/80">
+                    Esta configuración ya controla el motor de tickets actual. La impresión automática con impresora física se conectará cuando se elija el hardware final.
+                  </div>
                 </div>
               </SettingsCard>
 

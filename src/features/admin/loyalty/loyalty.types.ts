@@ -7,6 +7,7 @@ export type LoyaltyCustomer = {
   full_name: string;
   phone: string;
   email: string | null;
+  birth_date?: string | null;
   points: number;
   visits: number;
   lifetime_spend: number;
@@ -40,6 +41,7 @@ export type LoyaltyCustomerFormData = {
   full_name: string;
   phone: string;
   email: string;
+  birth_date: string;
   points: string;
   visits: string;
   lifetime_spend: string;

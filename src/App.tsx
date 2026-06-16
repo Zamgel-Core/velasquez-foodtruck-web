@@ -11,6 +11,7 @@ import { FeatureStrip } from "./components/FeatureStrip";
 import { Footer } from "./components/Footer";
 import { Hero } from "./components/Hero";
 import { LegalModal } from "./components/LegalModal";
+import { LoyaltyPromoSection } from "./components/LoyaltyPromoSection";
 import { LocationSection } from "./components/LocationSection";
 import { MenuSection } from "./components/MenuSection";
 import { Navbar } from "./components/Navbar";
@@ -35,6 +36,8 @@ import { TikTokSection } from "./components/TikTokSection";
 import LoyaltyPage from "./features/admin/loyalty/LoyaltyPage";
 import LoyaltyClientPage from "./features/loyalty/LoyaltyClientPage";
 import KaizenAIPage from "./features/admin/kaizen/KaizenAIPage";
+import SurveysAdminPage from "./features/admin/surveys/SurveysAdminPage";
+import { SurveySection } from "./components/SurveySection";
 
 export default function App() {
   const pathname = window.location.pathname;
@@ -103,7 +106,7 @@ export default function App() {
     );
   }
 
-  if (pathname === "/admin/products") {
+  if (pathname === "/admin/products" || pathname === "/admin/menu") {
     return (
       <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
         <ProductsAdminDashboard />
@@ -155,6 +158,14 @@ export default function App() {
     return (
       <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
         <KaizenAIPage />
+      </ProtectedAdminRoute>
+    );
+  }
+
+  if (pathname === "/admin/surveys") {
+    return (
+      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+        <SurveysAdminPage />
       </ProtectedAdminRoute>
     );
   }
@@ -213,6 +224,7 @@ export default function App() {
     navMenu: lang === "es" ? "Menú" : "Menu",
     navLocation: lang === "es" ? "Ubicación" : "Location",
     navContact: lang === "es" ? "Contacto" : "Contact",
+    navLoyalty: lang === "es" ? "Lealtad" : "Rewards",
     orderNow: lang === "es" ? "Ordenar Ahora" : "Order Now",
     call: lang === "es" ? "Llamar" : "Call",
     viewLocation: lang === "es" ? "Ver Ubicación" : "View Location",
@@ -303,6 +315,8 @@ export default function App() {
           }}
         />
 
+        <LoyaltyPromoSection lang={lang} />
+        <SurveySection lang={lang} />
         <ReviewsSection lang={lang} title={t.reviews} />
         <LocationSection
           lang={lang}

@@ -3,6 +3,8 @@
 import React from "react";
 import {
   BadgeCheck,
+  Cake,
+  CalendarDays,
   Crown,
   Edit3,
   Eye,
@@ -80,6 +82,115 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
+
+function getBirthdayInfo(birthDate?: string | null): { daysUntil: number; dateLabel: string } | null {
+  if (!birthDate) return null;
+
+  const [year, month, day] = birthDate.split("-").map(Number);
+
+  if (!month || !day) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let nextBirthday = new Date(today.getFullYear(), month - 1, day);
+  nextBirthday.setHours(0, 0, 0, 0);
+
+  if (nextBirthday < today) {
+    nextBirthday = new Date(today.getFullYear() + 1, month - 1, day);
+  }
+
+  const daysUntil = Math.round(
+    (nextBirthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  const dateLabel = new Intl.DateTimeFormat("es-MX", {
+    month: "long",
+    day: "numeric",
+  }).format(nextBirthday);
+
+  return { daysUntil, dateLabel };
+}
+
+function BirthdayPreviewCard({ customers }: { customers: LoyaltyCustomer[] }) {
+  const upcomingBirthdays = customers
+    .map((customer) => ({
+      customer,
+      birthday: getBirthdayInfo(customer.birth_date),
+    }))
+    .filter(
+      (item): item is { customer: LoyaltyCustomer; birthday: { daysUntil: number; dateLabel: string } } =>
+        Boolean(item.birthday) && item.birthday.daysUntil <= 7,
+    )
+    .sort((a, b) => a.birthday.daysUntil - b.birthday.daysUntil)
+    .slice(0, 6);
+
+  return (
+    <div className="mb-6 overflow-hidden rounded-[2rem] border border-red-500/20 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_34%),rgba(255,255,255,0.035)] p-5 shadow-2xl shadow-black/25">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/10 text-red-100 shadow-lg shadow-red-500/10">
+            <Cake className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-red-200">
+              Cumpleaños próximos
+            </p>
+            <h2 className="mt-1 text-xl font-black text-white">
+              Clientes con cumpleaños en los siguientes 7 días
+            </h2>
+            <p className="mt-1 text-sm text-white/45">
+              La fecha solo la registra el admin para evitar cambios indebidos.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-black text-white/70">
+          <CalendarDays className="h-4 w-4 text-red-200" />
+          {upcomingBirthdays.length} próximos
+        </div>
+      </div>
+
+      {upcomingBirthdays.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm font-semibold text-white/45">
+          No hay cumpleaños registrados para esta semana.
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {upcomingBirthdays.map(({ customer, birthday }) => (
+            <div
+              key={customer.id}
+              className={`rounded-2xl border p-4 ${
+                birthday.daysUntil === 0
+                  ? "border-red-400/40 bg-red-500/15 shadow-lg shadow-red-500/10"
+                  : "border-white/10 bg-black/25"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-black text-white">{customer.full_name}</p>
+                  <p className="mt-1 text-xs font-semibold text-white/45">
+                    {formatPhoneForDisplay(customer.phone)}
+                  </p>
+                </div>
+                <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-black text-red-100">
+                  {birthday.daysUntil === 0 ? "Hoy 🎂" : `${birthday.daysUntil} días`}
+                </span>
+              </div>
+              <p className="mt-3 text-sm font-bold text-red-100">
+                {birthday.dateLabel}
+              </p>
+              <p className="mt-1 text-xs text-white/40">
+                Sugerencia: validar en ventanilla antes de entregar cortesía.
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CustomerFormModal({
   form,
   saving,
@@ -95,10 +206,10 @@ function CustomerFormModal({
 }) {
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4 backdrop-blur-xl">
-      <div className="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-orange-500/20 bg-[#090909] shadow-2xl shadow-orange-950/20">
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-orange-500/10 p-6">
+      <div className="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-red-500/20 bg-[#090909] shadow-2xl shadow-red-950/20">
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-red-500/10 p-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-orange-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-red-200">
               <UserPlus className="h-3.5 w-3.5" />
               Cliente lealtad
             </div>
@@ -130,7 +241,7 @@ function CustomerFormModal({
                 onChange({ ...form, full_name: event.target.value })
               }
               placeholder="Ej. Maria Lopez"
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -144,7 +255,7 @@ function CustomerFormModal({
                 onChange({ ...form, phone: event.target.value })
               }
               placeholder="3464019676"
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -158,8 +269,26 @@ function CustomerFormModal({
                 onChange({ ...form, email: event.target.value })
               }
               placeholder="cliente@email.com"
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
+          </label>
+
+          <label className="space-y-2">
+            <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-white/45">
+              <CalendarDays className="h-3.5 w-3.5 text-red-200" />
+              Cumpleaños
+            </span>
+            <input
+              type="date"
+              value={form.birth_date}
+              onChange={(event) =>
+                onChange({ ...form, birth_date: event.target.value })
+              }
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
+            />
+            <p className="text-[11px] font-semibold text-white/35">
+              Solo visible para admin. Util para futuras promociones de cumpleaños.
+            </p>
           </label>
 
           <label className="space-y-2">
@@ -173,7 +302,7 @@ function CustomerFormModal({
               onChange={(event) =>
                 onChange({ ...form, points: event.target.value })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -188,7 +317,7 @@ function CustomerFormModal({
               onChange={(event) =>
                 onChange({ ...form, visits: event.target.value })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -204,7 +333,7 @@ function CustomerFormModal({
               onChange={(event) =>
                 onChange({ ...form, lifetime_spend: event.target.value })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -218,7 +347,7 @@ function CustomerFormModal({
                 onChange({ ...form, notes: event.target.value })
               }
               rows={3}
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -247,7 +376,7 @@ function CustomerFormModal({
             type="button"
             onClick={onSave}
             disabled={saving}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-500/20 transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
             {saving ? "Guardando..." : "Guardar cliente"}
@@ -275,10 +404,10 @@ function PointsModal({
 }) {
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4 backdrop-blur-xl">
-      <div className="w-full max-w-2xl overflow-hidden rounded-[2rem] border border-orange-500/20 bg-[#090909] shadow-2xl shadow-orange-950/20">
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-orange-500/10 p-6">
+      <div className="w-full max-w-2xl overflow-hidden rounded-[2rem] border border-red-500/20 bg-[#090909] shadow-2xl shadow-red-950/20">
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-red-500/10 p-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-orange-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-red-200">
               <Star className="h-3.5 w-3.5" />
               Ajuste manual
             </div>
@@ -307,7 +436,7 @@ function PointsModal({
               onChange={(event) =>
                 onChange({ ...form, customer_id: event.target.value })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             >
               <option value="">Seleccionar cliente</option>
               {customers.map((customer) => (
@@ -356,7 +485,7 @@ function PointsModal({
               onChange={(event) =>
                 onChange({ ...form, points: event.target.value })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -370,7 +499,7 @@ function PointsModal({
                 onChange({ ...form, reason: event.target.value })
               }
               placeholder="Ej. visita, ajuste manual, cortesia"
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
         </div>
@@ -387,7 +516,7 @@ function PointsModal({
             type="button"
             onClick={onSave}
             disabled={saving}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-500/20 transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
             {saving ? "Guardando..." : "Guardar puntos"}
@@ -431,10 +560,10 @@ function RewardFormModal({
 
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 p-4 backdrop-blur-xl">
-      <div className="w-full max-w-4xl overflow-hidden rounded-[2rem] border border-orange-500/20 bg-[#090909] text-white shadow-2xl shadow-orange-950/20">
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-orange-500/10 p-6">
+      <div className="w-full max-w-4xl overflow-hidden rounded-[2rem] border border-red-500/20 bg-[#090909] text-white shadow-2xl shadow-red-950/20">
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-red-500/10 p-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-orange-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-red-200">
               <Gift className="h-3.5 w-3.5" />
               Recompensa
             </div>
@@ -466,7 +595,7 @@ function RewardFormModal({
                 onChange({ ...form, title: event.target.value })
               }
               placeholder="Ej. Horchata gratis"
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -483,7 +612,7 @@ function RewardFormModal({
                     .value as LoyaltyRewardFormData["reward_type"],
                 })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             >
               {Object.entries(LOYALTY_REWARD_TYPE_LABELS).map(
                 ([value, label]) => (
@@ -509,7 +638,7 @@ function RewardFormModal({
               onChange={(event) =>
                 onChange({ ...form, points_required: event.target.value })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -526,7 +655,7 @@ function RewardFormModal({
                     .value as LoyaltyRewardFormData["min_tier"],
                 })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             >
               {Object.entries(LOYALTY_TIERS).map(([value, tier]) => (
                 <option key={value} value={value}>
@@ -559,7 +688,7 @@ function RewardFormModal({
                     description: product?.description ?? form.description,
                   } as any);
                 }}
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+                className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
               >
                 <option value="">Selecciona producto</option>
 
@@ -587,7 +716,7 @@ function RewardFormModal({
                   onChange({ ...form, product_label: event.target.value })
                 }
                 placeholder="Ej. Bebida de horchata"
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+                className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
               />
             ) : (
               <input
@@ -599,7 +728,7 @@ function RewardFormModal({
                   onChange({ ...form, value_amount: event.target.value })
                 }
                 placeholder={isPercent ? "5" : "5.00"}
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+                className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
               />
             )}
           </label>
@@ -614,7 +743,7 @@ function RewardFormModal({
               onChange={(event) =>
                 onChange({ ...form, sort_order: event.target.value })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -629,7 +758,7 @@ function RewardFormModal({
                 onChange({ ...form, description: event.target.value })
               }
               placeholder="Ej. Canje valido en ventanilla. No combinable con otras promociones."
-              className="w-full resize-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full resize-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -663,7 +792,7 @@ function RewardFormModal({
             type="button"
             disabled={saving}
             onClick={onSave}
-            className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-500/20 transition hover:bg-red-500 disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
             {saving ? "Guardando..." : "Guardar recompensa"}
@@ -689,10 +818,10 @@ function LoyaltySettingsModal({
 }) {
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 p-4 backdrop-blur-xl">
-      <div className="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-orange-500/20 bg-[#090909] text-white shadow-2xl shadow-orange-950/20">
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-orange-500/10 p-6">
+      <div className="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-red-500/20 bg-[#090909] text-white shadow-2xl shadow-red-950/20">
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-red-500/10 p-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-orange-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-red-200">
               <Settings className="h-3.5 w-3.5" />
               Ajustes de lealtad
             </div>
@@ -743,7 +872,7 @@ function LoyaltySettingsModal({
               onChange={(event) =>
                 onChange({ ...form, points_per_dollar: event.target.value })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
           </label>
 
@@ -760,7 +889,7 @@ function LoyaltySettingsModal({
               onChange={(event) =>
                 onChange({ ...form, rounding_threshold: event.target.value })
               }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-semibold outline-none transition focus:border-red-500/60"
             />
             <p className="text-xs font-semibold text-white/40">
               Ej. 0.80: $3.80 suma 4 puntos, $3.79 suma 3.
@@ -831,7 +960,7 @@ function LoyaltySettingsModal({
             type="button"
             disabled={saving}
             onClick={onSave}
-            className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-500/20 transition hover:bg-red-500 disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
             {saving ? "Guardando..." : "Guardar ajustes"}
@@ -1002,10 +1131,10 @@ export default function LoyaltyPage() {
       <AdminTopbar />
 
       <section className="mx-auto w-full max-w-[1800px] px-4 pb-10">
-        <div className="mb-8 overflow-hidden rounded-[2rem] border border-orange-500/20 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.24),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-6 shadow-2xl shadow-black/40 sm:p-8">
+        <div className="mb-8 overflow-hidden rounded-[2rem] border border-red-500/20 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.24),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-6 shadow-2xl shadow-black/40 sm:p-8">
           <div className="grid gap-6 xl:grid-cols-[1fr_auto] xl:items-end">
             <div className="max-w-3xl">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-orange-200">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-red-200">
                 <Gift className="h-4 w-4" />
                 Lealtad V4 canjes POS
               </div>
@@ -1026,7 +1155,7 @@ export default function LoyaltyPage() {
                 onClick={() =>
                   setCustomerForm(createEmptyLoyaltyCustomerForm())
                 }
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-red-500/20 transition hover:bg-red-500"
               >
                 <Plus className="h-4 w-4" />
                 Nuevo cliente
@@ -1035,7 +1164,7 @@ export default function LoyaltyPage() {
               <button
                 type="button"
                 onClick={() => setPointsForm(createEmptyPointsForm())}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm font-black text-orange-100 transition hover:bg-orange-500/20"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-black text-orange-100 transition hover:bg-orange-500/20"
               >
                 <Star className="h-4 w-4" />
                 Ajustar puntos
@@ -1044,7 +1173,7 @@ export default function LoyaltyPage() {
               <button
                 type="button"
                 onClick={() => setRewardForm(createEmptyLoyaltyRewardForm())}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm font-black text-orange-100 transition hover:bg-orange-500/20"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-black text-orange-100 transition hover:bg-orange-500/20"
               >
                 <Gift className="h-4 w-4" />
                 Nueva recompensa
@@ -1076,6 +1205,8 @@ export default function LoyaltyPage() {
             </div>
           </div>
         </div>
+
+        <BirthdayPreviewCard customers={activeCustomers} />
 
         <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[
@@ -1113,7 +1244,7 @@ export default function LoyaltyPage() {
                 key={metric.label}
                 className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/25"
               >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/10 text-orange-200">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/10 text-red-200">
                   <Icon className="h-5 w-5" />
                 </div>
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-white/35">
@@ -1146,7 +1277,7 @@ export default function LoyaltyPage() {
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Buscar cliente..."
-                    className="w-full rounded-2xl border border-white/10 bg-black/30 py-3 pl-11 pr-4 text-sm font-semibold outline-none transition focus:border-orange-500/60 sm:w-72"
+                    className="w-full rounded-2xl border border-white/10 bg-black/30 py-3 pl-11 pr-4 text-sm font-semibold outline-none transition focus:border-red-500/60 sm:w-72"
                   />
                 </label>
 
@@ -1155,7 +1286,7 @@ export default function LoyaltyPage() {
                   onClick={() => setShowInactive((value) => !value)}
                   className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-black transition ${
                     showInactive
-                      ? "border-orange-500/40 bg-orange-500/10 text-orange-100"
+                      ? "border-orange-500/40 bg-red-500/10 text-orange-100"
                       : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"
                   }`}
                 >
@@ -1174,7 +1305,7 @@ export default function LoyaltyPage() {
                 Cargando lealtad...
               </div>
             ) : visibleCustomers.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-orange-500/30 bg-orange-500/5 p-8 text-center">
+              <div className="rounded-3xl border border-dashed border-red-500/30 bg-orange-500/5 p-8 text-center">
                 <Gift className="mx-auto mb-4 h-10 w-10 text-orange-300" />
                 <h3 className="text-xl font-black">Sin clientes registrados</h3>
                 <p className="mx-auto mt-2 max-w-md text-sm text-white/50">
@@ -1262,7 +1393,7 @@ export default function LoyaltyPage() {
                           onClick={() =>
                             setPointsForm(createEmptyPointsForm(customer.id))
                           }
-                          className="inline-flex items-center gap-2 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-black text-orange-100 transition hover:bg-orange-500/20"
+                          className="inline-flex items-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-black text-orange-100 transition hover:bg-orange-500/20"
                         >
                           <Star className="h-3.5 w-3.5" />
                           Puntos
@@ -1307,16 +1438,16 @@ export default function LoyaltyPage() {
           </div>
 
           <aside className="space-y-4">
-            <div className="rounded-3xl border border-orange-500/20 bg-orange-500/10 p-5 shadow-2xl shadow-black/25">
+            <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-5 shadow-2xl shadow-black/25">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <BadgeCheck className="h-5 w-5 text-orange-200" />
+                  <BadgeCheck className="h-5 w-5 text-red-200" />
                   <h2 className="text-lg font-black">Recompensas</h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setRewardForm(createEmptyLoyaltyRewardForm())}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-3 py-2 text-xs font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-400"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-3 py-2 text-xs font-black text-white shadow-lg shadow-red-500/20 transition hover:bg-red-500"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Nueva
@@ -1337,7 +1468,7 @@ export default function LoyaltyPage() {
                     <p className="text-xs font-black uppercase tracking-[0.18em] text-white/35">
                       Regla
                     </p>
-                    <p className="mt-1 text-sm font-black text-orange-200">
+                    <p className="mt-1 text-sm font-black text-red-200">
                       ${settings?.points_per_dollar ?? 1} punto / $1
                     </p>
                   </div>
@@ -1350,7 +1481,7 @@ export default function LoyaltyPage() {
 
               <div className="space-y-3">
                 {rewards.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-orange-500/30 bg-black/25 p-4 text-sm text-white/50">
+                  <div className="rounded-2xl border border-dashed border-red-500/30 bg-black/25 p-4 text-sm text-white/50">
                     Todavia no hay recompensas. Crea ejemplos como Horchata
                     gratis, $5 off o 5% de descuento.
                   </div>
@@ -1371,7 +1502,7 @@ export default function LoyaltyPage() {
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <h3 className="font-black">{reward.title}</h3>
-                              <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-orange-200">
+                              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-red-200">
                                 {reward.points_required} pts
                               </span>
                             </div>
@@ -1413,7 +1544,7 @@ export default function LoyaltyPage() {
                           <button
                             type="button"
                             onClick={() => handleToggleReward(reward)}
-                            className="inline-flex items-center gap-2 rounded-xl border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-black text-orange-100 transition hover:bg-orange-500/20"
+                            className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-black text-orange-100 transition hover:bg-orange-500/20"
                           >
                             {reward.is_active ? "Desactivar" : "Activar"}
                           </button>
@@ -1435,7 +1566,7 @@ export default function LoyaltyPage() {
 
             <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/25">
               <div className="mb-4 flex items-center gap-2">
-                <History className="h-5 w-5 text-orange-200" />
+                <History className="h-5 w-5 text-red-200" />
                 <h2 className="text-lg font-black">Movimientos recientes</h2>
               </div>
 

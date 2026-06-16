@@ -50,6 +50,8 @@ export type CreatePOSOrderInput = {
   loyaltyDiscountAmount?: number;
   loyaltyFreeProductId?: string | null;
   loyaltyRewardLabel?: string;
+  manualDiscountPercent?: number;
+  manualDiscountAmount?: number;
 };
 
 function generateOrderNumber() {
@@ -90,7 +92,6 @@ export async function getPOSProducts() {
     .select(
       "id, category_id, name, description, price, image_url, is_available, category:categories(name)",
     )
-    .eq("is_available", true)
     .order("name", { ascending: true });
 
   if (error) throw error;
@@ -138,9 +139,26 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
     Number(input.loyaltyDiscountAmount || 0),
   );
   const loyaltyDiscount = Math.min(discountableSubtotal, requestedDiscount);
-  const totalDiscount = Math.min(
+  const loyaltyTotalDiscount = Math.min(
     subtotal,
     freeRewardDiscount + loyaltyDiscount,
+  );
+  const manualDiscountPercent = Math.min(
+    100,
+    Math.max(0, Number(input.manualDiscountPercent || 0)),
+  );
+  const requestedManualDiscount = Math.max(
+    0,
+    Number(input.manualDiscountAmount || 0),
+  );
+  const manualDiscountBase = Math.max(0, subtotal - loyaltyTotalDiscount);
+  const maxManualDiscount = Number(
+    ((manualDiscountBase * manualDiscountPercent) / 100).toFixed(2),
+  );
+  const manualDiscount = Math.min(manualDiscountBase, requestedManualDiscount, maxManualDiscount);
+  const totalDiscount = Math.min(
+    subtotal,
+    loyaltyTotalDiscount + manualDiscount,
   );
   const total = Math.max(0, subtotal - totalDiscount);
   const amountPaid = input.paymentMethod === "cash" ? input.amountPaid : total;
@@ -152,10 +170,14 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
   const loyaltyNote =
     input.loyaltyRewardId && input.loyaltyRewardLabel
       ? `Canje lealtad: ${input.loyaltyRewardLabel}${
-          totalDiscount > 0 ? ` (-$${totalDiscount.toFixed(2)})` : ""
+          loyaltyTotalDiscount > 0 ? ` (-$${loyaltyTotalDiscount.toFixed(2)})` : ""
         }`
       : "";
-  const combinedNotes = [input.notes.trim(), loyaltyNote]
+  const manualDiscountNote =
+    manualDiscount > 0
+      ? `Descuento POS: ${manualDiscountPercent}% (-$${manualDiscount.toFixed(2)})`
+      : "";
+  const combinedNotes = [input.notes.trim(), loyaltyNote, manualDiscountNote]
     .filter(Boolean)
     .join(" | ");
 

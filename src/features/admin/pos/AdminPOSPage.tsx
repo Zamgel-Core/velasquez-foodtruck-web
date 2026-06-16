@@ -162,6 +162,7 @@ export default function AdminPOSPage() {
     POSSelectedOption[]
   >([]);
   const [itemNotes, setItemNotes] = React.useState("");
+  const [itemQuantity, setItemQuantity] = React.useState(1);
   const [loadingOptions, setLoadingOptions] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -170,6 +171,8 @@ export default function AdminPOSPage() {
   const [customerName, setCustomerName] = React.useState("");
   const [customerPhone, setCustomerPhone] = React.useState("");
   const [notes, setNotes] = React.useState("");
+  const [manualDiscountPercent, setManualDiscountPercent] = React.useState(0);
+  const [customDiscountPercent, setCustomDiscountPercent] = React.useState("");
   const [paymentMethod, setPaymentMethod] = React.useState<
     "cash" | "card" | "pending"
   >("cash");
@@ -199,6 +202,8 @@ export default function AdminPOSPage() {
         setCustomerName(parsed.customerName ?? "");
         setCustomerPhone(parsed.customerPhone ?? "");
         setNotes(parsed.notes ?? "");
+        setManualDiscountPercent(Number(parsed.manualDiscountPercent || 0));
+        setCustomDiscountPercent(parsed.customDiscountPercent ?? "");
         setPaymentMethod(parsed.paymentMethod ?? "cash");
         setAmountPaid(parsed.amountPaid ?? "");
       }
@@ -288,6 +293,8 @@ export default function AdminPOSPage() {
     customerName,
     customerPhone,
     notes,
+    manualDiscountPercent,
+    customDiscountPercent,
     paymentMethod,
     amountPaid,
   ]);
@@ -352,9 +359,21 @@ export default function AdminPOSPage() {
     selectedLoyaltyReward,
     discountableSubtotal,
   );
-  const totalDiscount = Math.min(
+  const loyaltyTotalDiscount = Math.min(
     subtotal,
     freeRewardDiscount + loyaltyDiscount,
+  );
+  const manualDiscountBase = Math.max(0, subtotal - loyaltyTotalDiscount);
+  const safeManualDiscountPercent = Math.min(
+    100,
+    Math.max(0, Number(manualDiscountPercent || 0)),
+  );
+  const manualDiscountAmount = Number(
+    ((manualDiscountBase * safeManualDiscountPercent) / 100).toFixed(2),
+  );
+  const totalDiscount = Math.min(
+    subtotal,
+    loyaltyTotalDiscount + manualDiscountAmount,
   );
   const total = Math.max(0, subtotal - totalDiscount);
 
@@ -362,10 +381,16 @@ export default function AdminPOSPage() {
   const changeDue = paymentMethod === "cash" ? Math.max(0, paid - total) : 0;
 
   const openProductModal = async (product: POSProduct) => {
+    if (!product.is_available) {
+      setError("Este producto está agotado temporalmente.");
+      return;
+    }
+
     try {
       setSelectedProduct(product);
       setSelectedOptions([]);
       setItemNotes("");
+      setItemQuantity(1);
       setLoadingOptions(true);
 
       const options = await getPOSProductOptions(product.id);
@@ -380,24 +405,42 @@ export default function AdminPOSPage() {
     }
   };
 
-  const addProductToCart = () => {
+  const resetProductSelection = React.useCallback(() => {
+    setSelectedOptions(productOptions.filter((option) => option.is_default));
+    setItemNotes("");
+    setItemQuantity(1);
+  }, [productOptions]);
+
+  const closeProductModal = React.useCallback(() => {
+    setSelectedProduct(null);
+    setProductOptions([]);
+    setSelectedOptions([]);
+    setItemNotes("");
+    setItemQuantity(1);
+  }, []);
+
+  const addProductToCart = (closeAfterAdd = true) => {
     if (!selectedProduct) return;
+
+    const safeQuantity = Math.max(1, Math.floor(Number(itemQuantity || 1)));
 
     setCart((current) => [
       ...(Array.isArray(current) ? current : []),
       {
         cart_item_id: createCartItemId(),
         product: selectedProduct,
-        quantity: 1,
+        quantity: safeQuantity,
         selectedOptions,
         notes: itemNotes.trim() || undefined,
       },
     ]);
 
-    setSelectedProduct(null);
-    setProductOptions([]);
-    setSelectedOptions([]);
-    setItemNotes("");
+    if (closeAfterAdd) {
+      closeProductModal();
+      return;
+    }
+
+    resetProductSelection();
   };
 
   const updateQuantity = (cartItemId: string, change: number) => {
@@ -445,6 +488,8 @@ export default function AdminPOSPage() {
         loyaltyRewardLabel: selectedLoyaltyReward
           ? getRewardDisplayValue(selectedLoyaltyReward.reward)
           : "",
+        manualDiscountPercent: safeManualDiscountPercent,
+        manualDiscountAmount,
       });
 
       setSuccess(`Orden ${order.order_number} creada correctamente.`);
@@ -453,6 +498,8 @@ export default function AdminPOSPage() {
       setCustomerName("");
       setCustomerPhone("");
       setNotes("");
+      setManualDiscountPercent(0);
+      setCustomDiscountPercent("");
       setAmountPaid("");
       setPaymentMethod("cash");
       setSelectedLoyaltyReward(null);
@@ -478,13 +525,13 @@ export default function AdminPOSPage() {
             <div className="mb-6 rounded-3xl border border-white/10 bg-white/[0.04] p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-300">
+                  <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-bold text-red-300">
                     <Receipt className="h-4 w-4" />
                     Punto de venta
                   </div>
 
                   <h1 className="text-3xl font-black sm:text-4xl">
-                    POS <span className="text-orange-500">Velasquez</span>
+                    POS <span className="text-red-500">Velasquez</span>
                   </h1>
 
                   <p className="mt-1 text-sm text-white/60">
@@ -495,7 +542,7 @@ export default function AdminPOSPage() {
 
                 <button
                   onClick={loadProducts}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 font-black transition hover:bg-white/[0.10]"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-500/25 bg-red-600 px-5 py-3 font-black text-white shadow-lg shadow-red-600/25 transition duration-200 hover:-translate-y-0.5 hover:bg-red-500 hover:shadow-red-500/35 active:scale-[0.98]"
                   type="button"
                 >
                   <RefreshCw className="h-5 w-5" />
@@ -511,7 +558,7 @@ export default function AdminPOSPage() {
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Buscar producto o categoría..."
-                  className="w-full rounded-2xl border border-white/10 bg-black/30 py-4 pl-12 pr-4 font-semibold outline-none transition placeholder:text-white/30 focus:border-orange-500/60"
+                  className="w-full rounded-2xl border border-white/10 bg-black/30 py-4 pl-12 pr-4 font-semibold outline-none transition placeholder:text-white/30 focus:border-red-500/70 focus:shadow-lg focus:shadow-red-500/10"
                 />
               </div>
             </div>
@@ -521,8 +568,8 @@ export default function AdminPOSPage() {
                 onClick={() => setCategoryFilter("all")}
                 className={`shrink-0 rounded-2xl border px-4 py-2 text-sm font-black transition ${
                   categoryFilter === "all"
-                    ? "border-orange-500 bg-orange-500 text-white"
-                    : "border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/10"
+                    ? "scale-[1.03] border-red-500 bg-red-600 text-white shadow-lg shadow-red-600/30"
+                    : "border-white/10 bg-white/[0.04] text-white/60 hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-100"
                 }`}
                 type="button"
               >
@@ -535,8 +582,8 @@ export default function AdminPOSPage() {
                   onClick={() => setCategoryFilter(category)}
                   className={`shrink-0 rounded-2xl border px-4 py-2 text-sm font-black transition ${
                     categoryFilter === category
-                      ? "border-orange-500 bg-orange-500 text-white"
-                      : "border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/10"
+                      ? "scale-[1.03] border-red-500 bg-red-600 text-white shadow-lg shadow-red-600/30"
+                      : "border-white/10 bg-white/[0.04] text-white/60 hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-100"
                   }`}
                   type="button"
                 >
@@ -554,7 +601,7 @@ export default function AdminPOSPage() {
             {!loading && categoryFilter === "Lealtad" && (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {loyaltyRewards.length === 0 && (
-                  <div className="rounded-3xl border border-dashed border-orange-500/20 bg-orange-500/[0.04] p-8 text-center text-sm font-bold text-white/50 sm:col-span-2 lg:col-span-3">
+                  <div className="rounded-3xl border border-dashed border-red-500/20 bg-red-500/[0.04] p-8 text-center text-sm font-bold text-white/50 sm:col-span-2 lg:col-span-3">
                     Escribe el telefono de un cliente de lealtad para ver
                     recompensas.
                   </div>
@@ -576,16 +623,16 @@ export default function AdminPOSPage() {
                       disabled={!entry.available}
                       className={`rounded-3xl border p-4 text-left transition ${
                         active
-                          ? "border-orange-500 bg-orange-500/15 shadow-lg shadow-orange-500/15"
+                          ? "scale-[1.02] border-red-500 bg-red-500/15 shadow-lg shadow-red-500/25"
                           : entry.available
-                            ? "border-white/10 bg-white/[0.04] hover:-translate-y-1 hover:border-orange-500/40 hover:bg-orange-500/[0.08]"
+                            ? "border-white/10 bg-white/[0.04] hover:-translate-y-1 hover:border-red-500/50 hover:bg-red-500/[0.08] hover:shadow-lg hover:shadow-red-500/10"
                             : "cursor-not-allowed border-white/10 bg-white/[0.02] opacity-45"
                       }`}
                       type="button"
                     >
                       <div className="mb-3 flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10 text-orange-200">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 text-red-200">
                             {reward.reward_type === "percent_discount" ? (
                               <Percent className="h-6 w-6" />
                             ) : (
@@ -601,7 +648,7 @@ export default function AdminPOSPage() {
                           </div>
                         </div>
 
-                        <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-black text-orange-200">
+                        <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-black text-red-200">
                           {reward.points_required} pts
                         </span>
                       </div>
@@ -641,50 +688,79 @@ export default function AdminPOSPage() {
 
             {!loading && categoryFilter !== "Lealtad" && (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredProducts.map((product) => (
-                  <button
-                    key={product.id}
-                    onClick={() => openProductModal(product)}
-                    className="flex items-start gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-left transition hover:-translate-y-1 hover:border-orange-500/40 hover:bg-orange-500/[0.08]"
-                    type="button"
-                  >
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-white/5">
-                      {product.image_url ? (
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-xs font-black text-white/30">
-                          IMG
-                        </div>
-                      )}
-                    </div>
+                {filteredProducts.map((product) => {
+                  const isAvailable = product.is_available !== false;
 
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-2 flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h2 className="truncate text-lg font-black">
-                            {product.name}
-                          </h2>
-
-                          <p className="text-xs font-bold text-white/40">
-                            {product.category?.name ?? "Sin categoría"}
-                          </p>
-                        </div>
-
-                        <span className="shrink-0 rounded-full bg-orange-500 px-3 py-1 text-sm font-black">
-                          {formatMoney(Number(product.price))}
+                  return (
+                    <button
+                      key={product.id}
+                      onClick={() => openProductModal(product)}
+                      disabled={!isAvailable}
+                      className={`relative flex items-start gap-3 overflow-hidden rounded-3xl border p-4 text-left transition ${
+                        isAvailable
+                          ? "border-white/10 bg-white/[0.04] hover:-translate-y-1 hover:border-red-500/50 hover:bg-red-500/[0.08] hover:shadow-lg hover:shadow-red-500/10"
+                          : "cursor-not-allowed border-red-500/25 bg-red-950/20 opacity-70"
+                      }`}
+                      type="button"
+                    >
+                      {!isAvailable && (
+                        <span className="absolute right-3 top-3 z-10 rounded-full border border-red-400/35 bg-red-600 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white shadow-lg shadow-red-600/25">
+                          Agotado
                         </span>
+                      )}
+
+                      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-white/5">
+                        {product.image_url ? (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className={`h-full w-full object-cover ${
+                              isAvailable ? "" : "grayscale"
+                            }`}
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-xs font-black text-white/30">
+                            IMG
+                          </div>
+                        )}
                       </div>
 
-                      <p className="line-clamp-2 text-sm text-white/50">
-                        {product.description || "Sin descripción."}
-                      </p>
-                    </div>
-                  </button>
-                ))}
+                      <div className="min-w-0 flex-1 pr-2">
+                        <div className="mb-2 flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h2 className="truncate text-lg font-black">
+                              {product.name}
+                            </h2>
+
+                            <p className="text-xs font-bold text-white/40">
+                              {product.category?.name ?? "Sin categoría"}
+                            </p>
+                          </div>
+
+                          <span
+                            className={`shrink-0 rounded-full px-3 py-1 text-sm font-black ${
+                              isAvailable
+                                ? "bg-red-600 shadow-lg shadow-red-600/25"
+                                : "border border-red-500/25 bg-red-500/10 text-red-200"
+                            }`}
+                          >
+                            {formatMoney(Number(product.price))}
+                          </span>
+                        </div>
+
+                        <p className="line-clamp-2 text-sm text-white/50">
+                          {product.description || "Sin descripción."}
+                        </p>
+
+                        {!isAvailable && (
+                          <p className="mt-2 text-xs font-black text-red-200">
+                            No se puede vender hasta marcarlo disponible.
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -697,29 +773,29 @@ export default function AdminPOSPage() {
                 value={customerName}
                 onChange={(event) => setCustomerName(event.target.value)}
                 placeholder="Nombre del cliente"
-                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-semibold outline-none focus:border-orange-500/60"
+                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-semibold outline-none focus:border-red-500/60"
               />
 
               <input
                 value={customerPhone}
                 onChange={(event) => setCustomerPhone(event.target.value)}
                 placeholder="Teléfono opcional"
-                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-semibold outline-none focus:border-orange-500/60"
+                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-semibold outline-none focus:border-red-500/60"
               />
             </div>
 
-            <div className="mt-4 rounded-3xl border border-orange-500/20 bg-orange-500/[0.06] p-4">
+            <div className="mt-4 rounded-3xl border border-red-500/20 bg-red-500/[0.06] p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-orange-300" />
-                  <p className="text-sm font-black text-orange-100">
+                  <Star className="h-4 w-4 text-red-300" />
+                  <p className="text-sm font-black text-red-100">
                     Lealtad en ventanilla
                   </p>
                 </div>
 
                 <button
                   onClick={() => setCategoryFilter("Lealtad")}
-                  className="rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-xs font-black text-orange-200 transition hover:bg-orange-500/20"
+                  className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-black text-red-200 transition hover:border-red-400/50 hover:bg-red-500/20 hover:shadow-lg hover:shadow-red-500/10"
                   type="button"
                 >
                   Ver recompensas
@@ -772,7 +848,7 @@ export default function AdminPOSPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-black">{item.product.name}</h3>
-                      <p className="text-sm font-bold text-orange-300">
+                      <p className="text-sm font-bold text-red-300">
                         {freeRewardProductId &&
                         item.product.id === freeRewardProductId
                           ? "$0.00"
@@ -797,7 +873,7 @@ export default function AdminPOSPage() {
                         )}
 
                       {item.notes && (
-                        <p className="mt-2 text-xs font-bold text-orange-200/70">
+                        <p className="mt-2 text-xs font-bold text-red-200/70">
                           Nota: {item.notes}
                         </p>
                       )}
@@ -807,7 +883,7 @@ export default function AdminPOSPage() {
                       onClick={() =>
                         removeItem(item.cart_item_id ?? item.product.id)
                       }
-                      className="rounded-xl bg-red-500/10 p-2 text-red-200 hover:bg-red-500/20"
+                      className="rounded-xl border border-red-500/20 bg-red-500/10 p-2 text-red-200 transition hover:bg-red-500/20 hover:shadow-lg hover:shadow-red-500/10"
                       type="button"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -865,8 +941,70 @@ export default function AdminPOSPage() {
               onChange={(event) => setNotes(event.target.value)}
               placeholder="Notas de la orden..."
               rows={3}
-              className="mt-5 w-full resize-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-semibold outline-none focus:border-orange-500/60"
+              className="mt-5 w-full resize-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-semibold outline-none focus:border-red-500/60"
             />
+
+            <div className="mt-4 rounded-3xl border border-red-500/20 bg-red-500/[0.06] p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-black text-red-100">Descuento</p>
+                  <p className="text-xs font-bold text-white/45">
+                    Aplica descuento al total después de recompensas.
+                  </p>
+                </div>
+
+                {manualDiscountAmount > 0 && (
+                  <span className="rounded-full border border-green-500/25 bg-green-500/10 px-3 py-1 text-xs font-black text-green-200">
+                    -{formatMoney(manualDiscountAmount)}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { label: "Sin", value: 0 },
+                  { label: "25%", value: 25 },
+                  { label: "50%", value: 50 },
+                ].map((discount) => (
+                  <button
+                    key={discount.value}
+                    onClick={() => {
+                      setManualDiscountPercent(discount.value);
+                      setCustomDiscountPercent("");
+                    }}
+                    className={`rounded-2xl border px-3 py-3 text-sm font-black transition ${
+                      safeManualDiscountPercent === discount.value &&
+                      customDiscountPercent === ""
+                        ? "scale-[1.04] border-red-500 bg-red-600 text-white shadow-lg shadow-red-600/35"
+                        : "border-white/10 bg-white/5 text-white/65 hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-100"
+                    }`}
+                    type="button"
+                  >
+                    {discount.label}
+                  </button>
+                ))}
+
+                <input
+                  value={customDiscountPercent}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setCustomDiscountPercent(value);
+                    const numericValue = Number(value);
+                    setManualDiscountPercent(
+                      Number.isFinite(numericValue)
+                        ? Math.min(100, Math.max(0, numericValue))
+                        : 0,
+                    );
+                  }}
+                  placeholder="Otro %"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  className="rounded-2xl border border-white/10 bg-black/30 px-3 py-3 text-center text-sm font-black outline-none placeholder:text-white/35 focus:border-red-500/60"
+                />
+              </div>
+            </div>
 
             <div className="mt-5 grid grid-cols-3 gap-2">
               {(["cash", "card", "pending"] as const).map((method) => (
@@ -875,8 +1013,8 @@ export default function AdminPOSPage() {
                   onClick={() => setPaymentMethod(method)}
                   className={`rounded-2xl border px-3 py-3 text-sm font-black transition ${
                     paymentMethod === method
-                      ? "border-orange-500 bg-orange-500 text-white"
-                      : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10"
+                      ? "scale-[1.03] border-red-500 bg-red-600 text-white shadow-lg shadow-red-600/30"
+                      : "border-white/10 bg-white/5 text-white/60 hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-100"
                   }`}
                   type="button"
                 >
@@ -897,7 +1035,7 @@ export default function AdminPOSPage() {
                 type="number"
                 min="0"
                 step="0.01"
-                className="mt-3 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-semibold outline-none focus:border-orange-500/60"
+                className="mt-3 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-semibold outline-none focus:border-red-500/60"
               />
             )}
 
@@ -932,9 +1070,16 @@ export default function AdminPOSPage() {
                 </div>
               )}
 
-              <div className="mt-2 flex justify-between text-xl font-black">
+              {manualDiscountAmount > 0 && (
+                <div className="mt-2 flex justify-between text-sm font-bold text-red-200">
+                  <span>Descuento POS ({safeManualDiscountPercent}%)</span>
+                  <span>-{formatMoney(manualDiscountAmount)}</span>
+                </div>
+              )}
+
+              <div className="mt-3 border-t border-white/10 pt-3 flex justify-between text-xl font-black">
                 <span>Total</span>
-                <span className="text-orange-300">{formatMoney(total)}</span>
+                <span className="text-red-300">{formatMoney(total)}</span>
               </div>
 
               {paymentMethod === "cash" && (
@@ -960,7 +1105,7 @@ export default function AdminPOSPage() {
             <button
               onClick={handleCreateOrder}
               disabled={saving || safeCart.length === 0}
-              className="mt-5 w-full rounded-2xl bg-orange-600 px-5 py-4 font-black text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-5 w-full rounded-2xl bg-red-600 px-5 py-4 font-black text-white shadow-lg shadow-red-600/30 transition duration-200 hover:-translate-y-0.5 hover:bg-red-500 hover:shadow-red-500/40 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
               type="button"
             >
               {saving ? "Creando orden..." : "Crear orden POS"}
@@ -980,7 +1125,7 @@ export default function AdminPOSPage() {
               </div>
 
               <button
-                onClick={() => setSelectedProduct(null)}
+                onClick={closeProductModal}
                 className="rounded-full bg-white/10 px-3 py-2 font-black transition hover:bg-white/20"
                 type="button"
               >
@@ -1019,7 +1164,7 @@ export default function AdminPOSPage() {
                 return (
                   <div key={group} className="mt-5">
                     <div className="mb-3 flex items-center gap-2">
-                      <h3 className="text-sm font-black uppercase tracking-wider text-orange-300">
+                      <h3 className="text-sm font-black uppercase tracking-wider text-red-300">
                         {group}
                       </h3>
 
@@ -1069,8 +1214,8 @@ export default function AdminPOSPage() {
                             }}
                             className={`rounded-2xl border px-4 py-3 text-left transition ${
                               active
-                                ? "border-orange-500 bg-orange-500/15 text-orange-100"
-                                : "border-white/10 bg-white/5 text-white/65 hover:bg-white/10"
+                                ? "scale-[1.02] border-red-500 bg-red-500/15 text-red-100 shadow-lg shadow-red-500/15"
+                                : "border-white/10 bg-white/5 text-white/65 hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-100"
                             }`}
                             type="button"
                           >
@@ -1093,21 +1238,91 @@ export default function AdminPOSPage() {
                 );
               })}
 
+            <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <div className="mb-3 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-black text-white">Cantidad</p>
+                  <p className="text-xs font-bold text-white/40">
+                    Usa 2, 3 o más cuando sean exactamente iguales.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() =>
+                      setItemQuantity((current) => Math.max(1, current - 1))
+                    }
+                    className="rounded-xl border border-white/10 bg-white/5 p-2 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-100"
+                    type="button"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+
+                  <input
+                    value={itemQuantity}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      setItemQuantity(
+                        Number.isFinite(value)
+                          ? Math.max(1, Math.floor(value))
+                          : 1,
+                      );
+                    }}
+                    type="number"
+                    min="1"
+                    step="1"
+                    className="w-20 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-center font-black outline-none focus:border-red-500/70 focus:shadow-lg focus:shadow-red-500/10"
+                  />
+
+                  <button
+                    onClick={() => setItemQuantity((current) => current + 1)}
+                    className="rounded-xl border border-white/10 bg-white/5 p-2 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-100"
+                    type="button"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl bg-black/25 px-3 py-2 text-sm font-bold text-white/60">
+                <span>Subtotal de esta línea</span>
+                <span className="text-red-200">
+                  {formatMoney(
+                    getPOSItemUnitPrice({
+                      product: selectedProduct,
+                      quantity: itemQuantity,
+                      selectedOptions,
+                    }) * itemQuantity,
+                  )}
+                </span>
+              </div>
+            </div>
+
             <textarea
               value={itemNotes}
               onChange={(event) => setItemNotes(event.target.value)}
-              placeholder="Notas para este producto..."
+              placeholder="Notas para este producto... Ej. sin cebolla, sin cilantro, salsa aparte"
               rows={3}
-              className="mt-5 w-full resize-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-semibold outline-none focus:border-orange-500/60"
+              className="mt-5 w-full resize-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-semibold outline-none focus:border-red-500/60"
             />
 
-            <button
-              onClick={addProductToCart}
-              className="mt-5 w-full rounded-2xl bg-orange-600 px-5 py-4 font-black text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-500"
-              type="button"
-            >
-              Agregar al carrito
-            </button>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <button
+                onClick={() => addProductToCart(false)}
+                className="rounded-2xl border border-red-500/35 bg-red-500/10 px-5 py-4 font-black text-red-100 shadow-lg shadow-red-500/10 transition duration-200 hover:-translate-y-0.5 hover:bg-red-500/20 hover:shadow-red-500/20 active:scale-[0.99]"
+                type="button"
+              >
+                Agregar y continuar
+              </button>
+
+              <button
+                onClick={() => addProductToCart(true)}
+                className="rounded-2xl bg-red-600 px-5 py-4 font-black text-white shadow-lg shadow-red-600/30 transition duration-200 hover:-translate-y-0.5 hover:bg-red-500 hover:shadow-red-500/40 active:scale-[0.99]"
+                type="button"
+              >
+                Agregar y cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

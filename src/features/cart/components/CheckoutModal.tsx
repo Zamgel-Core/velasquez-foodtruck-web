@@ -137,7 +137,7 @@ export default function CheckoutModal({
               setCustomer((prev) => ({ ...prev, name: e.target.value }))
             }
             placeholder={t.name}
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
           />
 
           <input
@@ -146,15 +146,15 @@ export default function CheckoutModal({
               setCustomer((prev) => ({ ...prev, phone: e.target.value }))
             }
             placeholder={t.phone}
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
           />
 
-          <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-xs text-orange-100">
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-xs text-red-100">
             <div className="mb-1 flex items-center gap-2 font-black">
               <Gift className="h-4 w-4" />
               {t.loyaltyTitle}
             </div>
-            <p className="leading-relaxed text-orange-100/75">{t.loyaltyText}</p>
+            <p className="leading-relaxed text-red-100/75">{t.loyaltyText}</p>
           </div>
 
           <textarea
@@ -164,7 +164,7 @@ export default function CheckoutModal({
             }
             placeholder={t.notes}
             rows={3}
-            className="w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+            className="w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
           />
 
           <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-3">
@@ -189,7 +189,7 @@ export default function CheckoutModal({
                 onClick={() => setPaymentMethod("card")}
                 className={`rounded-2xl border px-4 py-3 text-sm font-black transition ${
                   paymentMethod === "card"
-                    ? "border-orange-500 bg-orange-500/15 text-orange-100"
+                    ? "border-red-500 bg-red-500/15 text-red-100"
                     : "border-white/10 bg-black/20 text-white/60 hover:bg-white/10"
                 }`}
               >
@@ -199,7 +199,7 @@ export default function CheckoutModal({
             </div>
 
             {paymentMethod === "card" && (
-              <p className="mt-3 rounded-2xl border border-orange-500/20 bg-orange-500/10 px-3 py-2 text-xs font-bold text-orange-200">
+              <p className="mt-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200">
                 {t.cardNotice}
               </p>
             )}
@@ -219,7 +219,7 @@ export default function CheckoutModal({
             <div className="mt-3 border-t border-white/10 pt-3">
               <div className="flex items-center justify-between">
                 <span className="font-black text-white">{t.total}</span>
-                <span className="text-2xl font-black text-orange-500">
+                <span className="text-2xl font-black text-red-500">
                   ${total.toFixed(2)}
                 </span>
               </div>

@@ -30,6 +30,16 @@ export type AdminSettings = {
   brand_primary_color: string;
   brand_accent_color: string;
   brand_notes: string;
+  printing_enabled: boolean;
+  print_customer_ticket_enabled: boolean;
+  print_kitchen_ticket_enabled: boolean;
+  print_paper_size: "58mm" | "80mm";
+  print_show_website: boolean;
+  print_show_phone: boolean;
+  print_show_address: boolean;
+  print_show_socials: boolean;
+  print_footer_message_es: string;
+  print_footer_message_en: string;
 };
 
 type AdminSettingsRow = {
@@ -71,9 +81,19 @@ export const defaultAdminSettings: AdminSettings = {
   auto_closed_message:
     "Gracias por escribir a Velasquez Food Truck. En este momento estamos cerrados, pero te responderemos en cuanto abramos.",
   brand_primary_color: "#050505",
-  brand_accent_color: "#f97316",
+  brand_accent_color: "#dc2626",
   brand_notes:
-    "Estilo dark premium negro/naranja, comida real, iluminación cálida, madera oscura y glow naranja.",
+    "Estilo dark premium negro/rojo, comida real, iluminación cálida, madera oscura y glow rojo.",
+  printing_enabled: true,
+  print_customer_ticket_enabled: true,
+  print_kitchen_ticket_enabled: true,
+  print_paper_size: "80mm",
+  print_show_website: true,
+  print_show_phone: true,
+  print_show_address: true,
+  print_show_socials: true,
+  print_footer_message_es: "Gracias por tu preferencia.",
+  print_footer_message_en: "Thank you for your preference.",
 };
 
 export function mergeSettings(settings?: Partial<AdminSettings> | null): AdminSettings {

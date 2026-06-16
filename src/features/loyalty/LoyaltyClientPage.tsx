@@ -4,12 +4,14 @@ import React from "react";
 import {
   ArrowLeft,
   Award,
+  Cake,
   CheckCircle2,
   Clock3,
   Flame,
   Gift,
   History,
   Lock,
+  MessageCircle,
   Phone,
   Search,
   ShieldCheck,
@@ -48,9 +50,9 @@ const TIERS: Record<
     min: 0,
     next: 100,
     icon: "🥉",
-    gradient: "from-orange-950/80 via-amber-900/25 to-zinc-950",
-    chip: "border-orange-500/30 bg-orange-500/10 text-orange-200",
-    glow: "shadow-orange-950/40",
+    gradient: "from-red-950/80 via-amber-900/25 to-zinc-950",
+    chip: "border-red-500/30 bg-red-500/10 text-red-200",
+    glow: "shadow-red-950/40",
   },
   silver: {
     label: "Plata",
@@ -66,7 +68,7 @@ const TIERS: Record<
     min: 300,
     next: 600,
     icon: "🥇",
-    gradient: "from-yellow-950/80 via-orange-500/25 to-zinc-950",
+    gradient: "from-yellow-950/80 via-red-500/25 to-zinc-950",
     chip: "border-yellow-400/30 bg-yellow-400/10 text-yellow-100",
     glow: "shadow-yellow-950/40",
   },
@@ -75,7 +77,7 @@ const TIERS: Record<
     min: 600,
     next: 1000,
     icon: "💎",
-    gradient: "from-cyan-950/70 via-orange-500/20 to-zinc-950",
+    gradient: "from-cyan-950/70 via-red-500/20 to-zinc-950",
     chip: "border-cyan-300/30 bg-cyan-300/10 text-cyan-100",
     glow: "shadow-cyan-950/40",
   },
@@ -84,7 +86,7 @@ const TIERS: Record<
     min: 1000,
     next: null,
     icon: "🔥",
-    gradient: "from-fuchsia-950/75 via-orange-500/25 to-zinc-950",
+    gradient: "from-fuchsia-950/75 via-red-500/25 to-zinc-950",
     chip: "border-fuchsia-300/30 bg-fuchsia-300/10 text-fuchsia-100",
     glow: "shadow-fuchsia-950/40",
   },
@@ -137,6 +139,29 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
+
+function buildLoyaltyWhatsAppUrl(customer?: LoyaltyClientCustomer | null): string {
+  const businessWhatsAppNumber = "13464019676";
+  const name = customer?.full_name?.trim() || "No consultado";
+  const phone = customer?.phone ? formatLoyaltyPhone(customer.phone) : "No consultado";
+
+  const message = [
+    "Hola Velasquez Food Truck.",
+    "",
+    "Quiero solicitar una actualización de mi perfil de lealtad.",
+    "",
+    `Nombre registrado: ${name}`,
+    `Teléfono registrado: ${phone}`,
+    "",
+    "Deseo modificar:",
+    "- Nombre / Teléfono / Fecha de cumpleaños",
+    "",
+    "Información adicional:",
+  ].join("\n");
+
+  return `https://wa.me/${businessWhatsAppNumber}?text=${encodeURIComponent(message)}`;
+}
+
 function getRewardLabel(reward: LoyaltyClientReward): string {
   if (reward.reward_type === "free_item") {
     return reward.product_label || reward.title;
@@ -158,7 +183,7 @@ function getMovementLabel(movement: LoyaltyClientMovement): string {
 function LoyaltyLogo() {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-orange-500/25 bg-black/60 shadow-xl shadow-orange-950/30">
+      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-red-500/25 bg-black/60 shadow-xl shadow-red-950/30">
         <img
           src="/images/velasquez-logo.png"
           alt="Velasquez Food Truck"
@@ -167,10 +192,10 @@ function LoyaltyLogo() {
             event.currentTarget.style.display = "none";
           }}
         />
-        <Flame className="hidden h-7 w-7 text-orange-300" />
+        <Flame className="hidden h-7 w-7 text-red-300" />
       </div>
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.28em] text-orange-200">
+        <p className="text-xs font-black uppercase tracking-[0.28em] text-red-200">
           Velasquez
         </p>
         <p className="text-lg font-black leading-none text-white">Rewards</p>
@@ -192,7 +217,7 @@ function ClientCard({ customer }: { customer: LoyaltyClientCustomer }) {
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-white/70">
-            <WalletCards className="h-4 w-4 text-orange-200" />
+            <WalletCards className="h-4 w-4 text-red-200" />
             Tarjeta digital
           </div>
           <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
@@ -235,16 +260,114 @@ function ClientCard({ customer }: { customer: LoyaltyClientCustomer }) {
       <div className="mt-7">
         <div className="mb-2 flex items-center justify-between gap-4 text-sm">
           <span className="font-bold text-white/75">Progreso del nivel</span>
-          <span className="font-black text-orange-100">
+          <span className="font-black text-red-100">
             {tier.next ? `${pointsToNext} pts para ${TIERS[getTier(tier.next)].label}` : "Nivel maximo"}
           </span>
         </div>
         <div className="h-4 overflow-hidden rounded-full border border-white/10 bg-black/40">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-orange-500 via-yellow-300 to-orange-200 shadow-lg shadow-orange-500/30 transition-all duration-700"
+            className="h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-300 to-red-200 shadow-lg shadow-red-500/30 transition-all duration-700"
             style={{ width: `${tierProgress}%` }}
           />
         </div>
+      </div>
+    </section>
+  );
+}
+
+
+function getBirthdayInfo(birthDate?: string | null): { isToday: boolean; daysUntil: number } | null {
+  if (!birthDate) return null;
+
+  const [, monthText, dayText] = birthDate.split("-");
+  const month = Number(monthText);
+  const day = Number(dayText);
+
+  if (!month || !day) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let nextBirthday = new Date(today.getFullYear(), month - 1, day);
+  nextBirthday.setHours(0, 0, 0, 0);
+
+  if (nextBirthday < today) {
+    nextBirthday = new Date(today.getFullYear() + 1, month - 1, day);
+  }
+
+  const daysUntil = Math.round(
+    (nextBirthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  return { isToday: daysUntil === 0, daysUntil };
+}
+
+function BirthdayNotice({ customer }: { customer: LoyaltyClientCustomer }) {
+  const birthday = getBirthdayInfo(customer.birth_date);
+
+  if (!birthday || birthday.daysUntil > 7) return null;
+
+  return (
+    <section className="rounded-[2rem] border border-red-400/30 bg-gradient-to-br from-red-950/50 via-red-500/10 to-zinc-950 p-5 shadow-2xl shadow-red-950/25 sm:p-6">
+      <div className="flex items-start gap-4">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-red-300/30 bg-red-500/15 text-red-100 shadow-lg shadow-red-500/10">
+          <Cake className="h-7 w-7" />
+        </div>
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-red-200">
+            {birthday.isToday ? "Cumpleaños activo" : "Cumpleaños cerca"}
+          </p>
+          <h3 className="mt-1 text-2xl font-black text-white">
+            {birthday.isToday
+              ? "¡Feliz cumpleaños!"
+              : `Tu cumpleaños está a ${birthday.daysUntil} días`}
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-white/60">
+            Presenta esta pantalla en ventanilla. El equipo de Velasquez validará si hay recompensa o promoción de cumpleaños disponible.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+function ProfileDataNotice({ customer }: { customer?: LoyaltyClientCustomer | null }) {
+  const whatsappUrl = buildLoyaltyWhatsAppUrl(customer);
+
+  return (
+    <section className="rounded-[2rem] border border-red-500/30 bg-gradient-to-br from-red-950/45 via-red-500/10 to-zinc-950 p-5 shadow-2xl shadow-red-950/25 sm:p-7">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-red-300/30 bg-red-500/15 text-red-100 shadow-lg shadow-red-500/15">
+            <ShieldCheck className="h-7 w-7" />
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-red-200">
+              Soporte de perfil
+            </p>
+            <h3 className="mt-1 text-2xl font-black text-white">
+              ¿Necesitas corregir tu información?
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
+              Por seguridad, el nombre, teléfono y fecha de cumpleaños solo pueden ser actualizados por un administrador autorizado.
+              Para reclamar este perfil o corregir algún dato, envíanos un mensaje de WhatsApp desde el número que deseas registrar.
+            </p>
+            <p className="mt-3 rounded-2xl border border-red-400/20 bg-black/35 px-4 py-3 text-sm font-bold text-white/70">
+              El mensaje irá precargado con tu nombre y teléfono registrado para que el equipo pueda ubicar tu perfil más rápido.
+            </p>
+          </div>
+        </div>
+
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-14 shrink-0 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-red-500 px-6 text-sm font-black uppercase tracking-[0.14em] text-white shadow-lg shadow-red-950/35 transition hover:scale-[1.02] hover:from-red-600 hover:to-red-400"
+        >
+          <MessageCircle className="h-5 w-5" />
+          Enviar WhatsApp
+        </a>
       </div>
     </section>
   );
@@ -257,18 +380,18 @@ function MilestoneTrack({ points }: { points: number }) {
     <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/25 sm:p-7">
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-orange-200">
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-red-200">
             Camino VIP
           </p>
           <h3 className="mt-1 text-2xl font-black text-white">Progreso de recompensas</h3>
         </div>
-        <Trophy className="h-7 w-7 text-orange-200" />
+        <Trophy className="h-7 w-7 text-red-200" />
       </div>
 
       <div className="relative px-2 py-6">
         <div className="absolute left-4 right-4 top-1/2 h-2 -translate-y-1/2 rounded-full bg-white/10" />
         <div
-          className="absolute left-4 top-1/2 h-2 -translate-y-1/2 rounded-full bg-gradient-to-r from-orange-600 via-yellow-300 to-orange-200 shadow-lg shadow-orange-500/20 transition-all duration-700"
+          className="absolute left-4 top-1/2 h-2 -translate-y-1/2 rounded-full bg-gradient-to-r from-red-600 via-yellow-300 to-red-200 shadow-lg shadow-red-500/20 transition-all duration-700"
           style={{ width: `calc((100% - 2rem) * ${progress / 100})` }}
         />
         <div className="relative z-10 grid grid-cols-5 gap-2">
@@ -280,7 +403,7 @@ function MilestoneTrack({ points }: { points: number }) {
                 <div
                   className={`flex h-12 w-12 items-center justify-center rounded-2xl border text-xl shadow-lg transition-all ${
                     unlocked
-                      ? "border-orange-300/50 bg-orange-500/20 shadow-orange-950/30"
+                      ? "border-red-300/50 bg-red-500/20 shadow-red-950/30"
                       : "border-white/10 bg-zinc-950 shadow-black/30"
                   }`}
                 >
@@ -306,12 +429,12 @@ function RewardsGrid({ rewards, points }: { rewards: LoyaltyClientReward[]; poin
     <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/25 sm:p-7">
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-orange-200">
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-red-200">
             Premios
           </p>
           <h3 className="mt-1 text-2xl font-black text-white">Recompensas disponibles</h3>
         </div>
-        <Gift className="h-7 w-7 text-orange-200" />
+        <Gift className="h-7 w-7 text-red-200" />
       </div>
 
       {rewards.length === 0 ? (
@@ -329,14 +452,14 @@ function RewardsGrid({ rewards, points }: { rewards: LoyaltyClientReward[]; poin
                 key={reward.id}
                 className={`rounded-3xl border p-4 transition-all ${
                   unlocked
-                    ? "border-orange-400/30 bg-orange-500/10 shadow-lg shadow-orange-950/20"
+                    ? "border-red-400/30 bg-red-500/10 shadow-lg shadow-red-950/20"
                     : "border-white/10 bg-black/25"
                 }`}
               >
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/30">
                     {unlocked ? (
-                      <CheckCircle2 className="h-5 w-5 text-orange-200" />
+                      <CheckCircle2 className="h-5 w-5 text-red-200" />
                     ) : (
                       <Lock className="h-5 w-5 text-white/35" />
                     )}
@@ -344,7 +467,7 @@ function RewardsGrid({ rewards, points }: { rewards: LoyaltyClientReward[]; poin
                   <span
                     className={`rounded-full border px-3 py-1 text-xs font-black ${
                       unlocked
-                        ? "border-orange-300/30 bg-orange-400/10 text-orange-100"
+                        ? "border-red-300/30 bg-red-400/10 text-red-100"
                         : "border-white/10 bg-white/5 text-white/45"
                     }`}
                   >
@@ -353,11 +476,11 @@ function RewardsGrid({ rewards, points }: { rewards: LoyaltyClientReward[]; poin
                 </div>
 
                 <h4 className="text-lg font-black text-white">{reward.title}</h4>
-                <p className="mt-1 text-sm font-bold text-orange-100">{getRewardLabel(reward)}</p>
+                <p className="mt-1 text-sm font-bold text-red-100">{getRewardLabel(reward)}</p>
                 {reward.description && (
                   <p className="mt-2 text-sm leading-relaxed text-white/50">{reward.description}</p>
                 )}
-                <p className={`mt-4 text-xs font-black uppercase tracking-[0.18em] ${unlocked ? "text-orange-200" : "text-white/35"}`}>
+                <p className={`mt-4 text-xs font-black uppercase tracking-[0.18em] ${unlocked ? "text-red-200" : "text-white/35"}`}>
                   {unlocked ? "Disponible en ventanilla" : `Te faltan ${missing} pts`}
                 </p>
               </article>
@@ -374,12 +497,12 @@ function MovementsList({ movements }: { movements: LoyaltyClientMovement[] }) {
     <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/25 sm:p-7">
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-orange-200">
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-red-200">
             Actividad
           </p>
           <h3 className="mt-1 text-2xl font-black text-white">Historial reciente</h3>
         </div>
-        <History className="h-7 w-7 text-orange-200" />
+        <History className="h-7 w-7 text-red-200" />
       </div>
 
       {movements.length === 0 ? (
@@ -397,11 +520,11 @@ function MovementsList({ movements }: { movements: LoyaltyClientMovement[] }) {
                 className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-black/25 p-4"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${positive ? "border-emerald-400/25 bg-emerald-500/10" : "border-orange-400/25 bg-orange-500/10"}`}>
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${positive ? "border-emerald-400/25 bg-emerald-500/10" : "border-red-400/25 bg-red-500/10"}`}>
                     {positive ? (
                       <Star className="h-5 w-5 text-emerald-200" />
                     ) : (
-                      <Gift className="h-5 w-5 text-orange-200" />
+                      <Gift className="h-5 w-5 text-red-200" />
                     )}
                   </div>
                   <div className="min-w-0">
@@ -411,7 +534,7 @@ function MovementsList({ movements }: { movements: LoyaltyClientMovement[] }) {
                     <p className="mt-1 text-xs text-white/40">{formatDate(movement.created_at)}</p>
                   </div>
                 </div>
-                <div className={`shrink-0 rounded-full border px-3 py-1 text-sm font-black ${positive ? "border-emerald-300/20 bg-emerald-500/10 text-emerald-200" : "border-orange-300/20 bg-orange-500/10 text-orange-200"}`}>
+                <div className={`shrink-0 rounded-full border px-3 py-1 text-sm font-black ${positive ? "border-emerald-300/20 bg-emerald-500/10 text-emerald-200" : "border-red-300/20 bg-red-500/10 text-red-200"}`}>
                   {getMovementLabel(movement)}
                 </div>
               </div>
@@ -429,23 +552,26 @@ export default function LoyaltyClientPage() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [hasSearched, setHasSearched] = React.useState(false);
+  const autoLookupRef = React.useRef(false);
 
   const cleanPhone = normalizeLoyaltyPhone(phone);
 
-  const handleSearch = async (event?: React.FormEvent) => {
+  const handleSearch = async (event?: React.FormEvent, phoneOverride?: string) => {
     event?.preventDefault();
     setError(null);
     setHasSearched(true);
     setLookup(null);
 
-    if (cleanPhone.length < 7) {
+    const phoneToLookup = normalizeLoyaltyPhone(phoneOverride ?? phone);
+
+    if (phoneToLookup.length < 7) {
       setError("Ingresa el telefono que usaste en tu orden.");
       return;
     }
 
     try {
       setIsLoading(true);
-      const result = await getLoyaltyClientByPhone(cleanPhone);
+      const result = await getLoyaltyClientByPhone(phoneToLookup);
 
       if (!result) {
         setError("No encontramos una cuenta activa con ese telefono. Pregunta en ventanilla para registrarte.");
@@ -461,9 +587,22 @@ export default function LoyaltyClientPage() {
     }
   };
 
+  React.useEffect(() => {
+    if (autoLookupRef.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const phoneFromUrl = normalizeLoyaltyPhone(params.get("phone") ?? "");
+
+    if (phoneFromUrl.length >= 7) {
+      autoLookupRef.current = true;
+      setPhone(phoneFromUrl);
+      void handleSearch(undefined, phoneFromUrl);
+    }
+  }, []);
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#050505] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.24),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(249,115,22,0.14),transparent_34%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.24),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(239,68,68,0.14),transparent_34%)]" />
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:42px_42px] opacity-30" />
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
@@ -471,7 +610,7 @@ export default function LoyaltyClientPage() {
           <LoyaltyLogo />
           <a
             href="/"
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-white/70 transition hover:border-orange-400/40 hover:text-orange-100"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-white/70 transition hover:border-red-400/40 hover:text-red-100"
           >
             <ArrowLeft className="h-4 w-4" />
             Volver
@@ -480,7 +619,7 @@ export default function LoyaltyClientPage() {
 
         <section className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[0.9fr_1.1fr] lg:py-12">
           <div className="max-w-xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-orange-500/25 bg-orange-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-orange-200">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-red-500/25 bg-red-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-red-200">
               <Sparkles className="h-4 w-4" />
               Programa de lealtad
             </div>
@@ -495,7 +634,7 @@ export default function LoyaltyClientPage() {
 
             <form onSubmit={handleSearch} className="mt-8 rounded-[2rem] border border-white/10 bg-white/[0.05] p-4 shadow-2xl shadow-black/30 backdrop-blur sm:p-5">
               <label className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-white/55">
-                <Phone className="h-4 w-4 text-orange-200" />
+                <Phone className="h-4 w-4 text-red-200" />
                 Consulta por telefono
               </label>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -504,12 +643,12 @@ export default function LoyaltyClientPage() {
                   onChange={(event) => setPhone(event.target.value)}
                   inputMode="tel"
                   placeholder="Ej. 3464019676"
-                  className="min-h-14 flex-1 rounded-2xl border border-white/10 bg-black/40 px-4 text-lg font-bold text-white outline-none transition placeholder:text-white/25 focus:border-orange-400/50 focus:ring-4 focus:ring-orange-500/10"
+                  className="min-h-14 flex-1 rounded-2xl border border-white/10 bg-black/40 px-4 text-lg font-bold text-white outline-none transition placeholder:text-white/25 focus:border-red-400/50 focus:ring-4 focus:ring-red-500/10"
                 />
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-600 to-orange-400 px-6 text-sm font-black uppercase tracking-[0.16em] text-white shadow-lg shadow-orange-950/30 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-red-500 px-6 text-sm font-black uppercase tracking-[0.16em] text-white shadow-lg shadow-red-950/30 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isLoading ? <Clock3 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
                   Consultar
@@ -524,17 +663,17 @@ export default function LoyaltyClientPage() {
 
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <div className="rounded-3xl border border-white/10 bg-black/25 p-4">
-                <ShieldCheck className="mb-3 h-5 w-5 text-orange-200" />
+                <ShieldCheck className="mb-3 h-5 w-5 text-red-200" />
                 <p className="text-sm font-bold text-white">Seguro</p>
                 <p className="mt-1 text-xs text-white/45">Solo consulta tus puntos.</p>
               </div>
               <div className="rounded-3xl border border-white/10 bg-black/25 p-4">
-                <Award className="mb-3 h-5 w-5 text-orange-200" />
+                <Award className="mb-3 h-5 w-5 text-red-200" />
                 <p className="text-sm font-bold text-white">Niveles</p>
                 <p className="mt-1 text-xs text-white/45">Sube de rango al comprar.</p>
               </div>
               <div className="rounded-3xl border border-white/10 bg-black/25 p-4">
-                <Gift className="mb-3 h-5 w-5 text-orange-200" />
+                <Gift className="mb-3 h-5 w-5 text-red-200" />
                 <p className="text-sm font-bold text-white">Premios</p>
                 <p className="mt-1 text-xs text-white/45">Canje en ventanilla.</p>
               </div>
@@ -545,15 +684,16 @@ export default function LoyaltyClientPage() {
             {lookup ? (
               <>
                 <ClientCard customer={lookup.customer} />
+                <BirthdayNotice customer={lookup.customer} />
                 <MilestoneTrack points={lookup.customer.points} />
               </>
             ) : (
-              <section className="overflow-hidden rounded-[2.25rem] border border-orange-500/20 bg-gradient-to-br from-zinc-950 via-zinc-950 to-orange-950/45 p-6 shadow-2xl shadow-orange-950/20 sm:p-8">
+              <section className="overflow-hidden rounded-[2.25rem] border border-red-500/20 bg-gradient-to-br from-zinc-950 via-zinc-950 to-red-950/45 p-6 shadow-2xl shadow-red-950/20 sm:p-8">
                 <div className="mx-auto flex max-w-md flex-col items-center text-center">
-                  <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] border border-orange-400/25 bg-orange-500/10 shadow-2xl shadow-orange-950/30">
-                    <Flame className="h-12 w-12 text-orange-200" />
+                  <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] border border-red-400/25 bg-red-500/10 shadow-2xl shadow-red-950/30">
+                    <Flame className="h-12 w-12 text-red-200" />
                   </div>
-                  <p className="text-xs font-black uppercase tracking-[0.28em] text-orange-200">
+                  <p className="text-xs font-black uppercase tracking-[0.28em] text-red-200">
                     Rewards preview
                   </p>
                   <h2 className="mt-3 text-4xl font-black tracking-tight text-white">
@@ -572,10 +712,16 @@ export default function LoyaltyClientPage() {
         </section>
 
         {lookup && (
-          <section className="grid gap-5 pb-10 lg:grid-cols-[1.2fr_0.8fr]">
-            <RewardsGrid rewards={lookup.rewards} points={lookup.customer.points} />
-            <MovementsList movements={lookup.movements} />
-          </section>
+          <>
+            <section className="grid gap-5 pb-5 lg:grid-cols-[1.2fr_0.8fr]">
+              <RewardsGrid rewards={lookup.rewards} points={lookup.customer.points} />
+              <MovementsList movements={lookup.movements} />
+            </section>
+
+            <div className="pb-10">
+              <ProfileDataNotice customer={lookup.customer} />
+            </div>
+          </>
         )}
 
         <footer className="relative border-t border-white/10 py-6 text-center text-xs text-white/35">

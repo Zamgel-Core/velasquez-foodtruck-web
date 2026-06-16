@@ -14,14 +14,14 @@ type FooterProps = {
 export function Footer({ setLegalModal, t }: FooterProps) {
   return (
     <footer className="relative overflow-hidden border-t border-white/10 bg-black px-4 py-12">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.1),transparent_45%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.1),transparent_45%)]" />
 
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center gap-7 text-center">
         <a
           href="https://zamgelcore.com"
           target="_blank"
           rel="noreferrer"
-          className="group flex items-center gap-4 rounded-3xl border border-orange-500/20 bg-white/[0.03] px-6 py-4 shadow-[0_0_35px_rgba(249,115,22,0.08)] transition duration-300 hover:scale-[1.02] hover:border-orange-500/40 hover:bg-orange-500/10"
+          className="group flex items-center gap-4 rounded-3xl border border-orange-500/30 bg-orange-500/10 px-6 py-4 shadow-[0_0_35px_rgba(249,115,22,0.10)] transition duration-300 hover:scale-[1.02] hover:border-orange-400/50 hover:bg-orange-500/15"
         >
           <img
             src="/images/zamgelcore-zc-logo.png"
@@ -54,21 +54,21 @@ export function Footer({ setLegalModal, t }: FooterProps) {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={() => setLegalModal("terms")}
-            className="rounded-full border border-white/10 bg-white/[0.03] px-5 py-2 text-sm font-bold text-white/60 transition hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-300"
+            className="rounded-full border border-white/10 bg-white/[0.03] px-5 py-2 text-sm font-bold text-white/60 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
           >
             {t.terms}
           </button>
 
           <button
             onClick={() => setLegalModal("privacy")}
-            className="rounded-full border border-white/10 bg-white/[0.03] px-5 py-2 text-sm font-bold text-white/60 transition hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-300"
+            className="rounded-full border border-white/10 bg-white/[0.03] px-5 py-2 text-sm font-bold text-white/60 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
           >
             {t.privacy}
           </button>
 
           <button
             onClick={() => setLegalModal("food")}
-            className="rounded-full border border-white/10 bg-white/[0.03] px-5 py-2 text-sm font-bold text-white/60 transition hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-300"
+            className="rounded-full border border-white/10 bg-white/[0.03] px-5 py-2 text-sm font-bold text-white/60 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
           >
             {t.food}
           </button>

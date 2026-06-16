@@ -236,14 +236,14 @@ export default function TvMenuPage() {
         recordingMode ? "aspect-video" : ""
       }`}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.22),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(234,88,12,0.16),transparent_35%)]" />
-      <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-orange-500/15 blur-3xl" />
-      <div className="absolute -right-20 bottom-10 h-80 w-80 rounded-full bg-orange-600/10 blur-3xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.22),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(220,38,38,0.16),transparent_35%)]" />
+      <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-red-500/15 blur-3xl" />
+      <div className="absolute -right-20 bottom-10 h-80 w-80 rounded-full bg-red-600/10 blur-3xl" />
 
       <div className="relative z-10 flex h-screen flex-col overflow-hidden px-5 py-4">
         <header className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-orange-500/30 bg-black/55 p-3 shadow-[0_0_40px_rgba(249,115,22,0.28)]">
+            <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-red-500/30 bg-black/55 p-3 shadow-[0_0_40px_rgba(249,115,22,0.28)]">
               <img
                 src="/images/velasquez-logo.png"
                 alt="Velasquez Food Truck"
@@ -253,7 +253,7 @@ export default function TvMenuPage() {
 
             <div className="flex items-center gap-7">
               <div>
-                <p className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.35em] text-orange-300">
+                <p className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.35em] text-red-300">
                   <Sparkles className="h-3 w-3" />
                   Velasquez Food Truck
                 </p>
@@ -270,7 +270,7 @@ export default function TvMenuPage() {
                   Hecho al momento
                 </p>
 
-                <p className="text-2xl font-black text-orange-400">
+                <p className="text-2xl font-black text-red-400">
                   Fresh • Hot • Authentic
                 </p>
               </div>
@@ -279,7 +279,7 @@ export default function TvMenuPage() {
 
           {!recordingMode && (
             <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 backdrop-blur-md">
-              <Clock className="h-5 w-5 text-orange-300" />
+              <Clock className="h-5 w-5 text-red-300" />
 
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/45">
@@ -300,7 +300,7 @@ export default function TvMenuPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.7, ease: "easeOut" }}
-              className="relative overflow-hidden rounded-[1.5rem] border border-orange-500/20 bg-black/55 shadow-[0_0_55px_rgba(249,115,22,0.15)]"
+              className="relative overflow-hidden rounded-[1.5rem] border border-red-500/20 bg-black/55 shadow-[0_0_55px_rgba(249,115,22,0.15)]"
             >
               {featuredItem ? (
                 <>
@@ -318,7 +318,7 @@ export default function TvMenuPage() {
 
                   <div className="relative flex h-full flex-col justify-between p-6">
                     <div>
-                      <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/25 bg-orange-600/20 px-4 py-2 text-sm font-black uppercase tracking-[0.18em] text-orange-200">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-red-500/25 bg-red-600/20 px-4 py-2 text-sm font-black uppercase tracking-[0.18em] text-red-200">
                         <Flame className="h-4 w-4" />
                         {activeCategory}
                       </div>
@@ -338,7 +338,7 @@ export default function TvMenuPage() {
                           Precio
                         </p>
 
-                        <p className="text-5xl font-black text-orange-400 drop-shadow-[0_0_20px_rgba(249,115,22,0.45)] xl:text-7xl">
+                        <p className="text-5xl font-black text-red-400 drop-shadow-[0_0_20px_rgba(249,115,22,0.45)] xl:text-7xl">
                           {featuredItem.price}
                         </p>
                       </div>
@@ -366,10 +366,10 @@ export default function TvMenuPage() {
           <aside className="flex flex-col gap-3 overflow-hidden">
             <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.05] p-3 backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <QrCode className="h-6 w-6 text-orange-300" />
+                <QrCode className="h-6 w-6 text-red-300" />
 
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-orange-200">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-200">
                     Ordena desde tu teléfono
                   </p>
 
@@ -424,7 +424,7 @@ export default function TvMenuPage() {
                         </p>
                       </div>
 
-                      <p className="text-lg font-black text-orange-300">
+                      <p className="text-lg font-black text-red-300">
                         {item.price}
                       </p>
                     </div>
@@ -439,7 +439,7 @@ export default function TvMenuPage() {
 
             <div className="mt-auto grid grid-cols-[1fr_auto] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5">
               <div className="flex items-center gap-3">
-                <Truck className="h-5 w-5 text-orange-400" />
+                <Truck className="h-5 w-5 text-red-400" />
 
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/50">
                   Se actualiza automáticamente
@@ -480,7 +480,7 @@ export default function TvMenuPage() {
                 }}
                 className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 ${
                   activeCategory === category
-                    ? "border-orange-500 bg-orange-600 text-white shadow-[0_0_20px_rgba(249,115,22,0.45)]"
+                    ? "border-red-500 bg-red-600 text-white shadow-[0_0_20px_rgba(249,115,22,0.45)]"
                     : "border-white/10 bg-white/[0.04] text-white/55"
                 }`}
               >

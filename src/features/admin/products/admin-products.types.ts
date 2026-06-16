@@ -14,7 +14,9 @@ export type AdminProduct = {
   id: string;
   category_id: string | null;
   name: string;
+  name_en: string | null;
   description: string | null;
+  description_en: string | null;
   price: number;
   image_url: string | null;
   is_available: boolean;
@@ -29,9 +31,13 @@ export type ProductFormData = {
   id?: string;
   category_id: string;
   name: string;
+  name_en: string;
   description: string;
+  description_en: string;
   price: string;
   image_url: string;
+  image_file?: File | null;
+  image_preview_url?: string;
   is_available: boolean;
   is_featured: boolean;
   prep_time_minutes: string;

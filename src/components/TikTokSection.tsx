@@ -82,7 +82,7 @@ export function TikTokSection({ lang }: TikTokSectionProps) {
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-orange-200">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-red-200">
               <Play className="h-4 w-4" />
               TikTok
             </div>
@@ -102,7 +102,7 @@ export function TikTokSection({ lang }: TikTokSectionProps) {
             href="https://www.tiktok.com/@velasquezfoodtruck"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-orange-500/40 bg-orange-500/10 px-5 py-3 text-sm font-black text-orange-100 transition hover:bg-orange-500 hover:text-white"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-500/40 bg-red-500/10 px-5 py-3 text-sm font-black text-red-100 transition hover:bg-red-500 hover:text-white"
           >
             {lang === "es" ? "Ver en TikTok" : "View on TikTok"}
             <ExternalLink className="h-4 w-4" />
@@ -135,7 +135,7 @@ export function TikTokSection({ lang }: TikTokSectionProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.08 }}
-                className="overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-b from-white/[0.06] to-white/[0.025] p-3 shadow-2xl shadow-black/50 transition hover:border-orange-500/45 hover:shadow-orange-500/10"
+                className="overflow-hidden rounded-3xl border border-red-500/20 bg-gradient-to-b from-white/[0.06] to-white/[0.025] p-3 shadow-2xl shadow-black/50 transition hover:border-red-500/45 hover:shadow-red-500/10"
               >
                 <div className="mb-3 px-2 pt-2">
                   <h3 className="line-clamp-2 text-base font-black text-white">
@@ -161,7 +161,7 @@ export function TikTokSection({ lang }: TikTokSectionProps) {
                         href={video.video_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-sm font-bold text-orange-300"
+                        className="text-sm font-bold text-red-300"
                       >
                         {video.title}
                       </a>

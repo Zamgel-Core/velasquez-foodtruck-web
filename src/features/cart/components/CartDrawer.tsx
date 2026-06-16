@@ -71,7 +71,7 @@ function isBeverageItem(item: CartItem) {
   ].some((word) => text.includes(word));
 }
 
-function buildDisplayNotes(item: CartItem) {
+function buildDisplayNotes(item: CartItem, lang: Lang) {
   const parts: string[] = [];
 
   if (item.selectedProtein) {
@@ -80,7 +80,7 @@ function buildDisplayNotes(item: CartItem) {
         ? ` +$${item.selectedProtein.extraPrice.toFixed(2)}`
         : "";
 
-    parts.push(`Proteína: ${item.selectedProtein.label}${extra}`);
+    parts.push(`${lang === "es" ? "Proteína" : "Protein"}: ${item.selectedProtein.label}${extra}`);
   }
 
   if (item.notes?.trim()) {
@@ -328,11 +328,11 @@ export default function CartDrawer({
           audio.play().catch(() => {});
           setIsOpen((value) => !value);
         }}
-        className="fixed bottom-5 right-5 z-[9999] flex h-16 w-16 items-center justify-center rounded-full bg-orange-600 text-white shadow-[0_0_30px_rgba(234,88,12,0.55)] transition hover:-translate-y-1 hover:scale-105 hover:bg-orange-500 hover:shadow-[0_0_42px_rgba(234,88,12,0.75)]"
+        className="fixed bottom-5 right-5 z-[9999] flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-white shadow-[0_0_30px_rgba(220,38,38,0.55)] transition hover:-translate-y-1 hover:scale-105 hover:bg-red-500 hover:shadow-[0_0_42px_rgba(220,38,38,0.75)]"
         aria-label={t.openCart}
       >
         {totalItems > 0 && (
-          <span className="absolute inset-0 animate-ping rounded-full bg-orange-500/25" />
+          <span className="absolute inset-0 animate-ping rounded-full bg-red-500/25" />
         )}
         <ShoppingCart size={28} />
 
@@ -353,10 +353,10 @@ export default function CartDrawer({
       )}
 
       {isOpen && (
-        <div className="fixed bottom-24 right-5 z-[9999] w-[380px] max-w-[calc(100vw-24px)] overflow-hidden rounded-3xl border border-orange-500/20 bg-[#0a0a0a]/95 shadow-[0_0_48px_rgba(234,88,12,0.18)] backdrop-blur-xl">
+        <div className="fixed bottom-24 right-5 z-[9999] w-[380px] max-w-[calc(100vw-24px)] overflow-hidden rounded-3xl border border-red-500/20 bg-[#0a0a0a]/95 shadow-[0_0_48px_rgba(220,38,38,0.18)] backdrop-blur-xl">
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
             <div className="flex items-center gap-3">
-              <ShoppingCart className="text-orange-500" size={24} />
+              <ShoppingCart className="text-red-500" size={24} />
 
               <div>
                 <h3 className="font-black text-white">{t.title}</h3>
@@ -367,7 +367,7 @@ export default function CartDrawer({
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="rounded-full bg-orange-600 px-3 py-1 text-sm font-black text-white">
+              <div className="rounded-full bg-red-600 px-3 py-1 text-sm font-black text-white">
                 ${subtotal.toFixed(2)}
               </div>
 
@@ -390,7 +390,7 @@ export default function CartDrawer({
               <div className="space-y-4">
                 {items.map((item) => {
                   const itemId = getItemId(item);
-                  const displayNotes = buildDisplayNotes(item);
+                  const displayNotes = buildDisplayNotes(item, lang);
                   const canCustomize = !isBeverageItem(item);
 
                   return (
@@ -432,12 +432,12 @@ export default function CartDrawer({
                             </button>
                           </div>
 
-                          <p className="mt-2 text-sm font-bold text-orange-500">
+                          <p className="mt-2 text-sm font-bold text-red-500">
                             ${(item.price * item.quantity).toFixed(2)}
                           </p>
 
                           {displayNotes && (
-                            <div className="mt-2 rounded-xl border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-xs font-bold text-orange-100">
+                            <div className="mt-2 rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-100">
                               {displayNotes}
                             </div>
                           )}
@@ -457,7 +457,7 @@ export default function CartDrawer({
 
                             <button
                               onClick={() => increaseItem(itemId)}
-                              className="rounded-full bg-orange-600 p-2 text-white hover:bg-orange-500"
+                              className="rounded-full bg-red-600 p-2 text-white hover:bg-red-500"
                               aria-label={t.increase}
                             >
                               <Plus size={14} />
@@ -466,7 +466,7 @@ export default function CartDrawer({
                             {canCustomize && (
                               <button
                                 onClick={() => openCustomize(item)}
-                                className="ml-auto inline-flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-black text-orange-100 transition hover:bg-orange-500/20"
+                                className="ml-auto inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-black text-red-100 transition hover:bg-red-500/20"
                               >
                                 <Pencil size={13} />
                                 {t.customize}
@@ -503,7 +503,7 @@ export default function CartDrawer({
 
                 <p className="text-sm text-white/50">{t.itemNotes}</p>
 
-                <p className="mt-1 text-xs font-bold text-orange-300">
+                <p className="mt-1 text-xs font-bold text-red-300">
                   {t.regularNote}
                 </p>
               </div>
@@ -536,7 +536,7 @@ export default function CartDrawer({
                       }
                       className={`inline-flex items-center gap-1 rounded-full border px-3 py-2 text-xs font-bold transition ${
                         active
-                          ? "border-orange-500 bg-orange-500/25 text-orange-100"
+                          ? "border-red-500 bg-red-500/25 text-red-100"
                           : "border-green-500/30 bg-green-500/10 text-green-100 hover:bg-green-500/20"
                       }`}
                     >
@@ -561,7 +561,7 @@ export default function CartDrawer({
                     key={note}
                     type="button"
                     onClick={() => addQuickNote(note)}
-                    className="inline-flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-bold text-orange-100 transition hover:bg-orange-500/20"
+                    className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-100 transition hover:bg-red-500/20"
                   >
                     <Plus className="h-3 w-3" />
                     {note}
@@ -575,7 +575,7 @@ export default function CartDrawer({
               onChange={(event) => setDraftNotes(event.target.value)}
               placeholder={t.notesPlaceholder}
               rows={4}
-              className="mt-4 w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              className="mt-4 w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
             />
 
             <div className="mt-5 grid grid-cols-2 gap-3">
@@ -592,7 +592,7 @@ export default function CartDrawer({
 
               <button
                 onClick={saveItemNotes}
-                className="rounded-full bg-orange-600 px-5 py-3 font-black text-white transition hover:bg-orange-500"
+                className="rounded-full bg-red-600 px-5 py-3 font-black text-white transition hover:bg-red-500"
               >
                 {t.save}
               </button>
@@ -613,16 +613,16 @@ export default function CartDrawer({
 
       {successOrderNumber && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 px-4 backdrop-blur-md">
-          <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-orange-500/25 bg-[#0a0a0a] p-6 text-center text-white shadow-2xl shadow-orange-950/30">
-            <div className="absolute left-1/2 top-0 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-500/20 blur-3xl" />
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-400/60 to-transparent" />
+          <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-red-500/25 bg-[#0a0a0a] p-6 text-center text-white shadow-2xl shadow-red-950/30">
+            <div className="absolute left-1/2 top-0 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500/20 blur-3xl" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-400/60 to-transparent" />
 
             <div className="relative">
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-green-400/30 bg-green-500/10 text-green-300 shadow-[0_0_35px_rgba(34,197,94,0.22)]">
                 <CheckCircle2 className="h-11 w-11" />
               </div>
 
-              <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-orange-300">
+              <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-red-300">
                 <Sparkles className="h-3.5 w-3.5" />
                 Velasquez Food Truck
               </div>
@@ -635,12 +635,12 @@ export default function CartDrawer({
                 {t.orderCreatedSubtitle}
               </p>
 
-              <div className="mt-6 rounded-[1.5rem] border border-orange-500/25 bg-orange-500/10 p-5">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-orange-300">
+              <div className="mt-6 rounded-[1.5rem] border border-red-500/25 bg-red-500/10 p-5">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-red-300">
                   {t.orderCode}
                 </p>
 
-                <p className="mt-2 text-5xl font-black tracking-tight text-orange-400 drop-shadow-[0_0_18px_rgba(251,146,60,0.45)]">
+                <p className="mt-2 text-5xl font-black tracking-tight text-red-400 drop-shadow-[0_0_18px_rgba(248,113,113,0.45)]">
                   #{successOrderNumber}
                 </p>
               </div>
@@ -673,7 +673,7 @@ export default function CartDrawer({
                   setSuccessOrderNumber("");
                   setIsOpen(false);
                 }}
-                className="mt-3 w-full rounded-2xl bg-orange-600 px-5 py-4 font-black text-white shadow-lg shadow-orange-600/20 transition hover:-translate-y-0.5 hover:bg-orange-500"
+                className="mt-3 w-full rounded-2xl bg-red-600 px-5 py-4 font-black text-white shadow-lg shadow-red-600/20 transition hover:-translate-y-0.5 hover:bg-red-500"
               >
                 {t.understood}
               </button>

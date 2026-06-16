@@ -1,7 +1,7 @@
 // 📍 Ruta: src/components/Navbar.tsx
 
 import { useRef } from "react";
-import { Menu, PackageSearch, X } from "lucide-react";
+import { Gift, Menu, PackageSearch, X } from "lucide-react";
 import type { Lang } from "../types";
 
 type NavbarProps = {
@@ -15,6 +15,7 @@ type NavbarProps = {
     navMenu: string;
     navLocation: string;
     navContact: string;
+    navLoyalty: string;
   };
 };
 
@@ -85,42 +86,50 @@ export function Navbar({
             <p className="text-sm font-black tracking-wide sm:text-base">
               Velasquez
             </p>
-            <p className="text-xs text-orange-400">Food Truck</p>
+            <p className="text-xs text-red-400">Food Truck</p>
           </div>
         </button>
 
         <div className="hidden items-center gap-7 md:flex">
           <button
             onClick={() => scrollTo("home")}
-            className="hover:text-orange-400"
+            className="hover:text-red-400"
           >
             {t.navHome}
           </button>
 
           <button
             onClick={() => scrollTo("menu")}
-            className="hover:text-orange-400"
+            className="hover:text-red-400"
           >
             {t.navMenu}
           </button>
 
           <button
             onClick={() => scrollTo("location")}
-            className="hover:text-orange-400"
+            className="hover:text-red-400"
           >
             {t.navLocation}
           </button>
 
           <button
             onClick={() => scrollTo("contact")}
-            className="hover:text-orange-400"
+            className="hover:text-red-400"
           >
             {t.navContact}
           </button>
 
+          <button
+            onClick={() => scrollTo("lealtad")}
+            className="inline-flex items-center gap-2 font-bold text-red-100 transition hover:text-red-400"
+          >
+            <Gift className="h-4 w-4" />
+            {t.navLoyalty}
+          </button>
+
           <a
             href="/mi-pedido"
-            className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-black text-orange-200 transition hover:bg-orange-500/20"
+            className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-black text-red-100 transition hover:bg-red-500/20"
           >
             <PackageSearch className="h-4 w-4" />
             {lang === "es" ? "Mi Pedido" : "My Order"}
@@ -128,7 +137,7 @@ export function Navbar({
 
           <button
             onClick={() => setLang(lang === "es" ? "en" : "es")}
-            className="rounded-full border border-orange-500/40 px-3 py-1 text-sm font-bold text-orange-300"
+            className="rounded-full border border-red-500/40 px-3 py-1 text-sm font-bold text-red-200"
           >
             {lang === "es" ? "EN" : "ES"}
           </button>
@@ -148,6 +157,10 @@ export function Navbar({
           <div className="flex flex-col gap-4">
             <button onClick={() => scrollTo("home")}>{t.navHome}</button>
             <button onClick={() => scrollTo("menu")}>{t.navMenu}</button>
+            <button onClick={() => scrollTo("lealtad")} className="inline-flex items-center justify-center gap-2 font-bold text-red-100">
+              <Gift className="h-4 w-4" />
+              {t.navLoyalty}
+            </button>
             <button onClick={() => scrollTo("location")}>
               {t.navLocation}
             </button>
@@ -155,7 +168,7 @@ export function Navbar({
 
             <a
               href="/mi-pedido"
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-3 font-black text-orange-200"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-3 font-black text-red-100"
             >
               <PackageSearch className="h-4 w-4" />
               {lang === "es" ? "Mi Pedido" : "My Order"}
@@ -163,7 +176,7 @@ export function Navbar({
 
             <button
               onClick={() => setLang(lang === "es" ? "en" : "es")}
-              className="rounded-full bg-orange-600 px-4 py-2 font-bold"
+              className="rounded-full bg-red-600 px-4 py-2 font-bold"
             >
               {lang === "es" ? "English" : "Español"}
             </button>

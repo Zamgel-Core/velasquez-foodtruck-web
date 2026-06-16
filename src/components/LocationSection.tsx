@@ -49,11 +49,11 @@ export function LocationSection({
 
   return (
     <section id="location" className="relative overflow-hidden px-4 py-20">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.12),transparent_35%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.12),transparent_35%)]" />
 
       <div className="relative z-10 mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/25 bg-orange-500/10 px-4 py-2 text-sm font-black text-orange-300">
+          <div className="inline-flex items-center gap-2 rounded-full border border-red-500/25 bg-red-500/10 px-4 py-2 text-sm font-black text-red-300">
             <MapPin className="h-4 w-4" />
             {isSpanish ? "Ubicación" : "Location"}
           </div>
@@ -67,9 +67,9 @@ export function LocationSection({
               href={directionsUrl}
               target="_blank"
               rel="noreferrer"
-              className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-orange-500/40 hover:bg-orange-500/10"
+              className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-red-500/40 hover:bg-red-500/10"
             >
-              <Navigation className="h-6 w-6 text-orange-400" />
+              <Navigation className="h-6 w-6 text-red-400" />
               <p className="mt-3 text-lg font-black">
                 {isSpanish ? "Cómo llegar" : "Get directions"}
               </p>
@@ -80,9 +80,9 @@ export function LocationSection({
 
             <a
               href={`tel:${phoneHref}`}
-              className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-orange-500/40 hover:bg-orange-500/10"
+              className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-red-500/40 hover:bg-red-500/10"
             >
-              <Phone className="h-6 w-6 text-orange-400" />
+              <Phone className="h-6 w-6 text-red-400" />
               <p className="mt-3 text-lg font-black">
                 {isSpanish ? "Llámanos" : "Call us"}
               </p>
@@ -92,7 +92,7 @@ export function LocationSection({
 
           <div className="mt-6 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
             <h3 className="mb-4 flex items-center gap-3 text-2xl font-black">
-              <Clock className="h-6 w-6 text-orange-500" />
+              <Clock className="h-6 w-6 text-red-500" />
               {isSpanish ? "Horario" : "Hours"}
             </h3>
 
@@ -102,7 +102,7 @@ export function LocationSection({
                   key={day!.key}
                   className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/25 px-4 py-3"
                 >
-                  <span className="font-black text-orange-300">
+                  <span className="font-black text-red-300">
                     {dayLabels[day!.key]?.[lang] ?? day!.label}
                   </span>
                   <span className="text-sm font-semibold text-white/70">
@@ -114,10 +114,10 @@ export function LocationSection({
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[2rem] border border-orange-500/15 bg-zinc-900 shadow-[0_0_45px_rgba(249,115,22,0.12)]">
+        <div className="overflow-hidden rounded-[2rem] border border-red-500/15 bg-zinc-900 shadow-[0_0_45px_rgba(239,68,68,0.12)]">
           <div className="flex items-center justify-between border-b border-white/10 bg-black/35 px-5 py-4">
             <div className="flex items-center gap-3">
-              <Store className="h-5 w-5 text-orange-400" />
+              <Store className="h-5 w-5 text-red-400" />
               <p className="font-black">{settings.business_name}</p>
             </div>
 
@@ -125,7 +125,7 @@ export function LocationSection({
               href={directionsUrl}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full bg-orange-600 px-4 py-2 text-sm font-black transition hover:bg-orange-500"
+              className="rounded-full bg-red-600 px-4 py-2 text-sm font-black transition hover:bg-red-500"
             >
               {isSpanish ? "Ir" : "Go"}
             </a>

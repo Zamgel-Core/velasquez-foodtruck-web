@@ -6,7 +6,9 @@ import type { Product } from "../types/product.types";
 type ProductRow = {
   id: string;
   name: string;
+  name_en: string | null;
   description: string | null;
+  description_en: string | null;
   price: number;
   image_url: string | null;
   is_available: boolean;
@@ -24,7 +26,9 @@ export async function getProducts(): Promise<Product[]> {
       `
       id,
       name,
+      name_en,
       description,
+      description_en,
       price,
       image_url,
       is_available,
@@ -35,7 +39,6 @@ export async function getProducts(): Promise<Product[]> {
       )
     `,
     )
-    .eq("is_available", true)
     .order("sort_order", { ascending: true });
 
   if (error) {
@@ -46,7 +49,9 @@ export async function getProducts(): Promise<Product[]> {
   return (data ?? []).map((product: ProductRow) => ({
     id: product.id,
     name: product.name,
+    name_en: product.name_en ?? "",
     description: product.description ?? "",
+    description_en: product.description_en ?? "",
     price: Number(product.price),
     image_url: product.image_url ?? "/images/regular_tacos.png",
     category: product.categories?.name ?? "Extras",

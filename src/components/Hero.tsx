@@ -42,8 +42,8 @@ export function Hero({ businessStatus, t }: HeroProps) {
 
       <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />
-      <div className="absolute left-10 top-32 h-56 w-56 rounded-full bg-orange-600/10 blur-3xl" />
-      <div className="absolute bottom-20 right-20 h-72 w-72 rounded-full bg-orange-500/10 blur-3xl" />
+      <div className="absolute left-10 top-32 h-56 w-56 rounded-full bg-red-600/10 blur-3xl" />
+      <div className="absolute bottom-20 right-20 h-72 w-72 rounded-full bg-red-500/10 blur-3xl" />
 
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -57,7 +57,7 @@ export function Hero({ businessStatus, t }: HeroProps) {
               businessStatus.isOpen
                 ? businessStatus.isClosingSoon
                   ? "border-yellow-500/40 bg-yellow-500/10 text-yellow-300 shadow-yellow-500/10"
-                  : "border-orange-500/40 bg-orange-500/10 text-orange-300 shadow-orange-500/10"
+                  : "border-red-500/40 bg-red-500/10 text-red-300 shadow-red-500/10"
                 : "border-red-500/40 bg-red-500/10 text-red-300 shadow-red-500/10"
             }`}
           >
@@ -83,7 +83,7 @@ export function Hero({ businessStatus, t }: HeroProps) {
             {t.hero1}
             <br />
 
-            <span className="text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.8)]">
+            <span className="text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)]">
               {t.hero2}
             </span>
 
@@ -110,7 +110,7 @@ export function Hero({ businessStatus, t }: HeroProps) {
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-orange-600 px-6 py-4 font-black shadow-[0_0_25px_rgba(234,88,12,0.45)] transition hover:-translate-y-1 hover:scale-105 hover:bg-orange-500 hover:shadow-[0_0_34px_rgba(234,88,12,0.65)]"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-6 py-4 font-black shadow-[0_0_25px_rgba(220,38,38,0.45)] transition hover:-translate-y-1 hover:scale-105 hover:bg-red-500 hover:shadow-[0_0_34px_rgba(220,38,38,0.65)]"
             >
               <Navigation size={20} />
               {t.viewLocation}

@@ -17,6 +17,7 @@ import {
   MessageCircle,
   Minimize,
   PackageCheck,
+  Printer,
   RefreshCw,
   Search,
   Truck,
@@ -26,6 +27,7 @@ import {
 import { useRealtimeOrders } from "./useRealtimeOrders";
 import { useOrderAlerts } from "./useOrderAlerts";
 import type { AdminOrder, OrderStatus } from "./admin-orders.types";
+import { printOrderTicket } from "../printing/ticket-printing";
 
 function playUiSound(src: string, volume = 0.6) {
   try {
@@ -260,6 +262,22 @@ function OrderCard({
     }
   };
 
+  const handlePrintCustomerTicket = () => {
+    printOrderTicket({
+      order,
+      type: "customer",
+      language: "es",
+    });
+  };
+
+  const handlePrintKitchenTicket = () => {
+    printOrderTicket({
+      order,
+      type: "kitchen",
+      language: "es",
+    });
+  };
+
   return (
     <motion.article
       layout
@@ -464,6 +482,26 @@ function OrderCard({
         </button>
       </div>
 
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={handlePrintCustomerTicket}
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/35 bg-red-500/10 px-3 py-2 text-xs font-black text-red-100 shadow-lg shadow-red-500/10 transition hover:border-red-400/60 hover:bg-red-500/20 hover:shadow-red-500/20"
+        >
+          <Printer className="h-5 w-5" />
+          Imprimir cliente
+        </button>
+
+        <button
+          type="button"
+          onClick={handlePrintKitchenTicket}
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/35 bg-red-500/10 px-3 py-2 text-xs font-black text-red-100 shadow-lg shadow-red-500/10 transition hover:border-red-400/60 hover:bg-red-500/20 hover:shadow-red-500/20"
+        >
+          <ChefHat className="h-5 w-5" />
+          Imprimir cocina
+        </button>
+      </div>
+
       {whatsAppLink && (
         <a
           href={whatsAppLink}
@@ -604,7 +642,7 @@ export default function OrdersDashboard() {
                 isKitchenMode ? "text-3xl lg:text-4xl" : "text-3xl sm:text-4xl"
               } font-black`}
             >
-              Órdenes <span className="text-orange-500">Velasquez</span>
+              Órdenes <span className="text-red-500">Velasquez</span>
             </h1>
 
             {!isKitchenMode && (

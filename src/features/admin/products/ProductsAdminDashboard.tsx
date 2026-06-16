@@ -7,10 +7,12 @@ import {
   Edit3,
   Eye,
   EyeOff,
+  ImagePlus,
   Plus,
   RefreshCw,
   Save,
   Search,
+  Trash2,
   Tag,
   X,
 } from "lucide-react";
@@ -36,6 +38,20 @@ function formatMoney(value: number) {
   }).format(value);
 }
 
+const MAX_IMAGE_SIZE_MB = 6;
+
+function validateProductImage(file: File) {
+  if (!file.type.startsWith("image/")) {
+    return "Selecciona un archivo de imagen válido.";
+  }
+
+  if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+    return `La imagen debe pesar menos de ${MAX_IMAGE_SIZE_MB}MB.`;
+  }
+
+  return "";
+}
+
 function ProductFormModal({
   form,
   categories,
@@ -53,14 +69,14 @@ function ProductFormModal({
 }) {
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
-      <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/10 bg-[#0a0a0a] p-5 text-white shadow-2xl">
+      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-red-500/20 bg-[#0a0a0a] p-5 text-white shadow-2xl shadow-red-950/20">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-black">
-              {form.id ? "Editar producto" : "Nuevo producto"}
+              {form.id ? "Editar elemento del menú" : "Agregar elemento al menú"}
             </h2>
             <p className="text-sm text-white/50">
-              Controla menú, precios, disponibilidad e imagen.
+              Controla nombres bilingües, precios, disponibilidad e imagen.
             </p>
           </div>
 
@@ -73,15 +89,27 @@ function ProductFormModal({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="sm:col-span-2">
+          <label>
             <span className="mb-2 block text-sm font-bold text-white/70">
-              Nombre
+              Nombre (Español)
             </span>
             <input
               value={form.name}
               onChange={(e) => onChange({ ...form, name: e.target.value })}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
               placeholder="Ej. Regular Tacos"
+            />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-white/70">
+              Name (English)
+            </span>
+            <input
+              value={form.name_en}
+              onChange={(e) => onChange({ ...form, name_en: e.target.value })}
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
+              placeholder="Ex. Regular Tacos"
             />
           </label>
 
@@ -94,7 +122,7 @@ function ProductFormModal({
               onChange={(e) =>
                 onChange({ ...form, category_id: e.target.value })
               }
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
             >
               <option value="">Sin categoría</option>
               {categories.map((category) => (
@@ -119,7 +147,7 @@ function ProductFormModal({
               type="number"
               step="0.01"
               min="0"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
               placeholder="0.00"
             />
           </label>
@@ -135,7 +163,7 @@ function ProductFormModal({
               }
               type="number"
               min="0"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
               placeholder="10"
             />
           </label>
@@ -151,26 +179,107 @@ function ProductFormModal({
               }
               type="number"
               min="0"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
               placeholder="1"
             />
           </label>
 
-          <label className="sm:col-span-2">
+          <div className="sm:col-span-2">
             <span className="mb-2 block text-sm font-bold text-white/70">
-              Imagen URL
+              Imagen del producto
             </span>
-            <input
-              value={form.image_url}
-              onChange={(e) => onChange({ ...form, image_url: e.target.value })}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
-              placeholder="/images/product.png"
-            />
-          </label>
+
+            <div className="grid gap-4 rounded-3xl border border-red-500/20 bg-red-500/[0.04] p-4 sm:grid-cols-[180px_1fr]">
+              <div className="h-40 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+                {form.image_preview_url || form.image_url ? (
+                  <img
+                    src={form.image_preview_url || form.image_url}
+                    alt={form.name || "Producto"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-white/35">
+                    <ImagePlus className="h-8 w-8" />
+                    <span className="text-xs font-bold">Sin imagen</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col justify-center gap-3">
+                <p className="text-sm font-semibold leading-relaxed text-white/60">
+                  Sube una foto desde la computadora o tablet. Se guardará en Supabase Storage y aparecerá en el menú público, POS y TV Menu.
+                </p>
+
+                <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-600/25 transition hover:-translate-y-0.5 hover:bg-red-500">
+                  <ImagePlus className="h-5 w-5" />
+                  Subir imagen
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+
+                      const validationError = validateProductImage(file);
+                      if (validationError) {
+                        window.alert(validationError);
+                        event.target.value = "";
+                        return;
+                      }
+
+                      onChange({
+                        ...form,
+                        image_file: file,
+                        image_preview_url: URL.createObjectURL(file),
+                      });
+                    }}
+                  />
+                </label>
+
+                {(form.image_preview_url || form.image_url) && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onChange({
+                        ...form,
+                        image_url: "",
+                        image_file: null,
+                        image_preview_url: "",
+                      })
+                    }
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-black text-red-100 transition hover:bg-red-500/20"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                    Quitar imagen
+                  </button>
+                )}
+
+                <details className="rounded-2xl border border-white/10 bg-black/30 p-3 text-xs text-white/45">
+                  <summary className="cursor-pointer font-bold text-white/60">
+                    Usar URL manual avanzada
+                  </summary>
+                  <input
+                    value={form.image_url}
+                    onChange={(e) =>
+                      onChange({
+                        ...form,
+                        image_url: e.target.value,
+                        image_file: null,
+                        image_preview_url: e.target.value,
+                      })
+                    }
+                    className="mt-3 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-red-500"
+                    placeholder="/images/product.png o URL externa"
+                  />
+                </details>
+              </div>
+            </div>
+          </div>
 
           <label className="sm:col-span-2">
             <span className="mb-2 block text-sm font-bold text-white/70">
-              Descripción
+              Descripción (Español)
             </span>
             <textarea
               value={form.description}
@@ -178,9 +287,27 @@ function ProductFormModal({
                 onChange({ ...form, description: e.target.value })
               }
               rows={4}
-              className="w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-orange-500"
-              placeholder="Descripción del producto..."
+              className="w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
+              placeholder="Descripción del producto en español..."
             />
+          </label>
+
+          <label className="sm:col-span-2">
+            <span className="mb-2 block text-sm font-bold text-white/70">
+              Description (English)
+            </span>
+            <textarea
+              value={form.description_en}
+              onChange={(e) =>
+                onChange({ ...form, description_en: e.target.value })
+              }
+              rows={4}
+              className="w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
+              placeholder="Product description in English..."
+            />
+            <span className="mt-2 block text-xs font-semibold text-red-200/70">
+              Recomendado: completa la versión en inglés para mantener el menú bilingüe.
+            </span>
           </label>
 
           <button
@@ -194,7 +321,7 @@ function ProductFormModal({
                 : "border-red-500/40 bg-red-500/15 text-red-100"
             }`}
           >
-            {form.is_available ? "Disponible" : "No disponible"}
+            {form.is_available ? "Disponible" : "Agotado temporalmente"}
           </button>
 
           <button
@@ -204,7 +331,7 @@ function ProductFormModal({
             }
             className={`rounded-2xl border px-4 py-3 font-black transition ${
               form.is_featured
-                ? "border-orange-500/40 bg-orange-500/15 text-orange-100"
+                ? "border-red-500/40 bg-red-500/15 text-red-100"
                 : "border-white/10 bg-white/5 text-white/60"
             }`}
           >
@@ -223,10 +350,10 @@ function ProductFormModal({
           <button
             onClick={onSave}
             disabled={saving}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-600 px-5 py-3 font-black text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-500 disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-red-500 disabled:opacity-60"
           >
             <Save className="h-5 w-5" />
-            {saving ? "Guardando..." : "Guardar producto"}
+            {saving ? "Guardando..." : "Guardar elemento"}
           </button>
         </div>
       </div>
@@ -276,6 +403,8 @@ export default function ProductsAdminDashboard() {
       !query ||
       product.name.toLowerCase().includes(query) ||
       product.description?.toLowerCase().includes(query) ||
+    product.name_en?.toLowerCase().includes(query) ||
+    product.description_en?.toLowerCase().includes(query) ||
       product.category?.name?.toLowerCase().includes(query);
 
     const matchesCategory =
@@ -312,8 +441,8 @@ export default function ProductsAdminDashboard() {
       await toggleProductAvailability(product);
       setSuccess(
         product.is_available
-          ? "Producto marcado como no disponible."
-          : "Producto marcado como disponible.",
+          ? "Elemento marcado como agotado en menú y POS."
+          : "Elemento marcado como disponible en menú y POS.",
       );
 
       await loadData();
@@ -359,13 +488,13 @@ export default function ProductsAdminDashboard() {
         <section className="mx-auto max-w-7xl">
           <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-300">
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-bold text-red-300">
                 <Tag className="h-4 w-4" />
                 Admin menú
               </div>
 
               <h1 className="text-3xl font-black sm:text-4xl">
-                Productos <span className="text-orange-500">Velasquez</span>
+                Productos <span className="text-red-500">Velasquez</span>
               </h1>
 
               <p className="mt-1 text-sm text-white/60">
@@ -384,7 +513,7 @@ export default function ProductsAdminDashboard() {
 
               <button
                 onClick={() => setForm(createEmptyProductForm())}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-600 px-5 py-3 font-black text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-500"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-red-500"
               >
                 <Plus className="h-5 w-5" />
                 Nuevo producto
@@ -400,14 +529,14 @@ export default function ProductsAdminDashboard() {
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Buscar producto..."
-                  className="w-full rounded-2xl border border-white/10 bg-black/30 py-3 pl-10 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-white/30 focus:border-orange-500/60"
+                  className="w-full rounded-2xl border border-white/10 bg-black/30 py-3 pl-10 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-white/30 focus:border-red-500/60"
                 />
               </div>
 
               <select
                 value={categoryFilter}
                 onChange={(event) => setCategoryFilter(event.target.value)}
-                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-bold text-white outline-none focus:border-orange-500/60"
+                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/60"
               >
                 <option value="all">Todas las categorías</option>
                 {categories.map((category) => (
@@ -458,7 +587,7 @@ export default function ProductsAdminDashboard() {
               {filteredProducts.map((product) => (
                 <article
                   key={product.id}
-                  className="grid gap-4 rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-orange-950/10 lg:grid-cols-[120px_1fr_auto]"
+                  className="grid gap-4 rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-red-950/10 lg:grid-cols-[120px_1fr_auto]"
                 >
                   <div className="h-28 overflow-hidden rounded-2xl border border-white/10 bg-black/30">
                     {product.image_url ? (
@@ -487,11 +616,11 @@ export default function ProductsAdminDashboard() {
                             : "border-red-500/40 bg-red-500/10 text-red-200"
                         }`}
                       >
-                        {product.is_available ? "Disponible" : "No disponible"}
+                        {product.is_available ? "Disponible" : "Agotado"}
                       </span>
 
                       {product.is_featured && (
-                        <span className="rounded-full border border-orange-500/40 bg-orange-500/10 px-3 py-1 text-xs font-black text-orange-200">
+                        <span className="rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-black text-red-200">
                           Destacado
                         </span>
                       )}
@@ -511,7 +640,7 @@ export default function ProductsAdminDashboard() {
                   <div className="flex flex-col gap-2 lg:min-w-[220px]">
                     <button
                       onClick={() => handleQuickPrice(product)}
-                      className="rounded-2xl border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-left font-black text-orange-200 transition hover:bg-orange-500/20"
+                      className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-left font-black text-red-200 transition hover:bg-red-500/20"
                     >
                       {formatMoney(product.price)}
                       <span className="ml-2 text-xs text-white/40">
@@ -538,12 +667,12 @@ export default function ProductsAdminDashboard() {
                       {product.is_available ? (
                         <>
                           <EyeOff className="h-5 w-5" />
-                          Ocultar
+                          Marcar agotado
                         </>
                       ) : (
                         <>
                           <Eye className="h-5 w-5" />
-                          Activar
+                          Marcar disponible
                         </>
                       )}
                     </button>

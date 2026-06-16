@@ -296,21 +296,21 @@ export default function OrderStatusPage() {
           {isEnglish ? "Back to menu" : "Volver al menú"}
         </a>
 
-        <div className="rounded-[2rem] border border-orange-500/25 bg-zinc-950 p-6 shadow-2xl shadow-orange-950/20 sm:p-8">
+        <div className="rounded-[2rem] border border-red-500/25 bg-zinc-950 p-6 shadow-2xl shadow-red-950/20 sm:p-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="mb-2 inline-flex rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-black text-orange-300">
+              <p className="mb-2 inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-black text-red-300">
                 {isEnglish ? "Live tracking" : "Seguimiento en vivo"}
               </p>
 
               <h1 className="text-4xl font-black sm:text-5xl">
                 {isEnglish ? (
                   <>
-                    My <span className="text-orange-500">Order</span>
+                    My <span className="text-red-500">Order</span>
                   </>
                 ) : (
                   <>
-                    Mi <span className="text-orange-500">Pedido</span>
+                    Mi <span className="text-red-500">Pedido</span>
                   </>
                 )}
               </h1>
@@ -347,13 +347,13 @@ export default function OrderStatusPage() {
                   ? "Order number or phone"
                   : "Número de orden o teléfono"
               }
-              className="min-h-16 flex-1 rounded-2xl border border-white/10 bg-zinc-900 px-5 py-4 text-lg font-bold outline-none transition placeholder:text-white/35 focus:border-orange-500/70"
+              className="min-h-16 flex-1 rounded-2xl border border-white/10 bg-zinc-900 px-5 py-4 text-lg font-bold outline-none transition placeholder:text-white/35 focus:border-red-500/70"
             />
 
             <button
               onClick={handleSearch}
               disabled={loading}
-              className="inline-flex min-h-16 items-center justify-center gap-2 rounded-2xl bg-orange-600 px-8 text-lg font-black text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-500 disabled:opacity-60"
+              className="inline-flex min-h-16 items-center justify-center gap-2 rounded-2xl bg-red-600 px-8 text-lg font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-red-500 disabled:opacity-60"
               type="button"
             >
               <Search className="h-6 w-6" />
@@ -388,7 +388,7 @@ export default function OrderStatusPage() {
                   <p className="text-sm font-bold text-white/45">
                     {isEnglish ? "Order" : "Orden"}
                   </p>
-                  <h2 className="text-4xl font-black text-orange-400">
+                  <h2 className="text-4xl font-black text-red-400">
                     #{order.order_number}
                   </h2>
                   <p className="mt-1 text-sm font-bold text-white/45">
@@ -398,8 +398,8 @@ export default function OrderStatusPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-orange-500/25 bg-orange-500/10 px-5 py-4 sm:text-right">
-                  <p className="text-xs font-black uppercase tracking-wide text-orange-300">
+                <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-5 py-4 sm:text-right">
+                  <p className="text-xs font-black uppercase tracking-wide text-red-300">
                     {isEnglish ? "Current status" : "Estado actual"}
                   </p>
                   <p className="mt-1 text-2xl font-black">
@@ -436,16 +436,16 @@ export default function OrderStatusPage() {
                         key={step.key}
                         className={`flex items-center gap-4 rounded-2xl border p-4 transition ${
                           active
-                            ? "border-orange-500/45 bg-orange-500/10"
+                            ? "border-red-500/45 bg-red-500/10"
                             : "border-white/10 bg-white/[0.04]"
                         }`}
                       >
                         <div
                           className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${
                             active
-                              ? "bg-orange-600 text-white"
+                              ? "bg-red-600 text-white"
                               : "bg-zinc-800 text-zinc-500"
-                          } ${current ? "shadow-lg shadow-orange-500/30" : ""}`}
+                          } ${current ? "shadow-lg shadow-red-500/30" : ""}`}
                         >
                           {active ? (
                             <CheckCircle2 className="h-7 w-7" />
@@ -499,7 +499,7 @@ export default function OrderStatusPage() {
                         )}
                       </div>
 
-                      <p className="font-black text-orange-300">
+                      <p className="font-black text-red-300">
                         {formatMoney(item.total_price)}
                       </p>
                     </div>
@@ -510,7 +510,7 @@ export default function OrderStatusPage() {
                   <p className="text-lg font-black text-white/60">
                     {isEnglish ? "Total" : "Total"}
                   </p>
-                  <p className="text-3xl font-black text-orange-400">
+                  <p className="text-3xl font-black text-red-400">
                     {formatMoney(order.total)}
                   </p>
                 </div>

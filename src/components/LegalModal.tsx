@@ -16,7 +16,7 @@ export function LegalModal({ legalModal, setLegalModal, title, text, closeLabel 
         <p className="mt-4 text-white/70">{text}</p>
         <button
           onClick={() => setLegalModal(null)}
-          className="mt-6 w-full rounded-full bg-orange-600 px-5 py-3 font-black"
+          className="mt-6 w-full rounded-full bg-red-600 px-5 py-3 font-black"
         >
           {closeLabel}
         </button>

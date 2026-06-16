@@ -55,8 +55,8 @@ const adminCards = [
     status: "active",
   },
   {
-    title: "Productos",
-    description: "Administrar menú, precios, disponibilidad e imágenes.",
+    title: "Menú",
+    description: "Agregar productos al menú, precios, imágenes y disponibilidad.",
     href: "/admin/products",
     icon: Package,
     roles: ["super_admin", "admin"],
@@ -83,6 +83,14 @@ const adminCards = [
     description: "Agregar videos de TikTok para mostrarlos en la página.",
     href: "/admin/social-videos",
     icon: Share2,
+    roles: ["super_admin", "admin"],
+    status: "active",
+  },
+  {
+    title: "Encuestas",
+    description: "Crear encuestas públicas y revisar respuestas de clientes.",
+    href: "/admin/surveys",
+    icon: BarChart3,
     roles: ["super_admin", "admin"],
     status: "active",
   },
@@ -138,7 +146,7 @@ export default function AdminPortalHome() {
       <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.25em] text-orange-200">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.25em] text-red-200">
               <Truck className="h-4 w-4" />
               Velasquez Admin
             </div>
@@ -156,14 +164,14 @@ export default function AdminPortalHome() {
 
           <a
             href="/"
-            className="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white/70 transition hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-100 sm:block"
+            className="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white/70 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-100 sm:block"
           >
             Ver página
           </a>
         </div>
 
         <div className="mb-5 flex items-center gap-2 text-sm font-black uppercase tracking-[0.2em] text-white/35">
-          <Sparkles className="h-4 w-4 text-orange-400" />
+          <Sparkles className="h-4 w-4 text-red-400" />
           Herramientas disponibles
         </div>
 
@@ -181,7 +189,7 @@ export default function AdminPortalHome() {
                   transition={{ delay: index * 0.06 }}
                   className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6 opacity-75 shadow-2xl shadow-black/30"
                 >
-                  <div className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-300">
+                  <div className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-red-300">
                     <Lock className="h-3 w-3" />
                     Próximamente
                   </div>
@@ -213,9 +221,9 @@ export default function AdminPortalHome() {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.06 }}
-                className="group rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/30 transition hover:-translate-y-1 hover:border-orange-500/50 hover:bg-orange-500/[0.08]"
+                className="group rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/30 transition hover:-translate-y-1 hover:border-red-500/50 hover:bg-red-500/[0.08]"
               >
-                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/15 text-orange-200">
+                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/15 text-red-200">
                   <Icon className="h-7 w-7" />
                 </div>
 
@@ -225,7 +233,7 @@ export default function AdminPortalHome() {
                   {card.description}
                 </p>
 
-                <div className="mt-6 flex items-center gap-2 text-sm font-black text-orange-300">
+                <div className="mt-6 flex items-center gap-2 text-sm font-black text-red-300">
                   Entrar
                   <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                 </div>

@@ -9,10 +9,15 @@ export default function MenuGrid({
 }) {
   const { products, loading } = useProducts();
 
+  const t = {
+    loading: lang === "es" ? "Cargando menú..." : "Loading menu...",
+    title: lang === "es" ? "Nuestro Menú" : "Our Menu",
+  };
+
   if (loading) {
     return (
       <section className="py-20 text-center text-white">
-        Cargando menú...
+        {t.loading}
       </section>
     );
   }
@@ -21,7 +26,7 @@ export default function MenuGrid({
     <section className="px-6 py-16 bg-black">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-4xl font-bold text-white mb-10">
-          Nuestro Menú
+          {t.title}
         </h2>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -42,7 +47,7 @@ export default function MenuGrid({
                     {product.name}
                   </h3>
 
-                  <span className="text-orange-500 font-bold">
+                  <span className="text-red-500 font-bold">
                     ${product.price.toFixed(2)}
                   </span>
                 </div>

@@ -45,7 +45,7 @@ const links = [
     icon: BarChart3,
   },
   {
-    label: "Productos",
+    label: "Menú",
     href: "/admin/products",
     icon: Package,
   },
@@ -63,6 +63,11 @@ const links = [
     label: "Redes",
     href: "/admin/social-videos",
     icon: Share2,
+  },
+  {
+    label: "Encuestas",
+    href: "/admin/surveys",
+    icon: BarChart3,
   },
   {
     label: "Staff",
@@ -112,7 +117,7 @@ export default function AdminTopbar() {
 });
 
   return (
-    <div className="sticky top-0 z-50 mb-6 border-b border-orange-500/10 bg-[#050505]/90 backdrop-blur-xl">
+    <div className="sticky top-0 z-50 mb-6 border-b border-red-500/10 bg-[#050505]/90 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-[1800px] items-center gap-3 overflow-x-auto px-4 py-4">
         {visibleLinks.map((link) => {
           const Icon = link.icon;
@@ -122,10 +127,10 @@ export default function AdminTopbar() {
             <a
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-bold transition ${
+              className={`flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-bold transition duration-200 hover:-translate-y-0.5 ${
                 active
-                  ? "border-orange-500/40 bg-orange-500 text-white shadow-lg shadow-orange-500/20"
-                  : "border-white/10 bg-white/[0.03] text-white/70 hover:border-orange-500/30 hover:bg-orange-500/10 hover:text-orange-200"
+                  ? "border-red-500/45 bg-red-600 text-white shadow-lg shadow-red-600/30 scale-[1.03]"
+                  : "border-white/10 bg-white/[0.03] text-white/70 hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-100"
               }`}
             >
               <Icon className="h-4 w-4" />
