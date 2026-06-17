@@ -11,4 +11,4 @@ export type MenuItem = {
   isAvailable?: boolean;
 };
 
-export type LegalModalType = null | "terms" | "privacy" | "food";
+export type LegalModalType = null | "terms" | "privacy" | "food" | "sms";

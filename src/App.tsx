@@ -41,7 +41,6 @@ import { SurveySection } from "./components/SurveySection";
 import AppUpdateNotice from "./components/AppUpdateNotice";
 import AppModePage from "./features/admin/app-mode/AppModePage";
 
-
 type AdminRouteProps = {
   children: React.ReactNode;
   allowedRoles?: Parameters<typeof ProtectedAdminRoute>[0]["allowedRoles"];
@@ -75,7 +74,9 @@ export default function App() {
 
   if (pathname === "/admin/pos") {
     return (
-      <AdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier"]}>
+      <AdminRoute
+        allowedRoles={["super_admin", "admin", "employee", "cashier"]}
+      >
         <AdminPOSPage />
       </AdminRoute>
     );
@@ -83,7 +84,9 @@ export default function App() {
 
   if (pathname === "/admin/register") {
     return (
-      <AdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier"]}>
+      <AdminRoute
+        allowedRoles={["super_admin", "admin", "employee", "cashier"]}
+      >
         <AdminRegisterPage />
       </AdminRoute>
     );
@@ -278,22 +281,157 @@ export default function App() {
     terms: lang === "es" ? "Términos y condiciones" : "Terms & Conditions",
     privacy: lang === "es" ? "Política de privacidad" : "Privacy Policy",
     food: lang === "es" ? "Aviso de alimentos" : "Food Disclaimer",
+    sms: lang === "es" ? "Política de SMS" : "SMS Policy",
     close: lang === "es" ? "Cerrar" : "Close",
   };
 
   const legalText = {
     terms:
       lang === "es"
-        ? "Al usar este sitio aceptas que los precios, productos, horarios, promociones, tiempos de preparación y disponibilidad pueden cambiar sin previo aviso. Los pedidos están sujetos a confirmación del negocio. Velasquez Food Truck se reserva el derecho de cancelar o ajustar pedidos cuando sea necesario por disponibilidad, errores de captura o situaciones operativas."
-        : "By using this site, you agree that prices, products, hours, promotions, preparation times, and availability may change without prior notice. Orders are subject to business confirmation. Velasquez Food Truck reserves the right to cancel or adjust orders when necessary due to availability, entry errors, or operational situations.",
+        ? `Al utilizar este sitio web y realizar un pedido en Velasquez Food Truck, aceptas los presentes Términos y Condiciones de uso.
+
+• Los precios, promociones, productos, horarios, disponibilidad y tiempos estimados de preparación pueden cambiar sin previo aviso.
+
+• Todos los pedidos están sujetos a confirmación por parte de Velasquez Food Truck y podrán ser modificados o cancelados en caso de falta de disponibilidad, errores de captura, problemas técnicos o situaciones operativas imprevistas.
+
+• Los tiempos de preparación mostrados son aproximados y pueden variar según la demanda del servicio.
+
+• Al proporcionar tu número telefónico durante el proceso de compra, aceptas recibir mensajes SMS relacionados exclusivamente con tu pedido, incluyendo confirmaciones, actualizaciones de estado y notificaciones cuando el pedido esté listo para recoger.
+
+• Velasquez Food Truck no utiliza estos mensajes para campañas publicitarias masivas sin el consentimiento previo del cliente.
+
+• Pueden aplicarse tarifas estándar de mensajería y datos según tu proveedor de telefonía móvil.
+
+• El uso continuo de este sitio implica la aceptación de los presentes Términos y Condiciones.`
+        : `By using this website and placing an order with Velasquez Food Truck, you agree to these Terms and Conditions.
+
+• Prices, promotions, products, operating hours, availability, and estimated preparation times may change without prior notice.
+
+• All orders are subject to confirmation by Velasquez Food Truck and may be modified or canceled due to product availability, data entry errors, technical issues, or operational circumstances.
+
+• Preparation times are estimates and may vary depending on demand.
+
+• By providing your phone number during checkout, you consent to receive SMS messages related solely to your order, including confirmations, status updates, and notifications when your order is ready for pickup.
+
+• Velasquez Food Truck does not use these messages for mass marketing campaigns without your prior consent.
+
+• Standard messaging and data rates may apply according to your mobile carrier.
+
+• Continued use of this website constitutes acceptance of these Terms and Conditions.`,
     privacy:
       lang === "es"
-        ? "La información proporcionada por el cliente, como nombre, teléfono, detalles del pedido y mensajes, se utiliza únicamente para procesar pedidos, responder solicitudes, dar seguimiento al servicio y mejorar la experiencia del cliente. No vendemos ni compartimos tu información personal con terceros para fines comerciales."
-        : "Customer information such as name, phone number, order details, and messages is used only to process orders, respond to requests, provide service updates, and improve the customer experience. We do not sell or share your personal information with third parties for commercial purposes.",
+        ? `En Velasquez Food Truck valoramos y protegemos la privacidad de nuestros clientes.
+
+La información que recopilamos puede incluir nombre, número telefónico, dirección de correo electrónico cuando aplique, detalles del pedido y cualquier información proporcionada voluntariamente durante el proceso de compra.
+
+Esta información se utiliza exclusivamente para:
+
+• Procesar y administrar pedidos.
+• Brindar atención y soporte al cliente.
+• Enviar actualizaciones relacionadas con el estado del pedido.
+• Notificar cuando un pedido esté listo para recoger.
+• Mejorar la experiencia del usuario y la calidad de nuestros servicios.
+
+El número telefónico proporcionado podrá utilizarse para enviar mensajes SMS relacionados únicamente con el servicio solicitado por el cliente.
+
+No utilizamos esta información para enviar publicidad masiva o promociones mediante SMS sin el consentimiento previo del usuario.
+
+Velasquez Food Truck no vende, alquila ni comercializa información personal con terceros. Algunos datos podrán ser procesados por proveedores tecnológicos necesarios para operar la plataforma, siempre bajo medidas razonables de seguridad y confidencialidad.
+
+Al utilizar este sitio web y realizar un pedido, aceptas la presente Política de Privacidad.`
+        : `At Velasquez Food Truck, we value and protect our customers' privacy.
+
+The information we collect may include your name, phone number, email address when applicable, order details, and any information voluntarily provided during the ordering process.
+
+This information is used exclusively to:
+
+• Process and manage orders.
+• Provide customer support.
+• Send updates regarding order status.
+• Notify you when your order is ready for pickup.
+• Improve the user experience and quality of our services.
+
+Your phone number may be used to send SMS messages related only to the service you requested.
+
+We do not use this information to send mass marketing or promotional SMS messages without your prior consent.
+
+Velasquez Food Truck does not sell, rent, or trade personal information with third parties. Certain data may be processed by trusted technology providers necessary to operate our platform under appropriate security and confidentiality measures.
+
+By using this website and placing an order, you agree to this Privacy Policy.`,
     food:
       lang === "es"
-        ? "Nuestros alimentos pueden contener o entrar en contacto con alérgenos como lácteos, gluten, soya, huevo, frutos secos, mariscos u otros ingredientes. Si tienes alergias o restricciones alimenticias, consulta antes de ordenar. El consumo de alimentos es responsabilidad del cliente."
-        : "Our food may contain or come into contact with allergens such as dairy, gluten, soy, eggs, nuts, seafood, or other ingredients. If you have allergies or dietary restrictions, please ask before ordering. Food consumption is the customer's responsibility.",
+        ? `La seguridad y satisfacción de nuestros clientes es una prioridad para Velasquez Food Truck.
+
+Nuestros alimentos pueden contener o haber estado en contacto con ingredientes considerados alérgenos comunes, incluyendo, entre otros:
+
+• Gluten
+• Lácteos
+• Huevo
+• Soya
+• Cacahuates
+• Nueces de árbol
+• Pescados
+• Mariscos
+• Ajonjolí o sésamo
+
+Aunque seguimos prácticas adecuadas de manipulación e higiene, nuestros alimentos se preparan en una cocina compartida, por lo que no podemos garantizar la ausencia total de contaminación cruzada.
+
+Si padeces alergias alimentarias, intolerancias o restricciones dietéticas, te recomendamos comunicarte con nuestro personal antes de realizar tu pedido para verificar los ingredientes utilizados.
+
+Velasquez Food Truck no se hace responsable por reacciones alérgicas derivadas de información no proporcionada por el cliente o por contaminación cruzada inherente al proceso de preparación.`
+        : `The safety and satisfaction of our customers are a priority at Velasquez Food Truck.
+
+Our food may contain or come into contact with common allergens, including but not limited to:
+
+• Gluten
+• Dairy
+• Eggs
+• Soy
+• Peanuts
+• Tree nuts
+• Fish
+• Shellfish
+• Sesame
+
+Although we follow proper food handling and sanitation practices, our products are prepared in a shared kitchen environment and we cannot guarantee the complete absence of cross-contact.
+
+If you have food allergies, intolerances, or dietary restrictions, we strongly recommend contacting our staff before placing your order to verify ingredient information.
+
+Velasquez Food Truck is not responsible for allergic reactions resulting from undisclosed customer conditions or cross-contact inherent to the food preparation process.`,
+    sms:
+      lang === "es"
+        ? `Al proporcionar tu número telefónico y realizar un pedido en Velasquez Food Truck, aceptas recibir mensajes de texto SMS relacionados exclusivamente con el servicio solicitado.
+
+Estos mensajes pueden incluir, entre otros:
+
+• Confirmación del pedido.
+• Actualizaciones sobre el estado del pedido.
+• Notificaciones cuando el pedido esté listo para recoger.
+• Información necesaria para completar correctamente el servicio solicitado.
+
+Velasquez Food Truck no utiliza estos mensajes para enviar publicidad masiva o promociones sin el consentimiento previo del cliente.
+
+La frecuencia de los mensajes dependerá de la actividad relacionada con el pedido. Pueden aplicarse tarifas estándar de mensajería y datos según tu proveedor de telefonía móvil.
+
+Si en el futuro se habilitan comunicaciones promocionales mediante SMS, el cliente podrá cancelar su recepción siguiendo las instrucciones proporcionadas en dichos mensajes.
+
+Para cualquier duda relacionada con nuestros servicios o comunicaciones, puedes contactarnos directamente a través de nuestros medios oficiales.`
+        : `By providing your phone number and placing an order with Velasquez Food Truck, you consent to receive SMS text messages related solely to the requested service.
+
+These messages may include, but are not limited to:
+
+• Order confirmation.
+• Order status updates.
+• Notifications when your order is ready for pickup.
+• Information necessary to complete your requested service.
+
+Velasquez Food Truck does not use these messages for mass marketing or promotional purposes without the customer's prior consent.
+
+Message frequency will vary depending on your order activity. Standard message and data rates may apply according to your mobile carrier.
+
+If promotional SMS communications are introduced in the future, customers will be able to opt out by following the instructions included in those messages.
+
+For questions regarding our services or communications, please contact us through our official channels.`,
   };
 
   const scrollTo = (id: string) => {
@@ -306,7 +444,9 @@ export default function App() {
       ? t.terms
       : legalModal === "privacy"
         ? t.privacy
-        : t.food;
+        : legalModal === "sms"
+          ? t.sms
+          : t.food;
 
   return (
     <MotionConfig reducedMotion="user">

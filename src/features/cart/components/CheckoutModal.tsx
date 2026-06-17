@@ -73,6 +73,10 @@ export default function CheckoutModal({
       lang === "es"
         ? "Si este teléfono ya existe en Lealtad, se sumarán puntos automáticamente. Si no existe, se creará el cliente."
         : "If this phone already exists in Loyalty, points will be added automatically. If it does not exist, the customer will be created.",
+    smsNotice:
+      lang === "es"
+        ? "Al proporcionar tu número telefónico, aceptas recibir mensajes SMS relacionados con tu pedido, incluyendo confirmaciones y actualizaciones de estado. Pueden aplicarse tarifas estándar de tu operador móvil."
+        : "By providing your phone number, you agree to receive SMS messages related to your order, including confirmations and status updates. Standard messaging and data rates may apply.",
   };
 
   const feeAmount = useMemo(() => {
@@ -140,14 +144,19 @@ export default function CheckoutModal({
             className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
           />
 
-          <input
-            value={customer.phone}
-            onChange={(e) =>
-              setCustomer((prev) => ({ ...prev, phone: e.target.value }))
-            }
-            placeholder={t.phone}
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
-          />
+          <div>
+            <input
+              value={customer.phone}
+              onChange={(e) =>
+                setCustomer((prev) => ({ ...prev, phone: e.target.value }))
+              }
+              placeholder={t.phone}
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-red-500"
+            />
+            <p className="mt-2 px-1 text-[11px] leading-relaxed text-white/45">
+              {t.smsNotice}
+            </p>
+          </div>
 
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-xs text-red-100">
             <div className="mb-1 flex items-center gap-2 font-black">

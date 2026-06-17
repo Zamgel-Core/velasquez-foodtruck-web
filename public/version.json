@@ -1,15 +1,14 @@
 {
-  "version": "1.0.3",
-  "build": "2026-06-16-orders-search-filters",
+  "version": "1.0.4",
+  "build": "2026-06-16-sms-policy-legal-compliance",
   "releasedAt": "2026-06-16",
   "changes": [
-    "Se corrigió el Service Worker para no cachear peticiones de Supabase.",
-    "Se evitó que las rutas de Admin, POS y Órdenes usen caché de PWA.",
-    "Se mejoró la seguridad de actualización para evitar órdenes desactualizadas.",
-    "Se mantiene el caché únicamente para recursos estáticos seguros.",
-    "Se mejoró el listado de órdenes mostrando primero las más recientes.",
-    "Se amplió el límite de consulta para visualizar más historial.",
-    "Se agregaron mejoras al buscador para localizar órdenes más fácilmente.",
-    "Se preparó la base para filtros avanzados de historial."
+    "Se actualizaron los Términos y Condiciones con información más detallada sobre el uso del sitio y pedidos.",
+    "Se mejoró la Política de Privacidad incluyendo el tratamiento de datos personales y comunicaciones relacionadas con pedidos.",
+    "Se renovó el Aviso de Alimentos con información más completa sobre alérgenos y contaminación cruzada.",
+    "Se agregó una nueva Política de SMS para cumplir con las mejores prácticas de Twilio A2P 10DLC.",
+    "Se añadió un nuevo botón de acceso a la Política de SMS en el pie de página.",
+    "Se incorporó un aviso informativo sobre el uso de mensajes SMS durante el proceso de finalización del pedido.",
+    "Se mejoró el cumplimiento normativo y la preparación del sitio para el registro de mensajería empresarial en Estados Unidos."
   ]
 }
