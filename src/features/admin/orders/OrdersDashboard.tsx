@@ -40,6 +40,7 @@ function playUiSound(src: string, volume = 0.6) {
 }
 
 type OrderFilter = "active" | "all" | OrderStatus;
+type DateFilter = "today" | "yesterday" | "7d" | "30d" | "all";
 
 const statusLabels: Record<OrderStatus, string> = {
   received: "Recibido",
@@ -66,6 +67,48 @@ const filterOptions: { value: OrderFilter; label: string }[] = [
   { value: "delivered", label: "Entregadas" },
   { value: "cancelled", label: "Canceladas" },
 ];
+
+const dateFilterOptions: { value: DateFilter; label: string }[] = [
+  { value: "today", label: "Hoy" },
+  { value: "yesterday", label: "Ayer" },
+  { value: "7d", label: "7 días" },
+  { value: "30d", label: "30 días" },
+  { value: "all", label: "Todo" },
+];
+
+function isSameLocalDay(dateA: Date, dateB: Date) {
+  return (
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
+}
+
+function matchesDateFilter(order: AdminOrder, filter: DateFilter) {
+  if (filter === "all") return true;
+
+  const createdAt = new Date(order.created_at);
+  const now = new Date();
+
+  if (filter === "today") {
+    return isSameLocalDay(createdAt, now);
+  }
+
+  if (filter === "yesterday") {
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    return isSameLocalDay(createdAt, yesterday);
+  }
+
+  const days = filter === "7d" ? 7 : 30;
+  const start = new Date(now);
+  start.setDate(now.getDate() - days);
+  return createdAt.getTime() >= start.getTime();
+}
+
+function sortByNewest(a: AdminOrder, b: AdminOrder) {
+  return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+}
 
 const columnConfig: Record<
   "received" | "preparing" | "ready",
@@ -240,6 +283,7 @@ function OrderCard({
   const minutesAgo = getMinutesAgo(order.created_at);
   const isExtremeLate = order.status === "received" && minutesAgo >= 10;
   const whatsAppLink = getWhatsAppLink(order);
+  const isTerminalStatus = order.status === "delivered" || order.status === "cancelled";
 
   const handleStatus = async (status: OrderStatus) => {
     if (status === "cancelled") {
@@ -257,6 +301,13 @@ function OrderCard({
       if (status === "ready") {
         playUiSound("/sounds/Pedido_listo.mp3", 0.65);
       }
+    } catch (error) {
+      console.error("Error al cambiar estado de orden:", error);
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "No se pudo actualizar la orden. Intenta actualizar la página.",
+      );
     } finally {
       setUpdating(false);
     }
@@ -444,43 +495,45 @@ function OrderCard({
         </div>
       )}
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <button
-          disabled={updating}
-          onClick={() => handleStatus("preparing")}
-          className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-2 py-2 text-xs font-bold text-yellow-100 transition hover:bg-yellow-500/20 disabled:opacity-50"
-        >
-          <ChefHat className="mx-auto mb-0.5 h-4 w-4" />
-          Preparar
-        </button>
+      {!isTerminalStatus && (
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <button
+            disabled={updating}
+            onClick={() => handleStatus("preparing")}
+            className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-2 py-2 text-xs font-bold text-yellow-100 transition hover:bg-yellow-500/20 disabled:opacity-50"
+          >
+            <ChefHat className="mx-auto mb-0.5 h-4 w-4" />
+            Preparar
+          </button>
 
-        <button
-          disabled={updating}
-          onClick={() => handleStatus("ready")}
-          className="rounded-2xl border border-green-500/30 bg-green-500/10 px-3 py-3 text-sm font-bold text-green-100 transition hover:bg-green-500/20 disabled:opacity-50"
-        >
-          <PackageCheck className="mx-auto mb-1 h-5 w-5" />
-          Listo
-        </button>
+          <button
+            disabled={updating}
+            onClick={() => handleStatus("ready")}
+            className="rounded-2xl border border-green-500/30 bg-green-500/10 px-3 py-3 text-sm font-bold text-green-100 transition hover:bg-green-500/20 disabled:opacity-50"
+          >
+            <PackageCheck className="mx-auto mb-1 h-5 w-5" />
+            Listo
+          </button>
 
-        <button
-          disabled={updating}
-          onClick={() => handleStatus("delivered")}
-          className="rounded-2xl border border-blue-500/30 bg-blue-500/10 px-3 py-3 text-sm font-bold text-blue-100 transition hover:bg-blue-500/20 disabled:opacity-50"
-        >
-          <Truck className="mx-auto mb-1 h-5 w-5" />
-          Entregado
-        </button>
+          <button
+            disabled={updating}
+            onClick={() => handleStatus("delivered")}
+            className="rounded-2xl border border-blue-500/30 bg-blue-500/10 px-3 py-3 text-sm font-bold text-blue-100 transition hover:bg-blue-500/20 disabled:opacity-50"
+          >
+            <Truck className="mx-auto mb-1 h-5 w-5" />
+            Entregado
+          </button>
 
-        <button
-          disabled={updating}
-          onClick={() => handleStatus("cancelled")}
-          className="rounded-2xl border border-red-500/30 bg-red-500/10 px-3 py-3 text-sm font-bold text-red-100 transition hover:bg-red-500/20 disabled:opacity-50"
-        >
-          <XCircle className="mx-auto mb-1 h-5 w-5" />
-          Cancelar
-        </button>
-      </div>
+          <button
+            disabled={updating}
+            onClick={() => handleStatus("cancelled")}
+            className="rounded-2xl border border-red-500/30 bg-red-500/10 px-3 py-3 text-sm font-bold text-red-100 transition hover:bg-red-500/20 disabled:opacity-50"
+          >
+            <XCircle className="mx-auto mb-1 h-5 w-5" />
+            Cancelar
+          </button>
+        </div>
+      )}
 
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <button
@@ -523,6 +576,7 @@ export default function OrdersDashboard() {
 
   const [filter, setFilter] = React.useState<OrderFilter>("active");
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>("30d");
   const [nowTick, setNowTick] = React.useState(0);
   const [kitchenTab, setKitchenTab] = React.useState<
     "received" | "preparing" | "ready"
@@ -554,18 +608,29 @@ export default function OrdersDashboard() {
 
       return order.status === filter;
     })
+    .filter((order) => matchesDateFilter(order, dateFilter))
     .filter((order) => {
       const query = searchTerm.trim().toLowerCase();
 
       if (!query) return true;
 
+      const orderNumber = order.order_number.toLowerCase();
+      const customerName = order.customer?.name?.toLowerCase() ?? "";
+      const customerPhone = order.customer?.phone?.toLowerCase() ?? "";
+      const normalizedPhone = normalizePhone(order.customer?.phone);
+      const itemNames = order.items
+        .map((item) => `${item.product_name} ${item.notes ?? ""}`.toLowerCase())
+        .join(" ");
+
       return (
-        order.order_number.toLowerCase().includes(query) ||
-        order.customer?.name?.toLowerCase().includes(query) ||
-        order.customer?.phone?.toLowerCase().includes(query)
+        orderNumber.includes(query) ||
+        customerName.includes(query) ||
+        customerPhone.includes(query) ||
+        normalizedPhone.includes(query.replace(/\D/g, "")) ||
+        itemNames.includes(query)
       );
     })
-    .sort(sortByKitchenPriority);
+    .sort(filter === "active" ? sortByKitchenPriority : sortByNewest);
 
   const toggleKitchenMode = () => {
     if (isKitchenMode) {
@@ -736,14 +801,30 @@ export default function OrdersDashboard() {
                 ))}
               </div>
 
+              <div className="flex flex-wrap gap-2">
+                {dateFilterOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setDateFilter(option.value)}
+                    className={`rounded-2xl border px-3 py-2 text-xs font-black transition ${
+                      dateFilter === option.value
+                        ? "border-red-500 bg-red-500/20 text-red-100"
+                        : "border-white/10 bg-black/20 text-white/55 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
               <div className="relative w-full lg:max-w-xs">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
 
                 <input
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Buscar orden, cliente o teléfono..."
-                  className="w-full rounded-2xl border border-white/10 bg-black/30 py-3 pl-10 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-white/30 focus:border-orange-500/60"
+                  placeholder="Buscar orden, cliente, teléfono o producto..."
+                  className="w-full rounded-2xl border border-white/10 bg-black/30 py-3 pl-10 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-white/30 focus:border-red-500/60"
                 />
               </div>
             </div>

@@ -123,7 +123,7 @@ export default function AdminTopbar() {
 });
 
   return (
-    <div className="sticky top-0 z-50 mb-6 border-b border-red-500/10 bg-[#050505]/90 backdrop-blur-xl">
+    <div className="sticky top-0 z-50 mb-6 w-full max-w-[100vw] overflow-hidden border-b border-red-500/10 bg-[#050505]/90 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-[1800px] items-center gap-3 overflow-x-auto px-4 py-4">
         {visibleLinks.map((link) => {
           const Icon = link.icon;
@@ -133,7 +133,7 @@ export default function AdminTopbar() {
             <a
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-bold transition duration-200 hover:-translate-y-0.5 ${
+              className={`flex shrink-0 items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-bold whitespace-nowrap transition duration-200 hover:-translate-y-0.5 ${
                 active
                   ? "border-red-500/45 bg-red-600 text-white shadow-lg shadow-red-600/30 scale-[1.03]"
                   : "border-white/10 bg-white/[0.03] text-white/70 hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-100"

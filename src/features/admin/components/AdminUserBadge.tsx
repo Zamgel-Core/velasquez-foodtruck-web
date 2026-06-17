@@ -10,12 +10,12 @@ export default function AdminUserBadge() {
   if (!profile) return null;
 
   return (
-    <div className="ml-auto flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2">
-      <UserCircle className="h-5 w-5 text-orange-300" />
+    <div className="ml-auto flex shrink-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2">
+      <UserCircle className="h-5 w-5 text-red-300" />
 
       <div className="hidden leading-tight sm:block">
         <p className="text-xs font-black text-white">{profile.full_name}</p>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-orange-300">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-red-300">
           {profile.role}
         </p>
       </div>

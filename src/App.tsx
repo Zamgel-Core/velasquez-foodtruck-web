@@ -41,6 +41,23 @@ import { SurveySection } from "./components/SurveySection";
 import AppUpdateNotice from "./components/AppUpdateNotice";
 import AppModePage from "./features/admin/app-mode/AppModePage";
 
+
+type AdminRouteProps = {
+  children: React.ReactNode;
+  allowedRoles?: Parameters<typeof ProtectedAdminRoute>[0]["allowedRoles"];
+};
+
+function AdminRoute({ children, allowedRoles }: AdminRouteProps) {
+  return (
+    <ProtectedAdminRoute allowedRoles={allowedRoles}>
+      <>
+        {children}
+        <AppUpdateNotice lang="es" />
+      </>
+    </ProtectedAdminRoute>
+  );
+}
+
 export default function App() {
   const pathname = window.location.pathname;
 
@@ -50,35 +67,31 @@ export default function App() {
 
   if (pathname === "/admin") {
     return (
-      <ProtectedAdminRoute>
+      <AdminRoute>
         <AdminPortalHome />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/pos") {
     return (
-      <ProtectedAdminRoute
-        allowedRoles={["super_admin", "admin", "employee", "cashier"]}
-      >
+      <AdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier"]}>
         <AdminPOSPage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/register") {
     return (
-      <ProtectedAdminRoute
-        allowedRoles={["super_admin", "admin", "employee", "cashier"]}
-      >
+      <AdminRoute allowedRoles={["super_admin", "admin", "employee", "cashier"]}>
         <AdminRegisterPage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/orders") {
     return (
-      <ProtectedAdminRoute
+      <AdminRoute
         allowedRoles={[
           "super_admin",
           "admin",
@@ -88,95 +101,95 @@ export default function App() {
         ]}
       >
         <OrdersDashboard />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/reports") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <AdminReportsPage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/product-options") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <ProductOptionsDashboard />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/products" || pathname === "/admin/menu") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <ProductsAdminDashboard />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/settings") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <AdminSettingsPage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/inventory") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <InventoryPage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/social-videos") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <SocialVideosAdminPage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/staff") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <StaffAdminPage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/loyalty") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <LoyaltyPage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/kaizen") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <KaizenAIPage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/surveys") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <SurveysAdminPage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
   if (pathname === "/admin/app-mode") {
     return (
-      <ProtectedAdminRoute allowedRoles={["super_admin", "admin"]}>
+      <AdminRoute allowedRoles={["super_admin", "admin"]}>
         <AppModePage />
-      </ProtectedAdminRoute>
+      </AdminRoute>
     );
   }
 
@@ -341,7 +354,6 @@ export default function App() {
         />
         {settings.tiktok_feed_enabled && <TikTokSection lang={lang} />}
         <Footer setLegalModal={setLegalModal} t={t} />
-        <AppUpdateNotice lang={lang} />
         {legalModal && (
           <LegalModal
             legalModal={legalModal}

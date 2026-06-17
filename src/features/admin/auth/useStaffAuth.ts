@@ -24,18 +24,28 @@ export function useStaffAuth() {
   const loadStaff = React.useCallback(async () => {
     setLoading(true);
 
-    const staff = await getCurrentStaffProfile();
+    try {
+      const staff = await Promise.race([
+        getCurrentStaffProfile(),
+        new Promise<null>((resolve) => {
+          window.setTimeout(() => resolve(null), 15000);
+        }),
+      ]);
 
-    if (!staff || !staff.profile?.is_active) {
+      if (!staff || !staff.profile?.is_active) {
+        setUser(null);
+        setProfile(null);
+        return;
+      }
+
+      setUser(staff.user);
+      setProfile(staff.profile as StaffProfile);
+    } catch {
       setUser(null);
       setProfile(null);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setUser(staff.user);
-    setProfile(staff.profile as StaffProfile);
-    setLoading(false);
   }, []);
 
   React.useEffect(() => {

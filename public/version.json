@@ -1,11 +1,15 @@
 {
-  "version": "1.0.1",
-  "build": "2026-06-16-pwa-diagnostic",
+  "version": "1.0.3",
+  "build": "2026-06-16-orders-search-filters",
   "releasedAt": "2026-06-16",
   "changes": [
-    "Se agregó diagnóstico del dispositivo en Modo APP.",
-    "Se agregó botón para copiar diagnóstico de soporte.",
-    "Se agregó exportación del diagnóstico en archivo .txt.",
-    "Se mejoró la verificación de versión y actualización PWA."
+    "Se corrigió el Service Worker para no cachear peticiones de Supabase.",
+    "Se evitó que las rutas de Admin, POS y Órdenes usen caché de PWA.",
+    "Se mejoró la seguridad de actualización para evitar órdenes desactualizadas.",
+    "Se mantiene el caché únicamente para recursos estáticos seguros.",
+    "Se mejoró el listado de órdenes mostrando primero las más recientes.",
+    "Se amplió el límite de consulta para visualizar más historial.",
+    "Se agregaron mejoras al buscador para localizar órdenes más fácilmente.",
+    "Se preparó la base para filtros avanzados de historial."
   ]
 }

@@ -493,6 +493,21 @@ export default function AdminPOSPage() {
       });
 
       setSuccess(`Orden ${order.order_number} creada correctamente.`);
+
+      try {
+        window.dispatchEvent(new CustomEvent("vft-orders-refresh"));
+
+        if ("BroadcastChannel" in window) {
+          const channel = new BroadcastChannel("vft-orders-channel");
+          channel.postMessage({ type: "vft-orders-refresh", at: Date.now() });
+          channel.close();
+        }
+
+        localStorage.setItem("vft-orders-refresh", String(Date.now()));
+      } catch (refreshError) {
+        console.warn("No se pudo notificar el refresco de órdenes:", refreshError);
+      }
+
       setCart([]);
       localStorage.removeItem(POS_DRAFT_KEY);
       setCustomerName("");
@@ -519,9 +534,9 @@ export default function AdminPOSPage() {
     <>
       <AdminTopbar />
 
-      <main className="min-h-screen bg-[#050505] px-4 py-6 text-white sm:px-6 lg:px-10">
-        <section className="mx-auto grid max-w-[1800px] gap-6 xl:grid-cols-[1fr_440px]">
-          <div>
+      <main className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-[#050505] px-3 py-5 text-white sm:px-6 lg:px-10">
+        <section className="mx-auto grid w-full max-w-[1800px] min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_440px]">
+          <div className="min-w-0">
             <div className="mb-6 rounded-3xl border border-white/10 bg-white/[0.04] p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -542,7 +557,7 @@ export default function AdminPOSPage() {
 
                 <button
                   onClick={loadProducts}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-500/25 bg-red-600 px-5 py-3 font-black text-white shadow-lg shadow-red-600/25 transition duration-200 hover:-translate-y-0.5 hover:bg-red-500 hover:shadow-red-500/35 active:scale-[0.98]"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-500/25 bg-red-600 px-5 py-3 font-black text-white shadow-lg shadow-red-600/25 transition duration-200 hover:-translate-y-0.5 hover:bg-red-500 hover:shadow-red-500/35 active:scale-[0.98] sm:w-auto"
                   type="button"
                 >
                   <RefreshCw className="h-5 w-5" />
@@ -960,7 +975,7 @@ export default function AdminPOSPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {[
                   { label: "Sin", value: 0 },
                   { label: "25%", value: 25 },
@@ -1006,7 +1021,7 @@ export default function AdminPOSPage() {
               </div>
             </div>
 
-            <div className="mt-5 grid grid-cols-3 gap-2">
+            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
               {(["cash", "card", "pending"] as const).map((method) => (
                 <button
                   key={method}

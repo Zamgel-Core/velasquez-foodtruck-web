@@ -37,7 +37,7 @@ type RawOrder = {
 };
 
 export async function getAdminOrders(): Promise<AdminOrder[]> {
-  const { data, error } = await supabase
+  const { data: ordersData, error: ordersError } = await supabase
     .from("orders")
     .select(`
       id,
@@ -50,14 +50,59 @@ export async function getAdminOrders(): Promise<AdminOrder[]> {
       fee_amount,
       notes,
       created_at,
-      customers (
+      customer_id
+    `)
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  if (ordersError) {
+    console.error("Error loading admin orders:", ordersError);
+    throw new Error("No se pudieron cargar las órdenes.");
+  }
+
+  const orders = (ordersData ?? []) as Array<
+    RawOrder & {
+      customer_id?: string | null;
+    }
+  >;
+
+  if (orders.length === 0) return [];
+
+  const customerIds = Array.from(
+    new Set(
+      orders
+        .map((order) => order.customer_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
+
+  const orderIds = orders.map((order) => order.id);
+
+  const customersById = new Map<string, AdminOrder["customer"]>();
+
+  if (customerIds.length > 0) {
+    const { data: customersData, error: customersError } = await supabase
+      .from("customers")
+      .select("id, name, phone, notes")
+      .in("id", customerIds);
+
+    if (customersError) {
+      console.warn("No se pudieron cargar clientes de órdenes:", customersError);
+    } else {
+      for (const customer of customersData ?? []) {
+        customersById.set(customer.id, customer);
+      }
+    }
+  }
+
+  const itemsByOrderId = new Map<string, AdminOrder["items"]>();
+
+  if (orderIds.length > 0) {
+    const { data: itemsData, error: itemsError } = await supabase
+      .from("order_items")
+      .select(`
         id,
-        name,
-        phone,
-        notes
-      ),
-      order_items (
-        id,
+        order_id,
         product_id,
         quantity,
         unit_price,
@@ -66,17 +111,30 @@ export async function getAdminOrders(): Promise<AdminOrder[]> {
         products (
           name
         )
-      )
-    `)
-    .order("created_at", { ascending: false })
-    .limit(100);
+      `)
+      .in("order_id", orderIds);
 
-  if (error) {
-    console.error("Error loading admin orders:", error);
-    throw new Error("No se pudieron cargar las órdenes.");
+    if (itemsError) {
+      console.warn("No se pudieron cargar productos de órdenes:", itemsError);
+    } else {
+      for (const item of itemsData ?? []) {
+        const orderId = item.order_id as string;
+        const current = itemsByOrderId.get(orderId) ?? [];
+        current.push({
+          id: item.id,
+          product_id: item.product_id,
+          quantity: Number(item.quantity ?? 0),
+          unit_price: Number(item.unit_price ?? 0),
+          total_price: Number(item.total_price ?? 0),
+          notes: item.notes,
+          product_name: item.products?.name ?? item.notes ?? "Producto",
+        });
+        itemsByOrderId.set(orderId, current);
+      }
+    }
   }
 
-  return ((data ?? []) as RawOrder[]).map((order) => ({
+  return orders.map((order) => ({
     id: order.id,
     order_number: order.order_number,
     status: order.status,
@@ -87,16 +145,8 @@ export async function getAdminOrders(): Promise<AdminOrder[]> {
     fee_amount: Number(order.fee_amount ?? 0),
     notes: order.notes,
     created_at: order.created_at,
-    customer: order.customers ?? null,
-    items: (order.order_items ?? []).map((item) => ({
-      id: item.id,
-      product_id: item.product_id,
-      quantity: Number(item.quantity ?? 0),
-      unit_price: Number(item.unit_price ?? 0),
-      total_price: Number(item.total_price ?? 0),
-      notes: item.notes,
-      product_name: item.products?.name ?? item.notes ?? "Producto",
-    })),
+    customer: order.customer_id ? customersById.get(order.customer_id) ?? null : null,
+    items: itemsByOrderId.get(order.id) ?? [],
   }));
 }
 
