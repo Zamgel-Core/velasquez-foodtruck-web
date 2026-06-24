@@ -1704,7 +1704,6 @@ export default function InventoryPage() {
       };
 
       // Header premium
-      sheet.mergeCells("A1:M6");
       setRangeFill("A1:M6", BLACK);
       sheet.getCell("A1").border = {
         top: { style: "medium", color: { argb: ORANGE_DARK } },

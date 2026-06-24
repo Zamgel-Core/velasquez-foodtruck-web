@@ -1,10 +1,13 @@
 // 📍 Ruta: src/features/admin/reports/AdminReportsPage.tsx
 
 import React from "react";
+import ExcelJS from "exceljs";
 import {
   BarChart3,
   CalendarDays,
+  CheckCircle2,
   CreditCard,
+  Download,
   DollarSign,
   Package,
   ReceiptText,
@@ -18,9 +21,11 @@ import AdminTopbar from "../components/AdminTopbar";
 import {
   getCashSessionOrders,
   getRecentCashSessions,
+  getReportDateRange,
   getReportsSummary,
   getTopProducts,
   type CashRegisterReport,
+  type ReportDateFilter,
   type ReportOrder,
   type ReportRange,
   type TopProductReport,
@@ -32,6 +37,7 @@ const rangeOptions: { value: ReportRange; label: string }[] = [
   { value: "week", label: "Semana" },
   { value: "month", label: "Mes" },
   { value: "all", label: "Todo" },
+  { value: "custom", label: "Personalizado" },
 ];
 
 function formatMoney(value: number) {
@@ -39,6 +45,54 @@ function formatMoney(value: number) {
     style: "currency",
     currency: "USD",
   }).format(value);
+}
+
+
+async function assetToDataUri(path: string) {
+  try {
+    const response = await fetch(path);
+    if (!response.ok) return "";
+    const blob = await response.blob();
+
+    return await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return "";
+  }
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function safeFileDate(value = new Date()) {
+  return value.toISOString().slice(0, 16).replace(/[-:T]/g, "");
+}
+
+function getTodayInputValue() {
+  const date = new Date();
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60 * 1000);
+  return local.toISOString().slice(0, 10);
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "—";
+
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+  }).format(new Date(value));
 }
 
 function formatDateTime(value: string | null) {
@@ -71,6 +125,10 @@ function getSessionDifference(session: CashRegisterReport) {
 
 export default function AdminReportsPage() {
   const [range, setRange] = React.useState<ReportRange>("today");
+  const [customFrom, setCustomFrom] = React.useState(getTodayInputValue());
+  const [customTo, setCustomTo] = React.useState(getTodayInputValue());
+  const [exporting, setExporting] = React.useState(false);
+  const [exportModalOpen, setExportModalOpen] = React.useState(false);
   const [summary, setSummary] = React.useState({
     rangeLabel: "Hoy",
     totalSales: 0,
@@ -80,6 +138,7 @@ export default function AdminReportsPage() {
     cancelledCount: 0,
     averageTicket: 0,
     deliveredOrders: [] as ReportOrder[],
+    cancelledOrders: [] as ReportOrder[],
   });
 
   const [topProducts, setTopProducts] = React.useState<TopProductReport[]>([]);
@@ -94,15 +153,26 @@ export default function AdminReportsPage() {
   const [detailsLoading, setDetailsLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
+  const reportFilter = React.useMemo<ReportDateFilter>(() => ({
+    range,
+    from: range === "custom" ? customFrom : undefined,
+    to: range === "custom" ? customTo : undefined,
+  }), [customFrom, customTo, range]);
+
   const loadReports = React.useCallback(async () => {
     try {
       setLoading(true);
       setError("");
 
+      if (reportFilter.range === "custom" && reportFilter.from && reportFilter.to && reportFilter.from > reportFilter.to) {
+        setError("La fecha inicial no puede ser mayor que la fecha final.");
+        return;
+      }
+
       const [summaryData, productsData, sessionsData] = await Promise.all([
-        getReportsSummary(range),
-        getTopProducts(range),
-        getRecentCashSessions(range),
+        getReportsSummary(reportFilter),
+        getTopProducts(reportFilter),
+        getRecentCashSessions(reportFilter),
       ]);
 
       setSummary(summaryData);
@@ -114,7 +184,7 @@ export default function AdminReportsPage() {
     } finally {
       setLoading(false);
     }
-  }, [range]);
+  }, [reportFilter]);
 
   React.useEffect(() => {
     loadReports();
@@ -132,6 +202,346 @@ export default function AdminReportsPage() {
       setSelectedSessionOrders([]);
     } finally {
       setDetailsLoading(false);
+    }
+  }
+
+  function styleHeaderRow(row: ExcelJS.Row, color = "FFEF4444") {
+    row.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    row.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+    row.alignment = { vertical: "middle" };
+  }
+
+  function applyWorkbookBorders(workbook: ExcelJS.Workbook) {
+    for (const worksheet of workbook.worksheets) {
+      worksheet.eachRow((row) => {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: "thin", color: { argb: "FFD9DEE8" } },
+            left: { style: "thin", color: { argb: "FFD9DEE8" } },
+            bottom: { style: "thin", color: { argb: "FFD9DEE8" } },
+            right: { style: "thin", color: { argb: "FFD9DEE8" } },
+          };
+          cell.alignment = { vertical: "middle", wrapText: true };
+        });
+      });
+      worksheet.views = [{ state: "frozen", ySplit: 1 }];
+    }
+  }
+
+  function getDailyBreakdown(orders: ReportOrder[]) {
+    const map = new Map<
+      string,
+      { date: string; cash: number; card: number; pending: number; subtotal: number; tax: number; total: number; orders: number }
+    >();
+
+    for (const order of orders) {
+      const key = new Date(order.created_at).toISOString().slice(0, 10);
+      const current = map.get(key) ?? {
+        date: formatDate(order.created_at),
+        cash: 0,
+        card: 0,
+        pending: 0,
+        subtotal: 0,
+        tax: 0,
+        total: 0,
+        orders: 0,
+      };
+      const total = Number(order.total || 0);
+      current.subtotal += Number(order.subtotal || 0);
+      current.tax += Number(order.tax || 0);
+      current.total += total;
+      current.orders += 1;
+      if (order.payment_method === "cash") current.cash += total;
+      else if (order.payment_method === "card") current.card += total;
+      else current.pending += total;
+      map.set(key, current);
+    }
+
+    return Array.from(map.entries())
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([, value]) => value);
+  }
+
+  async function exportSalesReport() {
+    try {
+      setExporting(true);
+      setError("");
+
+      const generatedDate = new Date();
+      const [velasquezLogo, zamgelLogo] = await Promise.all([
+        assetToDataUri("/images/velasquez-logo.png"),
+        assetToDataUri("/images/zamgelcore-zc-logo.png"),
+      ]);
+
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = "Zamgel Core";
+      workbook.lastModifiedBy = "Zamgel Core";
+      workbook.created = generatedDate;
+      workbook.modified = generatedDate;
+      workbook.title = `Reporte de ventas Velasquez - ${summary.rangeLabel}`;
+      workbook.company = "Velasquez Food Truck";
+      workbook.subject = "Reporte de ventas para control administrativo y taxes";
+
+      const rangeDates = getReportDateRange(reportFilter);
+      const generatedAt = formatDateTime(generatedDate.toISOString());
+      const totalPending = summary.deliveredOrders
+        .filter((order) => order.payment_method === "pending" || order.payment_status === "pending")
+        .reduce((sum, order) => sum + Number(order.total || 0), 0);
+      const dailyBreakdown = getDailyBreakdown(summary.deliveredOrders);
+
+      const sheet = workbook.addWorksheet("Resumen", {
+        properties: { tabColor: { argb: "FFEF4444" } },
+        pageSetup: { orientation: "landscape", fitToPage: true, fitToWidth: 1 },
+      });
+
+      sheet.columns = [
+        { width: 24 },
+        { width: 18 },
+        { width: 18 },
+        { width: 18 },
+        { width: 18 },
+        { width: 18 },
+        { width: 18 },
+        { width: 18 },
+      ];
+
+      for (let rowIndex = 1; rowIndex <= 6; rowIndex += 1) {
+        sheet.getRow(rowIndex).height = 24;
+        for (let colIndex = 1; colIndex <= 8; colIndex += 1) {
+          sheet.getCell(rowIndex, colIndex).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF090909" } };
+        }
+      }
+
+      if (velasquezLogo) {
+        const imageId = workbook.addImage({ base64: velasquezLogo, extension: "png" });
+        sheet.addImage(imageId, {
+          tl: { col: 0.25, row: 0.45 },
+          br: { col: 1.65, row: 5.35 },
+          editAs: "oneCell",
+        });
+      }
+
+      if (zamgelLogo) {
+        const imageId = workbook.addImage({ base64: zamgelLogo, extension: "png" });
+        sheet.addImage(imageId, {
+          tl: { col: 6.35, row: 0.75 },
+          br: { col: 7.85, row: 3.45 },
+          editAs: "oneCell",
+        });
+      }
+
+      sheet.mergeCells("C1:F1");
+      sheet.getCell("C1").value = "VELASQUEZ FOOD TRUCK";
+      sheet.getCell("C1").font = { bold: true, size: 22, color: { argb: "FFFFFFFF" } };
+      sheet.getCell("C1").alignment = { horizontal: "center", vertical: "middle" };
+
+      sheet.mergeCells("C2:F2");
+      sheet.getCell("C2").value = "REPORTE PROFESIONAL DE VENTAS";
+      sheet.getCell("C2").font = { bold: true, size: 14, color: { argb: "FFFB923C" } };
+      sheet.getCell("C2").alignment = { horizontal: "center", vertical: "middle" };
+
+      sheet.mergeCells("C3:F3");
+      sheet.getCell("C3").value = `Rango: ${summary.rangeLabel}`;
+      sheet.getCell("C3").font = { bold: true, size: 11, color: { argb: "FFE5E7EB" } };
+      sheet.getCell("C3").alignment = { horizontal: "center", vertical: "middle" };
+
+      sheet.mergeCells("C4:F4");
+      sheet.getCell("C4").value = `Desde: ${rangeDates.from ? formatDate(rangeDates.from) : "Inicio"}  |  Hasta: ${rangeDates.to ? formatDate(rangeDates.to) : "Actual"}`;
+      sheet.getCell("C4").font = { size: 10, color: { argb: "FFD1D5DB" } };
+      sheet.getCell("C4").alignment = { horizontal: "center", vertical: "middle" };
+
+      sheet.mergeCells("C5:F5");
+      sheet.getCell("C5").value = `Generado el: ${generatedAt}  |  Generado por: Zamgel Admin`;
+      sheet.getCell("C5").font = { size: 10, color: { argb: "FFD1D5DB" } };
+      sheet.getCell("C5").alignment = { horizontal: "center", vertical: "middle" };
+
+      sheet.mergeCells("G5:H5");
+      sheet.getCell("G5").value = "Zamgel Core (ZC)";
+      sheet.getCell("G5").font = { bold: true, size: 10, color: { argb: "FFFFFFFF" } };
+      sheet.getCell("G5").alignment = { horizontal: "center", vertical: "middle" };
+
+      sheet.addRow([]);
+      sheet.addRow(["Resumen fiscal / contable", "Valor", "Notas", "", "Resumen de pagos", "Valor", "Notas", ""]);
+      styleHeaderRow(sheet.getRow(8), "FFEF4444");
+
+      const summaryPairs: Array<[string, number, string]> = [
+        ["Ventas totales", summary.totalSales, "Órdenes entregadas únicamente"],
+        ["Subtotal antes de tax", summary.subtotalSales, "Base de venta antes de impuestos"],
+        ["Tax cobrado", summary.taxTotal, "Total de impuestos cobrados"],
+        ["Cash", summary.cashSales, `${cashPercent.toFixed(0)}% del total`],
+        ["Card", summary.cardSales, `${cardPercent.toFixed(0)}% del total`],
+        ["Pendiente / otro", totalPending, "Revisar si aplica"],
+        ["Órdenes entregadas", summary.ordersCount, "Base de ventas"],
+        ["Órdenes canceladas", summary.cancelledCount, "No suman a ventas"],
+        ["Ticket promedio", summary.averageTicket, "Ventas / órdenes entregadas"],
+      ];
+
+      summaryPairs.forEach(([label, value, note], index) => {
+        const paymentIndex = index - 3;
+        const row = sheet.addRow([label, value, note, "", paymentIndex >= 0 && paymentIndex < 4 ? ["Cash", "Card", "Pendiente / otro", "Total"][paymentIndex] : "", paymentIndex >= 0 && paymentIndex < 4 ? [summary.cashSales, summary.cardSales, totalPending, summary.totalSales][paymentIndex] : "", paymentIndex >= 0 && paymentIndex < 4 ? "Método de pago" : "", ""]);
+        row.getCell(1).font = { bold: true };
+        row.getCell(2).numFmt = (label.includes("Ventas") || label.includes("Subtotal") || label.includes("Tax") || label.includes("Cash") || label.includes("Card") || label.includes("Pendiente") || label === "Ticket promedio") ? "$#,##0.00" : "0";
+        row.getCell(6).numFmt = "$#,##0.00";
+      });
+
+      sheet.addRow([]);
+      sheet.addRow(["Control para taxes", "", "", "", "", "", "", ""]);
+      sheet.mergeCells(`A${sheet.lastRow?.number}:H${sheet.lastRow?.number}`);
+      const taxTitleRow = sheet.getRow(sheet.lastRow?.number ?? 14);
+      styleHeaderRow(taxTitleRow, "FF111827");
+      sheet.addRow(["Campo", "Valor", "Uso sugerido", "", "", "", "", ""]);
+      styleHeaderRow(sheet.getRow(sheet.lastRow?.number ?? 15), "FFEF4444");
+      const taxRows: Array<[string, number, string]> = [
+        ["Total bruto registrado", summary.totalSales, "Total de ventas entregadas en el rango"],
+        ["Subtotal antes de tax", summary.subtotalSales, "Base antes de impuestos"],
+        ["Tax cobrado", summary.taxTotal, "Impuesto registrado en órdenes entregadas"],
+        ["Efectivo registrado", summary.cashSales, "Conciliar con cortes de caja"],
+        ["Tarjeta registrado", summary.cardSales, "Conciliar con procesador / banco"],
+        ["Cancelaciones", summary.cancelledCount, "Revisar hoja de canceladas"],
+      ];
+      taxRows.forEach(([label, value, note]) => {
+        const row = sheet.addRow([label, value, note]);
+        if (typeof value === "number" && label !== "Cancelaciones") row.getCell(2).numFmt = "$#,##0.00";
+      });
+
+      const dailySheet = workbook.addWorksheet("Resumen diario", { properties: { tabColor: { argb: "FFDC2626" } } });
+      dailySheet.columns = [
+        { width: 18 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 12 },
+        { width: 14 },
+      ];
+      dailySheet.addRow(["Fecha", "Cash", "Card", "Pendiente", "Subtotal", "Tax", "Total", "Órdenes", "Ticket promedio"]);
+      styleHeaderRow(dailySheet.getRow(1), "FFDC2626");
+      dailyBreakdown.forEach((day) => {
+        const row = dailySheet.addRow([day.date, day.cash, day.card, day.pending, day.subtotal, day.tax, day.total, day.orders, day.orders ? day.total / day.orders : 0]);
+        [2, 3, 4, 5, 6, 7, 9].forEach((cell) => row.getCell(cell).numFmt = "$#,##0.00");
+      });
+
+      const topSheet = workbook.addWorksheet("Productos top", { properties: { tabColor: { argb: "FFF97316" } } });
+      topSheet.columns = [{ width: 8 }, { width: 34 }, { width: 14 }, { width: 16 }, { width: 18 }];
+      topSheet.addRow(["#", "Producto", "Cantidad", "Total vendido", "% de ventas"]);
+      styleHeaderRow(topSheet.getRow(1), "FFF97316");
+      topProducts.forEach((product, index) => {
+        const row = topSheet.addRow([index + 1, product.productName, product.quantity, product.total, summary.totalSales ? product.total / summary.totalSales : 0]);
+        row.getCell(4).numFmt = "$#,##0.00";
+        row.getCell(5).numFmt = "0.00%";
+      });
+
+      const ordersSheet = workbook.addWorksheet("Ordenes entregadas", { properties: { tabColor: { argb: "FF22C55E" } } });
+      ordersSheet.columns = [
+        { width: 18 },
+        { width: 24 },
+        { width: 14 },
+        { width: 16 },
+        { width: 16 },
+        { width: 16 },
+        { width: 16 },
+        { width: 16 },
+        { width: 20 },
+      ];
+      ordersSheet.addRow(["Orden", "Fecha", "Pago", "Subtotal", "Tax", "Total", "Estado pago", "Estado", "Corte / caja"]);
+      styleHeaderRow(ordersSheet.getRow(1), "FF22C55E");
+      summary.deliveredOrders.forEach((order) => {
+        const row = ordersSheet.addRow([
+          `#${order.order_number}`,
+          formatDateTime(order.created_at),
+          order.payment_method,
+          Number(order.subtotal || 0),
+          Number(order.tax || 0),
+          Number(order.total || 0),
+          order.payment_status,
+          order.status,
+          order.register_session_id ? "Ligada a corte" : "Sin corte",
+        ]);
+        [4, 5, 6].forEach((cell) => row.getCell(cell).numFmt = "$#,##0.00");
+      });
+
+      const cancelledSheet = workbook.addWorksheet("Ordenes canceladas", { properties: { tabColor: { argb: "FF991B1B" } } });
+      cancelledSheet.columns = [
+        { width: 18 },
+        { width: 24 },
+        { width: 14 },
+        { width: 16 },
+        { width: 16 },
+        { width: 16 },
+        { width: 16 },
+        { width: 16 },
+      ];
+      cancelledSheet.addRow(["Orden", "Fecha", "Pago", "Subtotal", "Tax", "Total", "Estado pago", "Estado"]);
+      styleHeaderRow(cancelledSheet.getRow(1), "FF991B1B");
+      summary.cancelledOrders.forEach((order) => {
+        const row = cancelledSheet.addRow([
+          `#${order.order_number}`,
+          formatDateTime(order.created_at),
+          order.payment_method,
+          Number(order.subtotal || 0),
+          Number(order.tax || 0),
+          Number(order.total || 0),
+          order.payment_status,
+          order.status,
+        ]);
+        [4, 5, 6].forEach((cell) => row.getCell(cell).numFmt = "$#,##0.00");
+      });
+
+      const cutsSheet = workbook.addWorksheet("Cortes de caja", { properties: { tabColor: { argb: "FF3B82F6" } } });
+      cutsSheet.columns = [
+        { width: 24 },
+        { width: 24 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 16 },
+        { width: 16 },
+        { width: 14 },
+        { width: 12 },
+        { width: 14 },
+        { width: 28 },
+      ];
+      cutsSheet.addRow(["Apertura", "Cierre", "Cash", "Card", "Total", "Efectivo esperado", "Efectivo contado", "Diferencia", "Órdenes", "Estado", "Notas"]);
+      styleHeaderRow(cutsSheet.getRow(1), "FF3B82F6");
+      sessions.forEach((session) => {
+        const row = cutsSheet.addRow([
+          formatDateTime(session.opened_at),
+          formatDateTime(session.closed_at),
+          Number(session.cash_sales || 0),
+          Number(session.card_sales || 0),
+          Number(session.total_sales || 0),
+          getSessionExpectedCash(session),
+          session.ending_cash === null || session.ending_cash === undefined ? null : Number(session.ending_cash || 0),
+          getSessionDifference(session),
+          session.order_count,
+          session.status,
+          session.notes ?? "",
+        ]);
+        [3, 4, 5, 6, 7, 8].forEach((cell) => {
+          row.getCell(cell).numFmt = "$#,##0.00";
+        });
+      });
+
+      applyWorkbookBorders(workbook);
+      sheet.views = [{ state: "frozen", ySplit: 8 }];
+      sheet.pageSetup.printTitlesRow = "1:8";
+      sheet.headerFooter.oddFooter = "Reporte generado por Zamgel Core (ZC)";
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      downloadBlob(
+        new Blob([buffer as BlobPart], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        }),
+        `reporte_ventas_velasquez_${safeFileDate()}.xlsx`,
+      );
+      setExportModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : "No se pudo exportar el reporte Excel.");
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -182,6 +592,29 @@ export default function AdminReportsPage() {
                   ))}
                 </div>
 
+                {range === "custom" && (
+                  <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/25 p-2 sm:flex-row">
+                    <label className="text-xs font-black text-white/50">
+                      Desde
+                      <input
+                        value={customFrom}
+                        onChange={(event) => setCustomFrom(event.target.value)}
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none focus:border-red-500"
+                        type="date"
+                      />
+                    </label>
+                    <label className="text-xs font-black text-white/50">
+                      Hasta
+                      <input
+                        value={customTo}
+                        onChange={(event) => setCustomTo(event.target.value)}
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none focus:border-red-500"
+                        type="date"
+                      />
+                    </label>
+                  </div>
+                )}
+
                 <button
                   onClick={loadReports}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 font-black transition hover:bg-white/[0.10]"
@@ -189,6 +622,16 @@ export default function AdminReportsPage() {
                 >
                   <RefreshCw className="h-5 w-5" />
                   Actualizar
+                </button>
+
+                <button
+                  onClick={() => setExportModalOpen(true)}
+                  disabled={loading}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  type="button"
+                >
+                  <Download className="h-5 w-5" />
+                  Descargar Excel
                 </button>
               </div>
             </div>
@@ -388,6 +831,24 @@ export default function AdminReportsPage() {
           )}
         </section>
 
+        {exportModalOpen && (
+          <SalesExportModal
+            rangeLabel={summary.rangeLabel}
+            totalSales={summary.totalSales}
+            cashSales={summary.cashSales}
+            cardSales={summary.cardSales}
+            ordersCount={summary.ordersCount}
+            cancelledCount={summary.cancelledCount}
+            topProduct={topProduct}
+            rangeFrom={getReportDateRange(reportFilter).from}
+            rangeTo={getReportDateRange(reportFilter).to}
+            generatedAt={formatDateTime(new Date().toISOString())}
+            exporting={exporting}
+            onExport={exportSalesReport}
+            onClose={() => setExportModalOpen(false)}
+          />
+        )}
+
         {selectedSession && (
           <SessionDetailsModal
             session={selectedSession}
@@ -401,6 +862,214 @@ export default function AdminReportsPage() {
         )}
       </main>
     </>
+  );
+}
+
+
+function SalesExportModal({
+  rangeLabel,
+  totalSales,
+  cashSales,
+  cardSales,
+  ordersCount,
+  cancelledCount,
+  topProduct,
+  rangeFrom,
+  rangeTo,
+  generatedAt,
+  exporting,
+  onExport,
+  onClose,
+}: {
+  rangeLabel: string;
+  totalSales: number;
+  cashSales: number;
+  cardSales: number;
+  ordersCount: number;
+  cancelledCount: number;
+  topProduct?: TopProductReport;
+  rangeFrom: string | null;
+  rangeTo: string | null;
+  generatedAt: string;
+  exporting: boolean;
+  onExport: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
+      <div className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-3xl border border-white/10 bg-[#101010] p-6 text-white shadow-2xl">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-black">Exportar reporte de ventas</h2>
+            <p className="mt-1 text-sm font-semibold text-white/55">
+              Reporte profesional para control de ventas, cortes de caja y soporte para taxes.
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="rounded-2xl border border-white/10 bg-white/5 p-3 transition hover:bg-white/10"
+            type="button"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="space-y-4">
+            <div className="overflow-hidden rounded-3xl border border-orange-500/25 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.24),transparent_42%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-5">
+              <div className="flex items-center justify-between gap-4">
+                <img
+                  src="/images/velasquez-logo.png"
+                  alt="Velasquez Food Truck"
+                  className="h-24 w-24 object-contain"
+                />
+                <div className="text-center">
+                  <p className="text-xl font-black uppercase tracking-wide">
+                    Velasquez Food Truck
+                  </p>
+                  <p className="mt-1 text-sm font-bold uppercase tracking-[0.18em] text-orange-200">
+                    Reporte de ventas
+                  </p>
+                  <p className="mt-3 text-xs text-white/55">
+                    Rango: {rangeLabel}
+                  </p>
+                  <p className="text-xs text-white/55">
+                    Desde: {rangeFrom ? formatDate(rangeFrom) : "Inicio"} · Hasta: {rangeTo ? formatDate(rangeTo) : "Actual"}
+                  </p>
+                  <p className="text-xs text-white/55">
+                    Generado el: {generatedAt}
+                  </p>
+                  <p className="text-xs text-white/55">
+                    Generado por: Zamgel Admin
+                  </p>
+                </div>
+                <img
+                  src="/images/zamgelcore-zc-logo.png"
+                  alt="Zamgel Core"
+                  className="h-20 w-20 object-contain"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <MiniMetric label="Ventas" value={formatMoney(totalSales)} tone="green" />
+              <MiniMetric label="Cash" value={formatMoney(cashSales)} tone="white" />
+              <MiniMetric label="Card" value={formatMoney(cardSales)} tone="white" />
+              <MiniMetric label="Órdenes" value={String(ordersCount)} tone="white" />
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-black/25 p-4">
+              <p className="font-black">El archivo incluirá</p>
+              <div className="mt-3 space-y-2 text-sm font-semibold text-white/65">
+                {[
+                  "Encabezado con identidad de marca y logos",
+                  "Fechas del reporte visibles antes de descargar",
+                  "Resumen fiscal / contable del rango seleccionado",
+                  "Separación de ventas en cash, card y pendiente",
+                  "Resumen diario para revisar ventas por fecha",
+                  "Productos top, órdenes entregadas, canceladas y cortes",
+                  "Formato compatible con Excel para imprimir o enviar al contador",
+                ].map((text) => (
+                  <div key={text} className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+                    {text}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-orange-300">Vista previa</p>
+                <p className="text-sm font-semibold text-white/50">Formato .xlsx compatible con Excel</p>
+              </div>
+              <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-black text-green-300">Excel</span>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white text-black shadow-xl">
+              <div className="bg-[#0b0b0b] p-4 text-white">
+                <div className="flex items-center justify-between gap-4">
+                  <img
+                    src="/images/velasquez-logo.png"
+                    alt=""
+                    className="h-16 w-16 object-contain"
+                  />
+                  <div className="text-center">
+                    <p className="text-lg font-black uppercase">VELASQUEZ FOOD TRUCK</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-200">Reporte profesional de ventas</p>
+                    <p className="mt-1 text-[11px] text-white/60">{formatDate(rangeFrom)} - {formatDate(rangeTo)} </p>
+                  </div>
+                  <img
+                    src="/images/zamgelcore-zc-logo.png"
+                    alt=""
+                    className="h-14 w-14 object-contain"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 border-b border-zinc-200 text-center">
+                <PreviewMetric label="Ventas" value={formatMoney(totalSales)} />
+                <PreviewMetric label="Cash" value={formatMoney(cashSales)} />
+                <PreviewMetric label="Card" value={formatMoney(cardSales)} />
+                <PreviewMetric label="Órdenes" value={String(ordersCount)} />
+              </div>
+
+              <div className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr] bg-red-600 px-3 py-2 text-xs font-black text-white">
+                <span>Sección</span>
+                <span>Cash</span>
+                <span>Card</span>
+                <span>Total</span>
+              </div>
+              <div className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr] px-3 py-2 text-xs font-semibold text-zinc-700">
+                <span>Resumen fiscal</span>
+                <span>{formatMoney(cashSales)}</span>
+                <span>{formatMoney(cardSales)}</span>
+                <span>{formatMoney(totalSales)}</span>
+              </div>
+              <div className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr] bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-700">
+                <span>Producto #1</span>
+                <span className="col-span-2">{topProduct?.productName ?? "Sin ventas"}</span>
+                <span>{topProduct ? formatMoney(topProduct.total) : "$0.00"}</span>
+              </div>
+              <div className="px-3 py-3 text-center text-xs font-semibold text-zinc-500">
+                Canceladas: {cancelledCount} · Hojas: Resumen, Resumen diario, Productos top, Órdenes entregadas, Órdenes canceladas y Cortes de caja.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button
+            onClick={onClose}
+            className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 font-black transition hover:bg-white/10"
+            type="button"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onExport}
+            disabled={exporting}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-3 font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+            type="button"
+          >
+            <Download className="h-5 w-5" />
+            {exporting ? "Generando reporte..." : "Descargar reporte Excel"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PreviewMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border-r border-zinc-200 px-2 py-3 last:border-r-0">
+      <p className="text-[10px] font-black uppercase tracking-wide text-zinc-500">{label}</p>
+      <p className="mt-1 text-sm font-black text-zinc-950">{value}</p>
+    </div>
   );
 }
 

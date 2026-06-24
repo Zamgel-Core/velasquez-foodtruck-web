@@ -40,6 +40,8 @@ export type AdminSettings = {
   print_show_socials: boolean;
   print_footer_message_es: string;
   print_footer_message_en: string;
+  tax_enabled: boolean;
+  tax_rate_percent: number;
 };
 
 type AdminSettingsRow = {
@@ -94,6 +96,8 @@ export const defaultAdminSettings: AdminSettings = {
   print_show_socials: true,
   print_footer_message_es: "Gracias por tu preferencia.",
   print_footer_message_en: "Thank you for your preference.",
+  tax_enabled: true,
+  tax_rate_percent: 8.25,
 };
 
 export function mergeSettings(settings?: Partial<AdminSettings> | null): AdminSettings {

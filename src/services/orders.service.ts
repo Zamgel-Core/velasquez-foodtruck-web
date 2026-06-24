@@ -8,6 +8,7 @@ type PaymentMethod = "cash" | "card";
 type OrderPaymentData = {
   paymentMethod: PaymentMethod;
   feeAmount: number;
+  taxAmount?: number;
   total: number;
 };
 
@@ -71,6 +72,7 @@ export async function createOrder(
 
   const paymentMethod = payment?.paymentMethod ?? "cash";
   const feeAmount = payment?.feeAmount ?? 0;
+  const taxAmount = payment?.taxAmount ?? 0;
   const total = payment?.total ?? subtotal;
 
   const { data: customerData, error: customerError } = await supabase
@@ -104,7 +106,7 @@ export async function createOrder(
       order_number: orderNumber,
       status: "received",
       subtotal,
-      tax: 0,
+      tax: taxAmount,
       fee_amount: feeAmount,
       total,
       payment_method: paymentMethod,

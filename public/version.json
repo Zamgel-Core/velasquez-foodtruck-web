@@ -2,6 +2,7 @@
   "version": "1.0.4",
   "build": "2026-06-16-sms-policy-legal-compliance",
   "releasedAt": "2026-06-16",
+  "label": "SMS Policy Legal Compliance",
   "changes": [
     "Se actualizaron los Términos y Condiciones con información más detallada sobre el uso del sitio y pedidos.",
     "Se mejoró la Política de Privacidad incluyendo el tratamiento de datos personales y comunicaciones relacionadas con pedidos.",

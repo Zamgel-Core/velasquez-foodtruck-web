@@ -29,6 +29,7 @@ import {
   getRewardDisplayValue,
 } from "../loyalty/loyalty.service";
 import type { LoyaltyRewardAvailability } from "../loyalty/loyalty.types";
+import { useBusinessSettings } from "../../../hooks/useBusinessSettings";
 
 function formatMoney(value: number) {
   return new Intl.NumberFormat("en-US", {
@@ -130,6 +131,7 @@ function getRewardKindLabel(type: string) {
 
 export default function AdminPOSPage() {
   const { profile } = useStaffAuth();
+  const { settings } = useBusinessSettings();
 
   const [products, setProducts] = React.useState<POSProduct[]>([]);
   const [cart, setCart] = React.useState<POSCartItem[]>(() => {
@@ -375,7 +377,14 @@ export default function AdminPOSPage() {
     subtotal,
     loyaltyTotalDiscount + manualDiscountAmount,
   );
-  const total = Math.max(0, subtotal - totalDiscount);
+  const taxableTotal = Math.max(0, subtotal - totalDiscount);
+  const taxEnabled = Boolean(settings.tax_enabled);
+  const taxRatePercent = Number(settings.tax_rate_percent || 0);
+  const taxAmount =
+    taxEnabled && taxRatePercent > 0
+      ? Number(((taxableTotal * taxRatePercent) / 100).toFixed(2))
+      : 0;
+  const total = Number((taxableTotal + taxAmount).toFixed(2));
 
   const paid = Number(amountPaid || 0);
   const changeDue = paymentMethod === "cash" ? Math.max(0, paid - total) : 0;
@@ -490,6 +499,10 @@ export default function AdminPOSPage() {
           : "",
         manualDiscountPercent: safeManualDiscountPercent,
         manualDiscountAmount,
+        taxEnabled,
+        taxRatePercent,
+        taxAmount,
+        totalWithTax: total,
       });
 
       setSuccess(`Orden ${order.order_number} creada correctamente.`);
@@ -1089,6 +1102,13 @@ export default function AdminPOSPage() {
                 <div className="mt-2 flex justify-between text-sm font-bold text-red-200">
                   <span>Descuento POS ({safeManualDiscountPercent}%)</span>
                   <span>-{formatMoney(manualDiscountAmount)}</span>
+                </div>
+              )}
+
+              {taxEnabled && taxRatePercent > 0 && (
+                <div className="mt-2 flex justify-between text-sm font-bold text-orange-200">
+                  <span>Tax ({taxRatePercent.toFixed(2)}%)</span>
+                  <span>{formatMoney(taxAmount)}</span>
                 </div>
               )}
 

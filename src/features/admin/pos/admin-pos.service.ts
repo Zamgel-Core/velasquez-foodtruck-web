@@ -52,6 +52,10 @@ export type CreatePOSOrderInput = {
   loyaltyRewardLabel?: string;
   manualDiscountPercent?: number;
   manualDiscountAmount?: number;
+  taxEnabled?: boolean;
+  taxRatePercent?: number;
+  taxAmount?: number;
+  totalWithTax?: number;
 };
 
 function generateOrderNumber() {
@@ -160,7 +164,12 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
     subtotal,
     loyaltyTotalDiscount + manualDiscount,
   );
-  const total = Math.max(0, subtotal - totalDiscount);
+  const taxableTotal = Math.max(0, subtotal - totalDiscount);
+  const taxRatePercent = Math.max(0, Number(input.taxRatePercent || 0));
+  const taxAmount = input.taxEnabled
+    ? Number(((taxableTotal * taxRatePercent) / 100).toFixed(2))
+    : 0;
+  const total = Number((taxableTotal + taxAmount).toFixed(2));
   const amountPaid = input.paymentMethod === "cash" ? input.amountPaid : total;
   const changeDue =
     input.paymentMethod === "cash" ? Math.max(0, amountPaid - total) : 0;
@@ -205,7 +214,7 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
       order_number: generateOrderNumber(),
       status: "received",
       subtotal,
-      tax: 0,
+      tax: taxAmount,
       fee_amount: 0,
       total,
       payment_status: input.paymentMethod === "pending" ? "pending" : "paid",

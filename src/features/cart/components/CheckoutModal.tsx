@@ -5,10 +5,9 @@ import { useMemo, useState } from "react";
 import type { Lang } from "../../../types";
 import type { CartItem, CheckoutCustomer } from "../cart.types";
 import { createOrder } from "../../../services/orders.service";
+import { useBusinessSettings } from "../../../hooks/useBusinessSettings";
 
 type PaymentMethod = "cash" | "card";
-
-const CARD_FEE_RATE = 0.0825;
 
 type CheckoutModalProps = {
   lang: Lang;
@@ -34,6 +33,9 @@ export default function CheckoutModal({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { settings } = useBusinessSettings();
+  const taxEnabled = Boolean(settings.tax_enabled);
+  const taxRatePercent = Number(settings.tax_rate_percent || 0);
 
   const t = {
     title: lang === "es" ? "Finalizar pedido" : "Checkout",
@@ -49,9 +51,9 @@ export default function CheckoutModal({
         : "General order notes: I am outside, call when ready, etc.",
     paymentMethod: lang === "es" ? "Método de pago" : "Payment method",
     cash: lang === "es" ? "Efectivo" : "Cash",
-    card: lang === "es" ? "Tarjeta +8.25%" : "Card +8.25%",
+    card: lang === "es" ? "Tarjeta" : "Card",
     subtotal: "Subtotal",
-    cardFee: lang === "es" ? "Cargo tarjeta / servicio" : "Card/service fee",
+    tax: lang === "es" ? "Tax" : "Tax",
     total: "Total",
     required:
       lang === "es"
@@ -64,10 +66,10 @@ export default function CheckoutModal({
     sending: lang === "es" ? "Enviando..." : "Sending...",
     createOrder: lang === "es" ? "Crear pedido" : "Place order",
     close: lang === "es" ? "Cerrar" : "Close",
-    cardNotice:
+    taxNotice:
       lang === "es"
-        ? "El pago con tarjeta agrega 8.25%."
-        : "Card payments include an 8.25% fee.",
+        ? `El tax de ${taxRatePercent.toFixed(2)}% se agrega al total.`
+        : `${taxRatePercent.toFixed(2)}% tax is added to the total.`,
     loyaltyTitle: lang === "es" ? "Lealtad automática" : "Automatic loyalty",
     loyaltyText:
       lang === "es"
@@ -79,14 +81,14 @@ export default function CheckoutModal({
         : "By providing your phone number, you agree to receive SMS messages related to your order, including confirmations and status updates. Standard messaging and data rates may apply.",
   };
 
-  const feeAmount = useMemo(() => {
-    if (paymentMethod !== "card") return 0;
-    return Number((subtotal * CARD_FEE_RATE).toFixed(2));
-  }, [paymentMethod, subtotal]);
+  const taxAmount = useMemo(() => {
+    if (!taxEnabled || taxRatePercent <= 0) return 0;
+    return Number(((subtotal * taxRatePercent) / 100).toFixed(2));
+  }, [subtotal, taxEnabled, taxRatePercent]);
 
   const total = useMemo(() => {
-    return Number((subtotal + feeAmount).toFixed(2));
-  }, [subtotal, feeAmount]);
+    return Number((subtotal + taxAmount).toFixed(2));
+  }, [subtotal, taxAmount]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -101,7 +103,8 @@ export default function CheckoutModal({
 
     const result = await createOrder(customer, items, subtotal, {
       paymentMethod,
-      feeAmount,
+      taxAmount,
+      feeAmount: 0,
       total,
     });
 
@@ -207,9 +210,9 @@ export default function CheckoutModal({
               </button>
             </div>
 
-            {paymentMethod === "card" && (
+            {taxEnabled && taxRatePercent > 0 && (
               <p className="mt-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200">
-                {t.cardNotice}
+                {t.taxNotice}
               </p>
             )}
           </div>
@@ -221,8 +224,8 @@ export default function CheckoutModal({
             </div>
 
             <div className="mt-2 flex items-center justify-between text-sm text-white/60">
-              <span>{t.cardFee}</span>
-              <span>${feeAmount.toFixed(2)}</span>
+              <span>{t.tax} ({taxRatePercent.toFixed(2)}%)</span>
+              <span>${taxAmount.toFixed(2)}</span>
             </div>
 
             <div className="mt-3 border-t border-white/10 pt-3">

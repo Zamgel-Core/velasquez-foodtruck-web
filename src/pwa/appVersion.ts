@@ -18,12 +18,17 @@ export const APP_VERSION_STORAGE_KEY = "vft_app_version";
 export const APP_VERSION_LAST_CHECKED_KEY = "vft_app_version_last_checked";
 
 export const FALLBACK_APP_VERSION: AppVersionInfo = {
-  version: "1.0.1",
-  build: "2026-06-16",
-  label: "PWA Version Check",
+  version: "1.0.4",
+  build: "2026-06-16-sms-policy-legal-compliance",
+  label: "SMS Policy Legal Compliance",
   changes: [
-    "Modo APP con verificación de versión.",
-    "App Mode with version checking.",
+    "Se actualizaron los Términos y Condiciones con información más detallada sobre el uso del sitio y pedidos.",
+    "Se mejoró la Política de Privacidad incluyendo el tratamiento de datos personales y comunicaciones relacionadas con pedidos.",
+    "Se renovó el Aviso de Alimentos con información más completa sobre alérgenos y contaminación cruzada.",
+    "Se agregó una nueva Política de SMS para cumplir con las mejores prácticas de Twilio A2P 10DLC.",
+    "Se añadió un nuevo botón de acceso a la Política de SMS en el pie de página.",
+    "Se incorporó un aviso informativo sobre el uso de mensajes SMS durante el proceso de finalización del pedido.",
+    "Se mejoró el cumplimiento normativo y la preparación del sitio para el registro de mensajería empresarial en Estados Unidos.",
   ],
 };
 

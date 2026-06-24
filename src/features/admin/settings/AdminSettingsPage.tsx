@@ -327,6 +327,41 @@ export default function AdminSettingsPage() {
                 </div>
               </SettingsCard>
 
+
+
+              <SettingsCard
+                icon={Receipt}
+                title="Taxes / cobro fiscal"
+                description="Controla si el tax se suma automáticamente en pedidos web y POS. Útil para ventas y reportes fiscales."
+              >
+                <div className="space-y-4">
+                  <ToggleRow
+                    icon={Power}
+                    title="Cobrar tax automáticamente"
+                    description="Cuando está activo, el subtotal suma tax tanto en efectivo como en tarjeta."
+                    checked={settings.tax_enabled}
+                    onChange={(value) => updateSetting("tax_enabled", value)}
+                  />
+
+                  <Field
+                    label="Porcentaje de tax"
+                    type="number"
+                    value={String(settings.tax_rate_percent)}
+                    onChange={(value) =>
+                      updateSetting(
+                        "tax_rate_percent",
+                        Math.max(0, Number(value || 0)),
+                      )
+                    }
+                    placeholder="8.25"
+                  />
+
+                  <div className="rounded-2xl border border-red-500/20 bg-red-500/[0.06] px-4 py-3 text-xs font-bold leading-relaxed text-red-100/80">
+                    Con esta opción activa, el cliente verá el tax antes de crear su pedido y el POS lo agregará al total antes de cobrar.
+                  </div>
+                </div>
+              </SettingsCard>
+
               <SettingsCard
                 icon={Clock}
                 title="Horarios"
