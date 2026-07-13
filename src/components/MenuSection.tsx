@@ -1,8 +1,8 @@
 // 📍 Ruta: src/components/MenuSection.tsx
 
 import { motion } from "motion/react";
-import { useMemo } from "react";
-import { categories, menuItems } from "../data/menu";
+import { useEffect, useMemo } from "react";
+import { categories } from "../data/menu";
 import { useProducts } from "../hooks/useProducts";
 import type { Lang, MenuItem } from "../types";
 
@@ -70,10 +70,25 @@ export function MenuSection({
     return grouped;
   }, [products]);
 
-  const activeItems =
-    dynamicMenuItems[activeCategory]?.length > 0
-      ? dynamicMenuItems[activeCategory]
-      : (menuItems[activeCategory] ?? []);
+  const visibleCategories = useMemo(() => {
+    const dynamicCategoryNames = new Set(
+      products.map((product) =>
+        normalizeCategory(product.category || "Extras"),
+      ),
+    );
+
+    return categories.filter((category) => dynamicCategoryNames.has(category));
+  }, [products]);
+
+  useEffect(() => {
+    if (loading || visibleCategories.length === 0) return;
+
+    if (!visibleCategories.includes(activeCategory)) {
+      setActiveCategory(visibleCategories[0]);
+    }
+  }, [activeCategory, loading, setActiveCategory, visibleCategories]);
+
+  const activeItems = dynamicMenuItems[activeCategory] ?? [];
 
   return (
     <section id="menu" className="relative overflow-hidden px-4 py-24">
@@ -96,7 +111,7 @@ export function MenuSection({
         </h3>
 
         <div className="scrollbar-hide mx-auto mt-8 flex w-full max-w-full gap-2 overflow-x-auto px-1 pb-2 sm:max-w-6xl sm:justify-center lg:gap-3">
-          {categories.map((category) => (
+          {visibleCategories.map((category) => (
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
@@ -155,90 +170,94 @@ export function MenuSection({
             const isAvailable = item.isAvailable !== false;
 
             return (
-            <motion.div
-              key={item.id || item.name}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-70px" }}
-              whileHover={isAvailable ? { y: -8 } : undefined}
-              className={`group overflow-hidden rounded-3xl border p-3 shadow-xl shadow-black/20 transition duration-300 ${
-                isAvailable
-                  ? "border-white/10 bg-white/[0.04] hover:border-red-500/60 hover:bg-red-500/[0.045] hover:shadow-[0_0_34px_rgba(220,38,38,0.22)]"
-                  : "border-red-500/25 bg-red-950/20 opacity-75"
-              }`}
-            >
-              <div className="relative h-44 overflow-hidden rounded-2xl bg-zinc-900 sm:h-48">
-                <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-70" />
-                {!isAvailable && (
-                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 px-4 text-center backdrop-blur-[1px]">
-                    <span className="rounded-full border border-red-400/40 bg-red-600/90 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-lg shadow-red-600/30">
-                      {lang === "es" ? "Agotado temporalmente" : "Temporarily sold out"}
-                    </span>
+              <motion.div
+                key={item.id || item.name}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-70px" }}
+                whileHover={isAvailable ? { y: -8 } : undefined}
+                className={`group overflow-hidden rounded-3xl border p-3 shadow-xl shadow-black/20 transition duration-300 ${
+                  isAvailable
+                    ? "border-white/10 bg-white/[0.04] hover:border-red-500/60 hover:bg-red-500/[0.045] hover:shadow-[0_0_34px_rgba(220,38,38,0.22)]"
+                    : "border-red-500/25 bg-red-950/20 opacity-75"
+                }`}
+              >
+                <div className="relative h-44 overflow-hidden rounded-2xl bg-zinc-900 sm:h-48">
+                  <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-70" />
+                  {!isAvailable && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 px-4 text-center backdrop-blur-[1px]">
+                      <span className="rounded-full border border-red-400/40 bg-red-600/90 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-lg shadow-red-600/30">
+                        {lang === "es"
+                          ? "Agotado temporalmente"
+                          : "Temporarily sold out"}
+                      </span>
+                    </div>
+                  )}
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className={`h-full w-full object-cover transition duration-700 ${
+                      isAvailable ? "group-hover:scale-110" : "grayscale"
+                    }`}
+                  />
+                </div>
+
+                <div className="flex items-start justify-between gap-4 p-2 pt-4">
+                  <div>
+                    <h4 className="text-lg font-black">
+                      {lang === "en" && item.enName ? item.enName : item.name}
+                    </h4>
+
+                    <p className="mt-2 text-sm text-white/60">
+                      {lang === "es" ? item.desc : item.enDesc}
+                    </p>
                   </div>
-                )}
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className={`h-full w-full object-cover transition duration-700 ${
-                    isAvailable ? "group-hover:scale-110" : "grayscale"
-                  }`}
-                />
-              </div>
 
-              <div className="flex items-start justify-between gap-4 p-2 pt-4">
-                <div>
-                  <h4 className="text-lg font-black">
-                    {lang === "en" && item.enName ? item.enName : item.name}
-                  </h4>
-
-                  <p className="mt-2 text-sm text-white/60">
-                    {lang === "es" ? item.desc : item.enDesc}
-                  </p>
+                  {item.price && (
+                    <p
+                      className={`shrink-0 rounded-full px-3 py-1 font-black ${
+                        isAvailable
+                          ? "bg-red-500/10 text-red-400"
+                          : "border border-red-500/25 bg-red-500/10 text-red-200"
+                      }`}
+                    >
+                      {item.price}
+                    </p>
+                  )}
                 </div>
 
                 {item.price && (
-                  <p
-                    className={`shrink-0 rounded-full px-3 py-1 font-black ${
+                  <button
+                    onClick={() => {
+                      if (!isAvailable) return;
+
+                      addItem({
+                        productId: item.id || item.name,
+                        name:
+                          lang === "en" && item.enName
+                            ? item.enName
+                            : item.name,
+                        price: Number(String(item.price).replace("$", "")),
+                        imageUrl: item.image,
+                      });
+                    }}
+                    disabled={!isAvailable}
+                    className={`mt-4 w-full rounded-full px-4 py-3 text-sm font-black text-white shadow-lg transition ${
                       isAvailable
-                        ? "bg-red-500/10 text-red-400"
-                        : "border border-red-500/25 bg-red-500/10 text-red-200"
+                        ? "bg-red-600 shadow-red-600/15 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-red-500 hover:shadow-red-600/30"
+                        : "cursor-not-allowed bg-zinc-800 text-white/45 shadow-none"
                     }`}
                   >
-                    {item.price}
-                  </p>
+                    {isAvailable
+                      ? lang === "es"
+                        ? "Agregar al pedido"
+                        : "Add to order"
+                      : lang === "es"
+                        ? "Agotado"
+                        : "Sold out"}
+                  </button>
                 )}
-              </div>
-
-              {item.price && (
-                <button
-                  onClick={() => {
-                    if (!isAvailable) return;
-
-                    addItem({
-                      productId: item.id || item.name,
-                      name:
-                        lang === "en" && item.enName ? item.enName : item.name,
-                      price: Number(String(item.price).replace("$", "")),
-                      imageUrl: item.image,
-                    });
-                  }}
-                  disabled={!isAvailable}
-                  className={`mt-4 w-full rounded-full px-4 py-3 text-sm font-black text-white shadow-lg transition ${
-                    isAvailable
-                      ? "bg-red-600 shadow-red-600/15 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-red-500 hover:shadow-red-600/30"
-                      : "cursor-not-allowed bg-zinc-800 text-white/45 shadow-none"
-                  }`}
-                >
-                  {isAvailable
-                    ? lang === "es"
-                      ? "Agregar al pedido"
-                      : "Add to order"
-                    : lang === "es"
-                      ? "Agotado"
-                      : "Sold out"}
-                </button>
-              )}
-            </motion.div>
+              </motion.div>
             );
           })}
         </div>

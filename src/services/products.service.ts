@@ -12,10 +12,12 @@ type ProductRow = {
   price: number;
   image_url: string | null;
   is_available: boolean;
+  is_active: boolean;
   sort_order: number | null;
   categories?: {
     name: string;
     slug?: string | null;
+    is_active: boolean;
   } | null;
 };
 
@@ -32,13 +34,17 @@ export async function getProducts(): Promise<Product[]> {
       price,
       image_url,
       is_available,
+      is_active,
       sort_order,
-      categories (
+      categories!inner (
         name,
-        slug
+        slug,
+        is_active
       )
     `,
     )
+    .eq("is_active", true)
+    .eq("categories.is_active", true)
     .order("sort_order", { ascending: true });
 
   if (error) {
@@ -56,5 +62,6 @@ export async function getProducts(): Promise<Product[]> {
     image_url: product.image_url ?? "/images/regular_tacos.png",
     category: product.categories?.name ?? "Extras",
     is_available: product.is_available,
+    is_active: product.is_active,
   }));
 }

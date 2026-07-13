@@ -12,6 +12,7 @@ export type POSProduct = {
   price: number;
   image_url: string | null;
   is_available: boolean;
+  is_active: boolean;
   category?: {
     name: string;
   } | null;
@@ -94,8 +95,10 @@ export async function getPOSProducts() {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, category_id, name, description, price, image_url, is_available, category:categories(name)",
+      "id, category_id, name, description, price, image_url, is_available, is_active, category:categories!inner(name, is_active)",
     )
+    .eq("is_active", true)
+    .eq("categories.is_active", true)
     .order("name", { ascending: true });
 
   if (error) throw error;
@@ -159,7 +162,11 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
   const maxManualDiscount = Number(
     ((manualDiscountBase * manualDiscountPercent) / 100).toFixed(2),
   );
-  const manualDiscount = Math.min(manualDiscountBase, requestedManualDiscount, maxManualDiscount);
+  const manualDiscount = Math.min(
+    manualDiscountBase,
+    requestedManualDiscount,
+    maxManualDiscount,
+  );
   const totalDiscount = Math.min(
     subtotal,
     loyaltyTotalDiscount + manualDiscount,
@@ -179,7 +186,9 @@ export async function createPOSOrder(input: CreatePOSOrderInput) {
   const loyaltyNote =
     input.loyaltyRewardId && input.loyaltyRewardLabel
       ? `Canje lealtad: ${input.loyaltyRewardLabel}${
-          loyaltyTotalDiscount > 0 ? ` (-$${loyaltyTotalDiscount.toFixed(2)})` : ""
+          loyaltyTotalDiscount > 0
+            ? ` (-$${loyaltyTotalDiscount.toFixed(2)})`
+            : ""
         }`
       : "";
   const manualDiscountNote =

@@ -10,4 +10,5 @@ export type Product = {
   image_url: string;
   category: string;
   is_available: boolean;
+  is_active: boolean;
 };

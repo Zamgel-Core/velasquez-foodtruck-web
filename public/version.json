@@ -1,18 +1,20 @@
 {
-  "version": "1.0.5",
-  "build": "2026-06-24-reports-tax-pos-settings",
-  "releasedAt": "2026-06-24",
+  "version": "1.0.6",
+  "build": "2026-07-13-menu-products-categories-management",
+  "releasedAt": "2026-07-13",
   "changes": [
-    "Se agregaron filtros personalizados por fecha en el área de reportes de ventas.",
-    "Se agregó exportación profesional de reportes de ventas en formato Excel.",
-    "Se mejoró el reporte de ventas para facilitar el control fiscal y la entrega de información al contador.",
-    "Se agregó modal de exportación para reportes de ventas con rango de fechas visible antes de descargar.",
-    "Se añadieron logos y encabezado profesional al Excel de reportes de ventas.",
-    "Se corrigió el error al descargar el reporte de inventario relacionado con celdas combinadas.",
-    "Se actualizó el cálculo de taxes para aplicarse también en pagos en efectivo.",
-    "Se agregó el cálculo de taxes en el POS.",
-    "Se agregó configuración para activar o desactivar el cobro de tax.",
-    "Se agregó configuración para editar el porcentaje de tax, con valor predeterminado de 8.25%.",
-    "Se actualizaron los reportes Excel para incluir subtotal, tax y total."
+    "Se agregó la opción para retirar productos permanentemente del menú sin eliminar su historial.",
+    "Se separó el estado de producto agotado temporalmente del estado de producto retirado.",
+    "Los productos retirados ahora se ocultan del menú público, POS y TV Menu.",
+    "Se agregó administración completa de categorías desde el panel de administración.",
+    "Se agregó la opción para crear nuevas categorías del menú.",
+    "Se agregó la opción para editar el nombre en español e inglés de las categorías.",
+    "Se agregó configuración del orden visual de las categorías.",
+    "Se agregó la opción para activar u ocultar categorías.",
+    "Las categorías ocultas y sus productos ya no aparecen en el menú público, POS ni TV Menu.",
+    "Se agregó la opción para eliminar categorías con validación de productos asociados.",
+    "Se agregó la posibilidad de mover productos a otra categoría antes de eliminar una categoría.",
+    "Se agregó la opción para dejar productos sin categoría cuando se elimina su categoría actual.",
+    "El selector de categorías de los productos ahora se actualiza automáticamente con las categorías creadas desde el administrador."
   ]
 }

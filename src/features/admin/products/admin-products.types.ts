@@ -3,11 +3,22 @@
 export type AdminCategory = {
   id: string;
   name: string;
+  name_en: string | null;
   description: string | null;
   image_url: string | null;
   sort_order: number | null;
   is_active: boolean;
   slug: string | null;
+  product_count?: number;
+};
+
+export type CategoryFormData = {
+  id?: string;
+  name: string;
+  name_en: string;
+  description: string;
+  sort_order: string;
+  is_active: boolean;
 };
 
 export type AdminProduct = {
@@ -20,6 +31,7 @@ export type AdminProduct = {
   price: number;
   image_url: string | null;
   is_available: boolean;
+  is_active: boolean;
   is_featured: boolean;
   prep_time_minutes: number | null;
   sort_order: number | null;
@@ -39,6 +51,7 @@ export type ProductFormData = {
   image_file?: File | null;
   image_preview_url?: string;
   is_available: boolean;
+  is_active: boolean;
   is_featured: boolean;
   prep_time_minutes: string;
   sort_order: string;

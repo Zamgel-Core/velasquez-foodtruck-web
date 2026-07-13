@@ -4,12 +4,11 @@ import React from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Clock, Flame, QrCode, Sparkles, Wifi, Truck } from "lucide-react";
 
-import { categories, menuItems } from "../../data/menu";
+import { categories } from "../../data/menu";
 import { getProducts } from "../../services/products.service";
 import { supabase } from "../../lib/supabase";
 
 import type { Product } from "../../types/product.types";
-import type { MenuItem } from "../../types";
 
 type TvItem = {
   id: string;
@@ -35,21 +34,6 @@ function productToTvItem(product: Product): TvItem {
     price: `$${Number(product.price).toFixed(2)}`,
     image: product.image_url || "/images/food-truck-hero.png",
     category: normalizeCategory(product.category || "Extras"),
-  };
-}
-
-function fallbackToTvItem(
-  item: MenuItem,
-  category: string,
-  index: number,
-): TvItem {
-  return {
-    id: `${category}-${index}`,
-    name: item.name,
-    desc: item.desc,
-    price: item.price || "",
-    image: item.image,
-    category,
   };
 }
 
@@ -138,14 +122,6 @@ export default function TvMenuPage() {
       }
 
       grouped[item.category].push(item);
-    }
-
-    for (const category of categories) {
-      if (grouped[category].length === 0) {
-        grouped[category] = (menuItems[category] ?? []).map((item, index) =>
-          fallbackToTvItem(item, category, index),
-        );
-      }
     }
 
     return grouped;
