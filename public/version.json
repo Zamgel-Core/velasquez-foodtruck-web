@@ -1,20 +1,20 @@
 {
-  "version": "1.0.6",
-  "build": "2026-07-13-menu-products-categories-management",
-  "releasedAt": "2026-07-13",
+  "version": "1.0.7",
+  "build": "2026-10-14-clover-online-ordering-google-reviews",
+  "releasedAt": "2026-10-14",
   "changes": [
-    "Se agregó la opción para retirar productos permanentemente del menú sin eliminar su historial.",
-    "Se separó el estado de producto agotado temporalmente del estado de producto retirado.",
-    "Los productos retirados ahora se ocultan del menú público, POS y TV Menu.",
-    "Se agregó administración completa de categorías desde el panel de administración.",
-    "Se agregó la opción para crear nuevas categorías del menú.",
-    "Se agregó la opción para editar el nombre en español e inglés de las categorías.",
-    "Se agregó configuración del orden visual de las categorías.",
-    "Se agregó la opción para activar u ocultar categorías.",
-    "Las categorías ocultas y sus productos ya no aparecen en el menú público, POS ni TV Menu.",
-    "Se agregó la opción para eliminar categorías con validación de productos asociados.",
-    "Se agregó la posibilidad de mover productos a otra categoría antes de eliminar una categoría.",
-    "Se agregó la opción para dejar productos sin categoría cuando se elimina su categoría actual.",
-    "El selector de categorías de los productos ahora se actualiza automáticamente con las categorías creadas desde el administrador."
+    "Se integró Clover como plataforma principal de pedidos en línea.",
+    "Se agregaron accesos directos a DoorDash y Uber Eats.",
+    "Se implementó un modal bilingüe de pedidos que aparece al entrar o actualizar la página.",
+    "Se desactivó el carrito y checkout del menú público sin eliminar su código.",
+    "Se actualizaron los botones de pedidos en las diferentes secciones de la página.",
+    "Se sustituyeron los botones públicos de WhatsApp y llamadas por accesos a las plataformas de pedidos.",
+    "Se conservó el catálogo público como menú informativo.",
+    "Se actualizaron las reseñas de Google con 16 opiniones de clientes.",
+    "Se implementó el cálculo automático de antigüedad de las reseñas en español e inglés.",
+    "Se agregó la opción para expandir y contraer las reseñas.",
+    "Se corrigieron las calificaciones individuales de comida, servicio y ambiente según la información disponible.",
+    "Se actualizaron los textos relacionados con pedidos para reflejar las nuevas plataformas.",
+    "Se mantuvieron las funciones internas del POS, administración, inventario y reportes."
   ]
 }

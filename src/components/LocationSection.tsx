@@ -1,11 +1,11 @@
 // 📍 Ruta: src/components/LocationSection.tsx
 
-import { Clock, MapPin, Navigation, Phone, Store } from "lucide-react";
+import { Clock, MapPin, Navigation, Store } from "lucide-react";
 import type { Lang } from "../types";
 import {
-  normalizePhoneForHref,
   type AdminSettings,
 } from "../features/admin/settings/admin-settings.service";
+import { OrderingButtons } from "./OrderingButtons";
 import { formatBusinessHours } from "../utils/businessStatus";
 
 export function LocationSection({
@@ -19,7 +19,6 @@ export function LocationSection({
 }) {
   const isSpanish = lang === "es";
   const directionsUrl = settings.google_maps_url;
-  const phoneHref = normalizePhoneForHref(settings.phone);
 
   const dayLabels: Record<string, { es: string; en: string }> = {
     monday: { es: "Lun", en: "Mon" },
@@ -78,16 +77,7 @@ export function LocationSection({
               </p>
             </a>
 
-            <a
-              href={`tel:${phoneHref}`}
-              className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-red-500/40 hover:bg-red-500/10"
-            >
-              <Phone className="h-6 w-6 text-red-400" />
-              <p className="mt-3 text-lg font-black">
-                {isSpanish ? "Llámanos" : "Call us"}
-              </p>
-              <p className="mt-1 text-sm text-white/55">{settings.phone}</p>
-            </a>
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5"><p className="mb-3 text-lg font-black">{isSpanish ? "Ordena en línea" : "Order online"}</p><OrderingButtons lang={lang} /></div>
           </div>
 
           <div className="mt-6 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">

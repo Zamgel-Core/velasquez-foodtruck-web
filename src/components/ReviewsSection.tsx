@@ -1,4 +1,4 @@
-// 📍 Ruta: src/App.tsx
+// 📍 Ruta: src/components/ReviewsSection.tsx
 
 import React from "react";
 import {
@@ -8,103 +8,184 @@ import {
   Sparkles,
   Star,
   Utensils,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import type { Lang } from "../types";
+import { OrderingButtons } from "./OrderingButtons";
 
 type Review = {
   name: string;
-  whenEs: string;
-  whenEn: string;
+  // Approximate publication date inferred from Google Maps screenshots taken 2026-10-14.
+  publishedAt: string;
   textEs: string;
   textEn: string;
   highlightEs: string;
   highlightEn: string;
+  ratings: { food?: number; service?: number; atmosphere?: number };
 };
 
 const reviews: Review[] = [
   {
-    name: "Angel Zamora",
-    whenEs: "Hace una semana",
-    whenEn: "A week ago",
-    textEs:
-      "Primera vez que prueba una buena torta en el Southwest, buena combinación de fajita y pastor. Recomendado. P.d. Se ve muy limpio el lugar.",
-    textEn:
-      "First time trying a great torta in Southwest Houston. Good combination of fajita and pastor. Recommended. The place looks very clean.",
-    highlightEs: "Torta mexicana",
-    highlightEn: "Mexican torta",
+    name: "Carmen Reed",
+    publishedAt: "2026-09-21",
+    textEs: "Este es Matthew, la comida es estupenda y tiene mucha energía.",
+    textEn: "This is Matthew, the food is great and he has lots of energy.",
+    highlightEs: "Comida estupenda",
+    highlightEn: "Great food",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
   },
   {
-    name: "Mardoqueo Par",
-    whenEs: "Hace 2 meses",
-    whenEn: "2 months ago",
-    textEs:
-      "Fui un sábado por la noche y ordené una quesadilla de fajita. Estaba muy buena.",
-    textEn:
-      "Went there on a Saturday night, ordered a fajita quesadilla. It was so good.",
-    highlightEs: "Quesadilla de fajita",
-    highlightEn: "Fajita quesadilla",
+    name: "Jay Moore",
+    publishedAt: "2026-09-14",
+    textEs: "¡He ido 3 veces en total en las últimas dos semanas! ¡Esos tacos son así de buenos! ¡Siempre pido los tacos de fajita de res con cilantro y cebolla asada! ¡Las bebidas están todas buenísimas! ¡Definitivamente ya sabe quién soy! 😂",
+    textEn: "I’ve been there 3 times in the last two weeks! The tacos are that good! I always get beef fajita tacos with cilantro and grilled onion. All the drinks are amazing! They definitely know who I am by now!",
+    highlightEs: "Tacos de fajita",
+    highlightEn: "Fajita tacos",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
   },
   {
-    name: "Vilma Selena",
-    whenEs: "Hace una semana",
-    whenEn: "A week ago",
-    textEs:
-      "Pasé un día y me encantó la atención. También que la comida salió súper rápido. Probé quesadillas y tacos; todo se veía bien y delicioso. Súper recomendado 100%.",
-    textEn:
-      "I stopped by and loved the service. The food came out super fast too. I tried quesadillas and tacos; everything looked good and delicious. Highly recommended.",
-    highlightEs: "Servicio rápido",
-    highlightEn: "Fast service",
+    name: "Angie Diaz",
+    publishedAt: "2026-09-14",
+    textEs: "¡Sabor increíble y buenos precios! Pedí los sopes y estaban deliciosos, ¡todo estaba bien cocinado! El agua fresca de pepino y limón estaba muy rica, no tenía demasiado limón y el sabor a pepino no era empalagoso. ¡El servicio fue excelente! El food truck tenía un ambiente acogedor, sin duda volveré.",
+    textEn: "Amazing flavor and great prices! I ordered the sopes and they were delicious and perfectly cooked. The cucumber-lime agua fresca was refreshing and well balanced. Excellent service and a welcoming atmosphere. I’ll definitely return!",
+    highlightEs: "Sopes y bebidas",
+    highlightEn: "Sopes and drinks",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
   },
   {
-    name: "Cristian Torres",
-    whenEs: "Hace una semana",
-    whenEn: "A week ago",
-    textEs:
-      "Pasé en mi hora de comida y esos tacos especiales de pastor están muy llenadores. No olviden su Coca mexicana.",
-    textEn:
-      "I stopped by during lunch and those special pastor tacos are very filling. Don’t forget your Mexican Coke.",
-    highlightEs: "Special tacos",
-    highlightEn: "Special tacos",
+    name: "Josh Hinojosa",
+    publishedAt: "2026-08-14",
+    textEs: "¡Un lugar estupendo para disfrutar de comida preparada pensando en ti! ¡Excelente servicio! ¡No te pierdas esta joya! 💎 ¡Comida perfecta para los niños!",
+    textEn: "A wonderful place to enjoy food prepared with care! Excellent service! Don’t miss this gem! Great food for kids!",
+    highlightEs: "Excelente servicio",
+    highlightEn: "Excellent service",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
   },
   {
-    name: "Joel Chavez",
-    whenEs: "Hace 2 meses",
-    whenEn: "2 months ago",
-    textEs: "Personal muy amable, comida rica. Lo recomiendo al 100%.",
-    textEn: "Very friendly staff, delicious food. I recommend it 100%.",
-    highlightEs: "Atención amable",
-    highlightEn: "Friendly service",
+    name: "Zack Biegler",
+    publishedAt: "2026-08-14",
+    textEs: "La comida es excelente, la recomiendo ampliamente.",
+    textEn: "The food is excellent. I highly recommend it.",
+    highlightEs: "Comida excelente",
+    highlightEn: "Excellent food",
+    ratings: {food: 5, service: 5 },
   },
-
   {
-    name: "Kaylee W",
-    whenEs: "Hace 2 semanas",
-    whenEn: "2 weeks ago",
-    textEs:"Vine a almorzar y pedí una gordita de pollo. ¡Estaba deliciosa! El personal fue muy amable y atento. ¡Volveré!",
-    textEn:"I came for lunch and ordered a chicken gordita. It was delicious! The staff was very kind and attentive. I'll definitely be back!",
-    highlightEs:"Gordita de pollo",
-    highlightEn:"Chicken gordita",
+    name: "Juan Moreno",
+    publishedAt: "2026-09-14",
+    textEs: "Me encantó la comida y las bebidas.",
+    textEn: "I loved the food and drinks.",
+    highlightEs: "Comida y bebidas",
+    highlightEn: "Food and drinks",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
+  },
+  {
+    name: "Cleiri Diaz",
+    publishedAt: "2026-08-14",
+    textEs: "¡El mejor camión de tacos!",
+    textEn: "The best taco truck!",
+    highlightEs: "Tacos",
+    highlightEn: "Tacos",
+    ratings: { },
+  },
+  {
+    name: "Franuale Caesar “Candy”",
+    publishedAt: "2026-07-15",
+    textEs: "Nuevo local de tacos, excelente servicio al cliente y la comida se ve genial, ojalá podamos convertirlo en nuestro nuevo lugar favorito.",
+    textEn: "New taco spot, excellent customer service, and the food looks great. Hopefully this becomes our new favorite place.",
+    highlightEs: "Servicio al cliente",
+    highlightEn: "Customer service",
+    ratings: { },
   },
   {
     name: "Pedro Chacon",
-    whenEs: "Hace una semana",
-    whenEn: "A week ago",
-    textEs:"Comida deliciosa a muy buenos precios. Además, el personal es muy amable. Los tacos están riquísimos.",
-    textEn:"Delicious food at great prices. The staff is very friendly and the tacos are amazing.",
-    highlightEs:"Excelente relación calidad-precio",
-    highlightEn:"Great value",
+    publishedAt: "2026-06-14",
+    textEs: "Comida deliciosa a muy buenos precios. Además, el personal es muy amable. Los tacos están riquísimos.",
+    textEn: "Delicious food at great prices. The staff is very friendly, and the tacos are amazing.",
+    highlightEs: "Calidad-precio",
+    highlightEn: "Great value",
+    ratings: {food: 5, service: 5, atmosphere: 4 },
   },
   {
-    name: "Amos Par",
-    whenEs: "Hace 3 semanas",
-    whenEn: "3 weeks ago",
-    textEs:"¡Me encanta su servicio al cliente!",
-    textEn:"I love their customer service!",
-    highlightEs:"Excelente servicio",
-    highlightEn:"Excellent service",
+    name: "Kaylee W",
+    publishedAt: "2026-06-14",
+    textEs: "Vine a almorzar y pedí una gordita de pollo, ¡estaba deliciosa! El personal fue muy amable y atento. ¡Volveré!",
+    textEn: "I came for lunch and ordered a chicken gordita. It was delicious! The staff was very kind and attentive. I’ll be back!",
+    highlightEs: "Gordita de pollo",
+    highlightEn: "Chicken gordita",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
   },
-
+  {
+    name: "Javier Ramon Feria Molina",
+    publishedAt: "2026-06-14",
+    textEs: "Calificó con cinco estrellas la comida, el servicio y el ambiente.",
+    textEn: "Rated the food, service, and atmosphere five stars.",
+    highlightEs: "5 estrellas",
+    highlightEn: "5 stars",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
+  },
+  {
+    name: "Angel Zamora",
+    publishedAt: "2026-05-15",
+    textEs: "Primera vez que pruebo una buena torta en el Southwest, buena combinación de fajita y pastor. Recomendada 🙌 P.d. Se ve muy limpio el lugar.",
+    textEn: "First time trying a great torta in Southwest Houston. Good combination of fajita and pastor. Recommended! The place looks very clean.",
+    highlightEs: "Torta mexicana",
+    highlightEn: "Mexican torta",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
+  },
+  {
+    name: "Vilma Selena",
+    publishedAt: "2026-05-15",
+    textEs: "Pasé un día y me encantó la atención y también que la comida salió súper rápido. Probé quesadillas y también tacos, todo se veía bien y delicioso, súper recomendado 100%.",
+    textEn: "I stopped by and loved the service, and the food came out super fast. I tried quesadillas and tacos; everything looked and tasted delicious. Highly recommended!",
+    highlightEs: "Servicio rápido",
+    highlightEn: "Fast service",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
+  },
+  {
+    name: "Cristian Torres",
+    publishedAt: "2026-05-15",
+    textEs: "Pasé en mi hora de comida y esos tacos especiales de pastor están muy llenadores. No olviden su coca mexicana.",
+    textEn: "I stopped by on my lunch break and those special pastor tacos are very filling. Don’t forget your Mexican Coke.",
+    highlightEs: "Special tacos",
+    highlightEn: "Special tacos",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
+  },
+  {
+    name: "Joel Chavez",
+    publishedAt: "2026-03-15",
+    textEs: "Personal muy amable, comida rica, lo recomiendo al 100%.",
+    textEn: "Very friendly staff and delicious food. I recommend it 100%.",
+    highlightEs: "Atención amable",
+    highlightEn: "Friendly service",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
+  },
+  {
+    name: "Mardoqueo Par",
+    publishedAt: "2026-03-15",
+    textEs: "Fui allí un sábado por la noche, pedí una quesadilla de fajita que estaba muy buena.",
+    textEn: "I went there on a Saturday night and ordered a fajita quesadilla. It was very good.",
+    highlightEs: "Quesadilla de fajita",
+    highlightEn: "Fajita quesadilla",
+    ratings: {food: 5, service: 5, atmosphere: 5 },
+  },
 ];
+
+function relativeReviewDate(iso: string, isEs: boolean): string {
+  const date = new Date(`${iso}T12:00:00`);
+  const now = new Date();
+  const days = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 86400000));
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["year", Math.floor(days / 365)],
+    ["month", Math.floor(days / 30.44)],
+    ["week", Math.floor(days / 7)],
+    ["day", days],
+  ];
+  const selected = units.find(([unit, count]) => count >= 1 && (unit !== "day" || days >= 1));
+  if (!selected) return isEs ? "Hoy" : "Today";
+  return new Intl.RelativeTimeFormat(isEs ? "es" : "en", { numeric: "auto" }).format(-selected[1], selected[0]);
+}
 
 function Stars({ large = false }: { large?: boolean }) {
   return (
@@ -123,6 +204,8 @@ function Stars({ large = false }: { large?: boolean }) {
 
 export function ReviewsSection({ lang, title }: { lang: Lang; title: string }) {
   const isEs = lang === "es";
+  const [showAll, setShowAll] = React.useState(false);
+  const visibleReviews = showAll ? reviews : reviews.slice(0, 6);
 
   return (
     <section className="relative overflow-hidden bg-zinc-950 px-4 py-24">
@@ -166,29 +249,16 @@ export function ReviewsSection({ lang, title }: { lang: Lang; title: string }) {
           </div>
         </div>
 
-        <div className="mt-12 hidden gap-5 lg:grid lg:grid-cols-3">
-          {reviews.slice(0, 3).map((review) => (
-            <ReviewCard
-              key={review.name}
-              review={review}
-              isEs={isEs}
-              featured
-            />
+        <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {visibleReviews.map((review, index) => (
+            <ReviewCard key={review.name} review={review} isEs={isEs} featured={index < 3} />
           ))}
         </div>
-
-        <div className="mt-5 hidden gap-5 md:grid md:grid-cols-2 lg:grid">
-          {reviews.slice(3).map((review) => (
-            <ReviewCard key={review.name} review={review} isEs={isEs} />
-          ))}
-        </div>
-
-        <div className="-mx-4 mt-12 flex snap-x gap-4 overflow-x-auto px-4 pb-5 md:hidden">
-          {reviews.map((review, index) => (
-            <div key={review.name} className="min-w-[86%] snap-center">
-              <ReviewCard review={review} isEs={isEs} featured={index < 3} />
-            </div>
-          ))}
+        <div className="mt-8 flex justify-center">
+          <button type="button" onClick={() => setShowAll((value) => !value)} className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-6 py-3 text-sm font-black text-red-200 transition hover:bg-red-500/20" aria-expanded={showAll}>
+            {showAll ? (isEs ? "Mostrar menos" : "Show fewer") : (isEs ? `Ver las ${reviews.length} reseñas` : `See all ${reviews.length} reviews`)}
+            {showAll ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+          </button>
         </div>
 
         <div className="mx-auto mt-10 max-w-4xl rounded-[2rem] border border-red-500/20 bg-gradient-to-br from-red-950/45 via-zinc-950 to-black p-6 text-center shadow-2xl shadow-red-950/20">
@@ -202,32 +272,14 @@ export function ReviewsSection({ lang, title }: { lang: Lang; title: string }) {
 
           <p className="mx-auto mt-2 max-w-2xl text-sm font-semibold text-white/55">
             {isEs
-              ? "Ordena desde la página o visítanos en Houston para probar tacos, tortas, quesadillas, burritos y más."
-              : "Order from the website or visit us in Houston to try tacos, tortas, quesadillas, burritos, and more."}
+              ? "Ordena para recoger mediante Clover o pide a domicilio con DoorDash y Uber Eats."
+              : "Order for pickup through Clover or choose DoorDash or Uber Eats for delivery."}
           </p>
 
-          <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
-            <button
-              onClick={() =>
-                document.getElementById("menu")?.scrollIntoView({
-                  behavior: "smooth",
-                })
-              }
-              className="rounded-full bg-red-600 px-6 py-3 font-black text-white shadow-lg shadow-red-600/20 transition hover:-translate-y-0.5 hover:bg-red-500"
-              type="button"
-            >
-              {isEs ? "Ver menú" : "View menu"}
-            </button>
-
-            <a
-              href="https://www.google.com/search?q=Velasquez+Food+Truck+Houston+reviews"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-white/10 bg-white/[0.06] px-6 py-3 font-black text-white transition hover:-translate-y-0.5 hover:bg-white/[0.10]"
-            >
-              {isEs ? "Dejar reseña" : "Leave a review"}
-            </a>
-          </div>
+          <OrderingButtons lang={lang} className="mt-6" />
+          <a href="https://www.google.com/search?q=Velasquez+Food+Truck+Houston+reviews" target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-red-200 hover:text-red-100">
+            {isEs ? "Dejar reseña en Google" : "Leave a Google review"} <ExternalLink size={15} />
+          </a>
         </div>
       </div>
     </section>
@@ -271,7 +323,7 @@ function ReviewCard({
             <div className="min-w-0">
               <h3 className="truncate font-black text-white">{review.name}</h3>
               <p className="text-xs font-bold text-white/40">
-                {isEs ? review.whenEs : review.whenEn}
+                {relativeReviewDate(review.publishedAt, isEs)}
               </p>
             </div>
           </div>
@@ -318,22 +370,16 @@ function ReviewCard({
           )}
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-2 border-t border-white/10 pt-4 text-center">
-          {["Comida", "Servicio", "Ambiente"].map((label) => (
-            <div key={label} className="rounded-2xl bg-black/25 px-2 py-2">
-              <p className="text-[10px] font-black uppercase text-white/35">
-                {isEs
-                  ? label
-                  : label === "Comida"
-                    ? "Food"
-                    : label === "Servicio"
-                      ? "Service"
-                      : "Atmosphere"}
-              </p>
-              <p className="mt-1 font-black text-red-300">5</p>
-            </div>
-          ))}
-        </div>
+        {Object.keys(review.ratings).length > 0 && (
+          <div className="mt-5 grid grid-cols-3 gap-2 border-t border-white/10 pt-4 text-center">
+            {(["food", "service", "atmosphere"] as const).map((key) => {
+              const rating = review.ratings[key];
+              if (rating === undefined) return null;
+              const labels = { food: isEs ? "Comida" : "Food", service: isEs ? "Servicio" : "Service", atmosphere: isEs ? "Ambiente" : "Atmosphere" };
+              return <div key={key} className="rounded-2xl bg-black/25 px-2 py-2"><p className="text-[10px] font-black uppercase text-white/35">{labels[key]}</p><p className="mt-1 font-black text-red-300">{rating}</p></div>;
+            })}
+          </div>
+        )}
       </div>
     </article>
   );

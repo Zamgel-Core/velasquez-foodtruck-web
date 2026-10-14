@@ -3,14 +3,15 @@
 import {
   AlertTriangle,
   Flame,
-  MessageCircle,
   Navigation,
-  Phone,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { mapsUrl, phone, whatsapp } from "../data/business";
+import { mapsUrl } from "../data/business";
+import { OrderingButtons } from "./OrderingButtons";
+import type { Lang } from "../types";
 
 type HeroProps = {
+  lang: Lang;
   businessStatus: {
     isOpen: boolean;
     isClosingSoon?: boolean;
@@ -27,7 +28,7 @@ type HeroProps = {
   };
 };
 
-export function Hero({ businessStatus, t }: HeroProps) {
+export function Hero({ lang, businessStatus, t }: HeroProps) {
   return (
     <section
       id="home"
@@ -116,23 +117,7 @@ export function Hero({ businessStatus, t }: HeroProps) {
               {t.viewLocation}
             </a>
 
-            <a
-              href={`tel:${phone}`}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-6 py-4 font-black backdrop-blur-sm transition hover:-translate-y-1 hover:scale-105 hover:border-white/25 hover:bg-white/15"
-            >
-              <Phone size={20} />
-              {t.call}
-            </a>
-
-            <a
-              href={whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-green-600 px-6 py-4 font-black shadow-[0_0_25px_rgba(22,163,74,0.25)] transition hover:-translate-y-1 hover:scale-105 hover:bg-green-500 hover:shadow-[0_0_34px_rgba(22,163,74,0.45)]"
-            >
-              <MessageCircle size={20} />
-              WhatsApp
-            </a>
+            <OrderingButtons lang={lang} />
           </motion.div>
         </div>
       </motion.div>

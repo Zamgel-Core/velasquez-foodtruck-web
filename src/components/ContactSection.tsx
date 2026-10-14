@@ -1,13 +1,12 @@
 // 📍 Ruta: src/components/ContactSection.tsx
 
-import { MessageCircle, Phone, Utensils } from "lucide-react";
-import {
-  buildWhatsAppUrl,
-  normalizePhoneForHref,
-  type AdminSettings,
-} from "../features/admin/settings/admin-settings.service";
+import { Utensils } from "lucide-react";
+import { OrderingButtons } from "./OrderingButtons";
+import type { Lang } from "../types";
+import type { AdminSettings } from "../features/admin/settings/admin-settings.service";
 
 type ContactSectionProps = {
+  lang: Lang;
   title: string;
   text: string;
   orderNow: string;
@@ -15,13 +14,12 @@ type ContactSectionProps = {
 };
 
 export function ContactSection({
+  lang,
   title,
   text,
   orderNow,
   settings,
 }: ContactSectionProps) {
-  const telHref = normalizePhoneForHref(settings.phone);
-  const whatsappUrl = buildWhatsAppUrl(settings.whatsapp);
 
   return (
     <section id="contact" className="px-4 py-20">
@@ -33,25 +31,7 @@ export function ContactSection({
         <h2 className="text-4xl font-black">{title}</h2>
         <p className="mx-auto mt-4 max-w-2xl text-white/70">{text}</p>
 
-        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <a
-            href={`tel:${telHref}`}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-4 font-black text-black transition hover:scale-105"
-          >
-            <Phone className="h-5 w-5" />
-            {settings.phone}
-          </a>
-
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-green-600 px-6 py-4 font-black transition hover:scale-105 hover:bg-green-500"
-          >
-            <MessageCircle className="h-5 w-5" />
-            {orderNow}
-          </a>
-        </div>
+        <OrderingButtons lang={lang} className="mt-8" />
       </div>
     </section>
   );

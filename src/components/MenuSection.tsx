@@ -5,17 +5,12 @@ import { useEffect, useMemo } from "react";
 import { categories } from "../data/menu";
 import { useProducts } from "../hooks/useProducts";
 import type { Lang, MenuItem } from "../types";
+import { ORDERING_LINKS } from "../config/ordering";
 
 type MenuSectionProps = {
   lang: Lang;
   activeCategory: string;
   setActiveCategory: (category: string) => void;
-  addItem: (item: {
-    productId: string;
-    name: string;
-    price: number;
-    imageUrl?: string | null;
-  }) => void;
   t: {
     menuTitle: string;
     menuSubtitle: string;
@@ -29,7 +24,6 @@ export function MenuSection({
   lang,
   activeCategory,
   setActiveCategory,
-  addItem,
   t,
 }: MenuSectionProps) {
   const { products, loading } = useProducts();
@@ -227,35 +221,9 @@ export function MenuSection({
                 </div>
 
                 {item.price && (
-                  <button
-                    onClick={() => {
-                      if (!isAvailable) return;
-
-                      addItem({
-                        productId: item.id || item.name,
-                        name:
-                          lang === "en" && item.enName
-                            ? item.enName
-                            : item.name,
-                        price: Number(String(item.price).replace("$", "")),
-                        imageUrl: item.image,
-                      });
-                    }}
-                    disabled={!isAvailable}
-                    className={`mt-4 w-full rounded-full px-4 py-3 text-sm font-black text-white shadow-lg transition ${
-                      isAvailable
-                        ? "bg-red-600 shadow-red-600/15 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-red-500 hover:shadow-red-600/30"
-                        : "cursor-not-allowed bg-zinc-800 text-white/45 shadow-none"
-                    }`}
-                  >
-                    {isAvailable
-                      ? lang === "es"
-                        ? "Agregar al pedido"
-                        : "Add to order"
-                      : lang === "es"
-                        ? "Agotado"
-                        : "Sold out"}
-                  </button>
+                  <a href={ORDERING_LINKS.clover} target="_blank" rel="noopener noreferrer" className="mt-4 block w-full rounded-full bg-red-600 px-4 py-3 text-center text-sm font-black text-white shadow-lg transition hover:bg-red-500">
+                    {lang === "es" ? "Ordenar en Clover" : "Order on Clover"}
+                  </a>
                 )}
               </motion.div>
             );

@@ -15,11 +15,10 @@ import { LoyaltyPromoSection } from "./components/LoyaltyPromoSection";
 import { LocationSection } from "./components/LocationSection";
 import { MenuSection } from "./components/MenuSection";
 import { Navbar } from "./components/Navbar";
+import { OnlineOrderingModal } from "./components/OnlineOrderingModal";
 import type { Lang, LegalModalType } from "./types";
 import { getBusinessStatus } from "./utils/businessStatus";
 import { useBusinessSettings } from "./hooks/useBusinessSettings";
-import { useCart } from "./hooks/useCart";
-import CartDrawer from "./features/cart/components/CartDrawer";
 import { ReviewsSection } from "./components/ReviewsSection";
 import AdminLoginPage from "./features/admin/auth/AdminLoginPage";
 import ProtectedAdminRoute from "./features/admin/auth/ProtectedAdminRoute";
@@ -243,7 +242,6 @@ export default function App() {
     [lang, timeTick, settings.business_hours],
   );
 
-  const cart = useCart();
 
   const t = {
     navHome: lang === "es" ? "Inicio" : "Home",
@@ -276,8 +274,8 @@ export default function App() {
     contactTitle: lang === "es" ? "¿Listo para ordenar?" : "Ready to order?",
     contactText:
       lang === "es"
-        ? "Llámanos o mándanos mensaje por WhatsApp para hacer tu pedido."
-        : "Call us or message us on WhatsApp to place your order.",
+        ? "Elige Clover para ordenar en línea o solicita entrega por DoorDash y Uber Eats."
+        : "Order online through Clover or get delivery with DoorDash and Uber Eats.",
     terms: lang === "es" ? "Términos y condiciones" : "Terms & Conditions",
     privacy: lang === "es" ? "Política de privacidad" : "Privacy Policy",
     food: lang === "es" ? "Aviso de alimentos" : "Food Disclaimer",
@@ -460,7 +458,7 @@ For questions regarding our services or communications, please contact us throug
           t={t}
         />
 
-        <Hero businessStatus={businessStatus} t={t} />
+        <Hero lang={lang} businessStatus={businessStatus} t={t} />
         <FeatureStrip lang={lang} />
 
         <MenuSection
@@ -468,14 +466,6 @@ For questions regarding our services or communications, please contact us throug
           activeCategory={activeCategory}
           setActiveCategory={setActiveCategory}
           t={t}
-          addItem={(item) => {
-            if (settings.sound_enabled) {
-              const audio = new Audio("/sounds/Add_to_cart.mp3");
-              audio.volume = 0.35;
-              audio.play().catch(() => {});
-            }
-            cart.addItem(item);
-          }}
         />
 
         <LoyaltyPromoSection lang={lang} />
@@ -487,6 +477,7 @@ For questions regarding our services or communications, please contact us throug
           settings={settings}
         />
         <ContactSection
+          lang={lang}
           title={t.contactTitle}
           text={t.contactText}
           orderNow={t.orderNow}
@@ -504,17 +495,7 @@ For questions regarding our services or communications, please contact us throug
           />
         )}
 
-        <CartDrawer
-          lang={lang}
-          items={cart.items}
-          subtotal={cart.subtotal}
-          totalItems={cart.totalItems}
-          increaseItem={cart.increaseItem}
-          decreaseItem={cart.decreaseItem}
-          removeItem={cart.removeItem}
-          updateItemNotes={cart.updateItemNotes}
-          clearCart={cart.clearCart}
-        />
+        <OnlineOrderingModal lang={lang} />
       </main>
     </MotionConfig>
   );

@@ -1,8 +1,9 @@
 // 📍 Ruta: src/components/Navbar.tsx
 
 import { useRef } from "react";
-import { Gift, Menu, PackageSearch, X } from "lucide-react";
+import { Gift, Menu, ShoppingBag, X } from "lucide-react";
 import type { Lang } from "../types";
+import { ORDERING_LINKS } from "../config/ordering";
 
 type NavbarProps = {
   lang: Lang;
@@ -128,11 +129,11 @@ export function Navbar({
           </button>
 
           <a
-            href="/mi-pedido"
+            href={ORDERING_LINKS.clover} target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-black text-red-100 transition hover:bg-red-500/20"
           >
-            <PackageSearch className="h-4 w-4" />
-            {lang === "es" ? "Mi Pedido" : "My Order"}
+            <ShoppingBag className="h-4 w-4" />
+            {lang === "es" ? "Ordenar" : "Order Online"}
           </a>
 
           <button
@@ -167,11 +168,11 @@ export function Navbar({
             <button onClick={() => scrollTo("contact")}>{t.navContact}</button>
 
             <a
-              href="/mi-pedido"
+              href={ORDERING_LINKS.clover} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-3 font-black text-red-100"
             >
-              <PackageSearch className="h-4 w-4" />
-              {lang === "es" ? "Mi Pedido" : "My Order"}
+              <ShoppingBag className="h-4 w-4" />
+              {lang === "es" ? "Ordenar" : "Order Online"}
             </a>
 
             <button
