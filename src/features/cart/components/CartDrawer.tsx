@@ -80,7 +80,9 @@ function buildDisplayNotes(item: CartItem, lang: Lang) {
         ? ` +$${item.selectedProtein.extraPrice.toFixed(2)}`
         : "";
 
-    parts.push(`${lang === "es" ? "Proteína" : "Protein"}: ${item.selectedProtein.label}${extra}`);
+    parts.push(
+      `${lang === "es" ? "Proteína" : "Protein"}: ${item.selectedProtein.label}${extra}`,
+    );
   }
 
   if (item.notes?.trim()) {
@@ -149,20 +151,16 @@ export default function CartDrawer({
           { label: "Pollo", extraPrice: 0 },
           { label: "Chorizo", extraPrice: 0 },
           { label: "Fajita", extraPrice: 0 },
-
-          { label: "Barbacoa", extraPrice: 2.5 },
-          { label: "Campechano", extraPrice: 2.5 },
-          { label: "Tripa", extraPrice: 2.5 },
+          { label: "Campechano", extraPrice: 0 },
+          { label: "Tripa", extraPrice: 0 },
         ]
       : [
           { label: "Pastor", extraPrice: 0 },
           { label: "Chicken", extraPrice: 0 },
           { label: "Chorizo", extraPrice: 0 },
           { label: "Fajita", extraPrice: 0 },
-
-          { label: "Barbacoa", extraPrice: 2.5 },
-          { label: "Campechano", extraPrice: 2.5 },
-          { label: "Tripe", extraPrice: 2.5 },
+          { label: "Campechano", extraPrice: 0 },
+          { label: "Tripe", extraPrice: 0 },
         ];
 
   const quickNotes =

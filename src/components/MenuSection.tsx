@@ -135,9 +135,8 @@ export function MenuSection({
               "Fajita",
               "Pastor",
               "Chorizo",
-              "Barbacoa +$2.50",
-              "Campechano +$2.50",
-              lang === "es" ? "Tripa +$2.50" : "Tripe +$2.50",
+              "Campechano",
+              lang === "es" ? "Tripa" : "Tripe",
             ].map((protein) => (
               <span
                 key={protein}

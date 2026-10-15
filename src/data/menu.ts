@@ -17,9 +17,9 @@ export const menuItems: Record<string, MenuItem[]> = {
       name: "Regular Tacos",
       price: "$2.00",
       image: "/images/regular_tacos.png",
-      desc: "Elige proteína: fajita, pollo, pastor o chorizo. Barbacoa, campechano o tripa +$2.50 c/u. Pregunta por chile toreado.",
+      desc: "Elige proteína: fajita, pollo, pastor o chorizo. Campechano o tripa +$ c/u. Pregunta por chile toreado.",
       enDesc:
-        "Choose your protein: fajita, chicken, pastor or chorizo. Barbacoa, campechano or tripe +$2.50 each. Ask for grilled jalapeño.",
+        "Choose your protein: fajita, chicken, pastor or chorizo. Campechano or tripe +$ each. Ask for grilled jalapeno.",
     },
     {
       name: "Mini Tacos",
