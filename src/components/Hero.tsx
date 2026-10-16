@@ -1,11 +1,11 @@
-// 📍 Ruta: src/App.tsx
+// 📍 Ruta: src/components/Hero.tsx
 
 import {
   AlertTriangle,
   Flame,
   Navigation,
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { mapsUrl } from "../data/business";
 import { OrderingButtons } from "./OrderingButtons";
 import type { Lang } from "../types";
@@ -29,6 +29,9 @@ type HeroProps = {
 };
 
 export function Hero({ lang, businessStatus, t }: HeroProps) {
+  const reduceMotion = useReducedMotion();
+  const titleLines = [t.hero1, t.hero2, t.hero3];
+
   return (
     <section
       id="home"
@@ -75,22 +78,39 @@ export function Hero({ lang, businessStatus, t }: HeroProps) {
             </span>
           </div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, delay: 0.12 }}
-            className="max-w-[95vw] text-4xl font-black leading-none tracking-tight min-[380px]:text-5xl sm:text-7xl lg:text-8xl"
-          >
-            {t.hero1}
-            <br />
-
-            <span className="text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)]">
-              {t.hero2}
-            </span>
-
-            <br />
-            {t.hero3}
-          </motion.h1>
+          <h1 className="relative max-w-full text-[clamp(2.5rem,10.2vw,4.3rem)] font-black uppercase leading-[0.98] tracking-[-0.045em] sm:text-7xl lg:text-8xl">
+            {titleLines.map((line, index) => (
+              <motion.span
+                key={`${index}-${line}`}
+                className={`relative block w-fit max-w-full whitespace-nowrap ${
+                  index === 0 ? "text-white" : "text-red-500"
+                }`}
+                initial={reduceMotion ? false : { opacity: 0, y: 22, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ duration: 0.65, delay: reduceMotion ? 0 : 0.14 + index * 0.18 }}
+              >
+                {index > 0 ? (
+                  <motion.span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 select-none text-red-500 blur-[15px]"
+                    initial={false}
+                    animate={reduceMotion ? { opacity: 0.24 } : { opacity: [0.22, 0.52, 0.22] }}
+                    transition={reduceMotion ? undefined : { duration: 3.8, repeat: Infinity, ease: "easeInOut", delay: index * 0.4 }}
+                  >
+                    {line}
+                  </motion.span>
+                ) : null}
+                <span className="relative">{line}</span>
+              </motion.span>
+            ))}
+            <motion.div
+              aria-hidden="true"
+              className="mt-4 h-[3px] w-36 origin-left rounded-full bg-gradient-to-r from-red-600 via-orange-400 to-transparent shadow-[0_0_18px_rgba(239,68,68,0.6)] sm:w-48"
+              initial={reduceMotion ? false : { scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: 1 }}
+              transition={{ duration: 0.8, delay: reduceMotion ? 0 : 0.8 }}
+            />
+          </h1>
 
           <motion.p
             initial={{ opacity: 0, y: 14 }}

@@ -242,7 +242,6 @@ export default function App() {
     [lang, timeTick, settings.business_hours],
   );
 
-
   const t = {
     navHome: lang === "es" ? "Inicio" : "Home",
     navMenu: lang === "es" ? "Menú" : "Menu",
@@ -253,9 +252,9 @@ export default function App() {
     call: lang === "es" ? "Llamar" : "Call",
     viewLocation: lang === "es" ? "Ver Ubicación" : "View Location",
     openNow: businessStatus.label,
-    hero1: lang === "es" ? "LOS MEJORES" : "THE BEST",
-    hero2: lang === "es" ? "TACOS" : "TACOS",
-    hero3: lang === "es" ? "EN HOUSTON" : "IN HOUSTON",
+    hero1: "THE BEST",
+    hero2: "STREET",
+    hero3: "TACOS",
     heroText:
       lang === "es"
         ? "Sabor auténtico, comida hecha al momento y una experiencia mexicana con fuego."
