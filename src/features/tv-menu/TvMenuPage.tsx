@@ -19,6 +19,19 @@ type TvItem = {
   category: string;
 };
 
+const CATEGORY_EN: Record<string, string> = {
+  Tacos: "Tacos",
+  Tortas: "Tortas",
+  Burritos: "Burritos",
+  Quesadillas: "Quesadillas",
+  Antojitos: "Antojitos",
+  Especialidades: "Mexican Favorites",
+  Bebidas: "Drinks",
+  "Hot Dogs": "Hot Dogs",
+  Extras: "Extras",
+};
+const categoryLabel = (category: string) => CATEGORY_EN[category] || category;
+
 const SLIDE_INTERVAL_MS = 8000;
 const ZAMGEL_CORE_LOGO_SRC = "/images/zamgelcore-zc-logo.png";
 
@@ -29,8 +42,8 @@ function normalizeCategory(category: string) {
 function productToTvItem(product: Product): TvItem {
   return {
     id: product.id,
-    name: product.name,
-    desc: product.description || "Auténtico sabor mexicano hecho al momento",
+    name: product.name_en?.trim() || product.name,
+    desc: product.description_en?.trim() || "Freshly made to order",
     price: `$${Number(product.price).toFixed(2)}`,
     image: product.image_url || "/images/food-truck-hero.png",
     category: normalizeCategory(product.category || "Extras"),
@@ -235,7 +248,7 @@ export default function TvMenuPage() {
                 </p>
 
                 <h1 className="text-5xl font-black uppercase leading-none tracking-tight xl:text-6xl">
-                  Menu Digital
+                  Digital Menu
                 </h1>
               </div>
 
@@ -243,7 +256,7 @@ export default function TvMenuPage() {
 
               <div className="hidden xl:block">
                 <p className="text-sm font-black uppercase tracking-[0.25em] text-white/60">
-                  Hecho al momento
+                  Made Fresh to Order
                 </p>
 
                 <p className="text-2xl font-black text-red-400">
@@ -296,7 +309,7 @@ export default function TvMenuPage() {
                     <div>
                       <div className="inline-flex items-center gap-2 rounded-full border border-red-500/25 bg-red-600/20 px-4 py-2 text-sm font-black uppercase tracking-[0.18em] text-red-200">
                         <Flame className="h-4 w-4" />
-                        {activeCategory}
+                        {categoryLabel(activeCategory)}
                       </div>
 
                       <h2 className="mt-4 max-w-4xl text-5xl font-black uppercase leading-[0.9] tracking-tight xl:text-7xl">
@@ -311,7 +324,7 @@ export default function TvMenuPage() {
                     <div className="flex items-end justify-between gap-5">
                       <div>
                         <p className="text-xs font-black uppercase tracking-[0.3em] text-white/50">
-                          Precio
+                          Price
                         </p>
 
                         <p className="text-5xl font-black text-red-400 drop-shadow-[0_0_20px_rgba(249,115,22,0.45)] xl:text-7xl">
@@ -321,7 +334,7 @@ export default function TvMenuPage() {
 
                       <div className="rounded-2xl border border-white/10 bg-white/[0.08] px-5 py-3 text-right backdrop-blur-md">
                         <p className="text-xs font-black uppercase tracking-[0.2em] text-white/55">
-                          Producto {activeItemIndex + 1} de {activeItems.length}
+                          Item {activeItemIndex + 1} of {activeItems.length}
                         </p>
 
                         <p className="text-lg font-black text-white xl:text-2xl">
@@ -333,7 +346,7 @@ export default function TvMenuPage() {
                 </>
               ) : (
                 <div className="flex h-full items-center justify-center text-3xl font-black text-white/50">
-                  {loading ? "Cargando menú..." : "Menú no disponible"}
+                  {loading ? "Loading menu..." : "Menu unavailable"}
                 </div>
               )}
             </motion.div>
@@ -346,12 +359,10 @@ export default function TvMenuPage() {
 
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-200">
-                    Ordena desde tu teléfono
+                    Order from your phone
                   </p>
 
-                  <h3 className="text-2xl font-black uppercase">
-                    Escanea aquí
-                  </h3>
+                  <h3 className="text-2xl font-black uppercase">Scan Here</h3>
                 </div>
               </div>
 
@@ -371,7 +382,7 @@ export default function TvMenuPage() {
             <div className="min-h-0 overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/40 p-3 backdrop-blur-xl">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-xl font-black uppercase">
-                  Más de {activeCategory}
+                  More {categoryLabel(activeCategory)}
                 </h3>
 
                 <Wifi className="h-5 w-5 text-green-300" />
@@ -407,7 +418,7 @@ export default function TvMenuPage() {
                   ))
                 ) : (
                   <p className="text-lg text-white/50">
-                    Esta categoría tiene un producto destacado.
+                    This category has one featured item.
                   </p>
                 )}
               </div>
@@ -418,7 +429,7 @@ export default function TvMenuPage() {
                 <Truck className="h-5 w-5 text-red-400" />
 
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/50">
-                  Se actualiza automáticamente
+                  Updates automatically
                 </p>
 
                 <div className="h-2.5 w-2.5 rounded-full bg-green-400 shadow-[0_0_15px_rgba(74,222,128,0.8)]" />
@@ -460,7 +471,7 @@ export default function TvMenuPage() {
                     : "border-white/10 bg-white/[0.04] text-white/55"
                 }`}
               >
-                {category}
+                {categoryLabel(category)}
               </button>
             ))}
           </footer>
